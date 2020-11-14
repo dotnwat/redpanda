@@ -33,6 +33,8 @@ deb_deps=(
   libxxhash-dev
   python3-venv
   python3-jinja2
+  pkg-config
+  git
 )
 fedora_deps=(
   curl
@@ -48,6 +50,7 @@ fedora_deps=(
 
 case "$ID" in
   ubuntu | debian)
+    apt-get update
     apt-get install -y "${deb_deps[@]}"
     ;;
   fedora)
