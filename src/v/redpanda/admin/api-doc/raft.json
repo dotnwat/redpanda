@@ -1,25 +1,67 @@
-"/v1/raft/{group_id}/transfer_leadership": {
-  "post": {
-    "summary": "transfer raft group leadership",
-    "operationId": "raft_transfer_leadership",
-    "parameters": [
+{
+    "apiVersion": "0.0.1",
+    "swaggerVersion": "1.2",
+    "basePath": "{{Protocol}}://{{Host}}",
+    "resourcePath": "/raft",
+    "produces": [
+        "application/json"
+    ],
+    "apis": [
         {
-            "name": "group_id",
-            "in": "path",
-            "required": true,
-            "type": "integer"
+            "path": "/raft/{group_id}/transfer_leadership",
+            "operations": [
+                {
+                    "method": "POST",
+                    "summary": "transfer raft group leadership",
+                    "type": "void",
+                    "nickname": "raft_transfer_leadership",
+                    "produces": [
+                        "application/json"
+                    ],
+                    "parameters": [
+                        {
+                            "name": "group_id",
+                            "in": "path",
+                            "required": true,
+                            "type": "integer"
+                        },
+                        {
+                            "name": "target",
+                            "in": "query",
+                            "required": false,
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
         },
         {
-            "name":"target",
-            "in":"query",
-            "required":false,
-            "type":"integer"
+            "path": "/raft/{group_id}/transfer_leadership",
+            "operations": [
+                {
+                    "method": "POST",
+                    "summary": "transfer raft group leadership",
+                    "type": "void",
+                    "nickname": "raft_transfer_leadership",
+                    "produces": [
+                        "application/json"
+                    ],
+                    "parameters": [
+                        {
+                            "name": "group_id",
+                            "in": "path",
+                            "required": true,
+                            "type": "integer"
+                        },
+                        {
+                            "name": "target",
+                            "in": "query",
+                            "required": false,
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
         }
-    ],
-    "responses": {
-      "200": {
-        "description": "Raft leadership transfer"
-      }
-    }
-  }
+    ]
 }
