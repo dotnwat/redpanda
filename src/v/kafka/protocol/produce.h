@@ -12,6 +12,8 @@
 #pragma once
 
 #include "kafka/protocol/errors.h"
+#include "kafka/protocol/schemata/produce_request.h"
+#include "kafka/protocol/schemata/produce_response.h"
 #include "kafka/protocol/kafka_batch_adapter.h"
 #include "kafka/server/request_context.h"
 #include "kafka/server/response.h"
@@ -42,39 +44,15 @@ struct produce_response;
 struct produce_request final {
     using api_type = produce_api;
 
-    struct partition {
-        model::partition_id id;
-        // the wire format encodes batch data as a nullable byte array. this
-        // data is moved into the batch adapter immediately after its read.
-        std::optional<iobuf> data;
-        kafka_batch_adapter adapter;
-    };
+    produce_request_data data;
 
-    struct topic {
-        model::topic name;
-        std::vector<partition> partitions;
-    };
+    void encode(response_writer& writer, api_version version) {
+        data.encode(writer, version);
+    }
 
-    std::optional<ss::sstring> transactional_id;
-    int16_t acks;
-    std::chrono::milliseconds timeout;
-    std::vector<topic> topics;
-
-    produce_request(
-      std::optional<ss::sstring> t_id, int16_t acks, std::vector<topic> topics)
-      : transactional_id(std::move(t_id))
-      , acks(acks)
-      , timeout()
-      , topics(std::move(topics)) {}
-
-    produce_request(const produce_request&) = delete;
-    produce_request& operator=(const produce_request&) = delete;
-    produce_request(produce_request&&) = default;
-    produce_request& operator=(produce_request&&) = delete;
-    explicit produce_request(request_context& ctx) { decode(ctx); }
-
-    void encode(response_writer& writer, api_version version);
-    void decode(request_context& ctx);
+    void decode(request_reader& reader, api_version version) {
+        data.decode(reader, version);
+    }
 
     /**
      * Build a generic error response for a given request.
