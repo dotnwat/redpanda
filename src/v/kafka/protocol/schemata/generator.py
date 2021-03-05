@@ -177,6 +177,13 @@ path_type_map = {
             },
         },
     },
+    "ProduceRequestData": {
+        "Topics": {
+            "Partitions": {
+                "Records": ("ss::sstring", "string"),
+            },
+        },
+    },
 }
 
 # a few kafka field types specify an entity type
@@ -265,6 +272,11 @@ STRUCT_TYPES = [
     "DeletableGroupResult",
     "DescribeAclsResource",
     "AclDescription",
+    "TopicProduceResponse",
+    "PartitionProduceResponse",
+    "BatchIndexAndErrorMessage",
+    "TopicProduceData",
+    "PartitionProduceData",
 ]
 
 SCALAR_TYPES = list(basic_type_map.keys())
