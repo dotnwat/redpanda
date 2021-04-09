@@ -13,6 +13,11 @@ from rptest.clients.kafka_cli_tools import KafkaCliTools, AuthenticationError, C
 
 
 class AccessControlListTest(RedpandaTest):
+    """
+    TODO
+      - test deny cases
+      - test implied permissions
+    """
     password = "password"
     algorithm = "SCRAM-SHA-256"
 
@@ -45,9 +50,13 @@ class AccessControlListTest(RedpandaTest):
 
         # base case user is not a superuser and has no configured ACLs
         admin.create_user("base", self.password, self.algorithm)
+        admin.create_user("target", self.password, self.algorithm)
 
         admin.create_user("cluster_describe", self.password, self.algorithm)
         client.create_cluster_acls("cluster_describe", "describe")
+
+        admin.create_user("cluster_alter", self.password, self.algorithm)
+        client.create_cluster_acls("cluster_alter", "alter")
 
     @cluster(num_nodes=3)
     def test_describe_acls(self):
@@ -64,3 +73,27 @@ class AccessControlListTest(RedpandaTest):
 
         self.get_client("cluster_describe").list_acls()
         self.get_super_client().list_acls()
+
+    @cluster(num_nodes=3)
+    def test_create_acls(self):
+        """
+        security::acl_operation::alter, security::default_cluster_name
+        """
+        self.prepare_users()
+
+        try:
+            self.get_client("base").create_cluster_acls("target", "describe")
+            assert False, "create cluster acls should have failed"
+        except ClusterAuthorizationError:
+            pass
+
+        try:
+            self.get_client("cluster_describe").create_cluster_acls(
+                "target", "describe")
+            assert False, "create cluster acls should have failed"
+        except ClusterAuthorizationError:
+            pass
+
+        self.get_client("cluster_alter").create_cluster_acls(
+            "target", "describe")
+        self.get_super_client().create_cluster_acls("target", "alter")
