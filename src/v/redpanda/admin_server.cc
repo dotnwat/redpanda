@@ -815,11 +815,6 @@ void admin_server::register_partition_routes() {
                 fmt::format("Invalid partition id {}", partition));
           }
 
-          if (ns != model::kafka_namespace) {
-              throw ss::httpd::bad_request_exception(
-                fmt::format("Unsupported namespace: {}", ns));
-          }
-
           rapidjson::Document doc;
           if (doc.Parse(req->content.data()).HasParseError()) {
               throw ss::httpd::bad_request_exception(
