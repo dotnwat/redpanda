@@ -100,4 +100,6 @@ COPY --chown=0:0 tests/setup.py /root/tests/
 RUN python3 -m pip install --upgrade --force pip && \
     python3 -m pip install --force --no-cache-dir -e /root/tests/
 
+RUN python3 -m pip install pandas
+
 CMD service ssh start && tail -f /dev/null

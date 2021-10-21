@@ -9,7 +9,7 @@
 
 quick:
   included:
-  - tests/
+  - tests/prefix_truncate_recovery_test.py
 
   excluded:
   - tests/librdkafka_test.py

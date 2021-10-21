@@ -23,6 +23,7 @@ from ducktape.cluster.remoteaccount import RemoteCommandError
 from ducktape.utils.util import wait_until
 from ducktape.cluster.cluster import ClusterNode
 from prometheus_client.parser import text_string_to_metric_families
+import pandas as pd
 
 from rptest.clients.kafka_cat import KafkaCat
 from rptest.services.storage import ClusterStorage, NodeStorage
@@ -467,6 +468,25 @@ class RedpandaService(Service):
         resp = requests.get(url)
         assert resp.status_code == 200
         return text_string_to_metric_families(resp.text)
+
+    def metrics2(self, nodes, family_name, sample_name):
+        data = collections.defaultdict(lambda: [])
+        for node in nodes:
+            node_id = self.idx(node)
+            metrics = self.metrics(node)
+            for family in metrics:
+                if family.name != family_name:
+                    continue
+                for sample in family.samples:
+                    if sample.name != sample_name:
+                        continue
+                    data["family"].append(family.name)
+                    data["sample"].append(sample.name)
+                    data["node"].append(node_id)
+                    data["value"].append(sample.value)
+                    for label in sample.labels:
+                        data[label].append(sample.labels[label])
+        return pd.DataFrame(data)
 
     def read_configuration(self, node):
         assert node in self._started

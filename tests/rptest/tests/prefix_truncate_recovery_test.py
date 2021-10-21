@@ -23,6 +23,13 @@ class PrefixTruncateRecoveryTest(RedpandaTest):
     """
     Verify that a kafka log that's been prefix truncated due to retention policy
     eventually converges with other raft group nodes.
+
+    The high-level strategy for this test is to:
+
+       1. Write some data into a three node cluster and wait for this data to be
+       fully replicated on all nodes.
+
+       2. jj
     """
     topics = (TopicSpec(cleanup_policy=TopicSpec.CLEANUP_DELETE), )
 
@@ -39,24 +46,80 @@ class PrefixTruncateRecoveryTest(RedpandaTest):
                              extra_rp_conf=extra_rp_conf)
 
         self.kafka_tools = KafkaCliTools(self.redpanda)
+        self.deleted = None
+
+    def fully_replicated(self, nodes):
+        df = self.redpanda.metrics2(nodes, "vectorized_cluster_partition_under_replicated_replicas", "vectorized_cluster_partition_under_replicated_replicas")
+        df = df[df['namespace'] == "kafka"]
+        df = df[df['topic'] == self.topic]
+        return (df["value"] == 0).all()
+
+        assert len(df) == len(nodes)
+
+    def produce_until_reclaim(self, stopped_node, acks):
+        assert self.redpanda.nodes[0] == stopped_node
+
+        df = self.redpanda.metrics2(self.redpanda.nodes[1:], "vectorized_storage_log_log_segments_removed", "vectorized_storage_log_log_segments_removed_total")
+        df = df[df['namespace'] == "kafka"]
+        df = df[df['topic'] == self.topic]
+        assert len(df) == 2
+
+        if self.deleted is None:
+            self.deleted = max(df['value'])
+
+        print("XXX", self.deleted)
+        print(df["value"])
+
+        if (df['value'] > (self.deleted + 3)).all():
+            return True
+
+        self.kafka_tools.produce(self.topic, 1024, 1024, acks=acks)
+        return False
 
     @cluster(num_nodes=3)
-    @ignore  #  https://github.com/vectorizedio/redpanda/issues/2460
     @matrix(acks=[-1, 1])
     def test_prefix_truncate_recovery(self, acks):
-        # produce a little data
-        self.kafka_tools.produce(self.topic, 1024, 1024, acks=acks)
+        # produce data into topic and wait until its fully replicated. this
+        # isn't important other than to establish that the system initially
+        # appears to be healthy at the start of the test.
+        self.kafka_tools.produce(self.topic, 2048, 1024, acks=acks)
+        wait_until(lambda: self.fully_replicated(self.redpanda.nodes),
+                timeout_sec=30,
+                backoff_sec=5)
+
+        # stop an unfortunate node
+        stopped_node = self.redpanda.nodes[0]
+        self.redpanda.stop_node(stopped_node)
+
+        # produce data into the topic until segments are reclaimed
+        # by the configured retention policy
+        wait_until(lambda: self.produce_until_reclaim(stopped_node, acks),
+                timeout_sec=60,
+                backoff_sec=5)
+
+        # at this point the partition should be under replicated
+        wait_until(lambda: not self.fully_replicated(self.redpanda.nodes[1:]),
+                timeout_sec=5,
+                backoff_sec=1)
+
+        # finally restart the node and wait until fully replicated
+        self.redpanda.start_node(stopped_node)
+        wait_until(lambda: self.fully_replicated(self.redpanda.nodes),
+                timeout_sec=60,
+                backoff_sec=5)
 
         # stop one of the nodes
-        node = self.redpanda.controller()
-        self.redpanda.stop_node(node)
+        #node = self.redpanda.controller()
+
+        #self.kafka_tools.produce(self.topic, 1024, 1024, acks=acks)
+
+
 
         # produce data to the topic until we observe that the retention policy
         # has kicked in and one or more segments has been deleted.
-        self.produce_until_deleted(node)
+        #self.produce_until_deleted(node)
 
-        self.redpanda.start_node(node)
-        self.verify_recovery(node)
+        #self.verify_recovery(node)
 
     def produce_until_deleted(self, ignore_node):
         partitions = {}
