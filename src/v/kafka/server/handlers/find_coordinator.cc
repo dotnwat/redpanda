@@ -72,6 +72,9 @@ ss::future<response_ptr> find_coordinator_handler::handle(
     find_coordinator_request request;
     request.decode(ctx.reader(), ctx.header().version);
 
+    /*
+     * TOI-TV: different types of coordinators
+     */
     if (request.data.key_type == coordinator_type::transaction) {
         if (!ctx.are_transactions_enabled()) {
             return ctx.respond(
@@ -98,6 +101,9 @@ ss::future<response_ptr> find_coordinator_handler::handle(
           find_coordinator_response(error_code::unsupported_version));
     }
 
+    /*
+     * TOI-TV: group coordinator authorization
+     */
     if (request.data.key_type == coordinator_type::group) {
         if (!ctx.authorized(
               security::acl_operation::describe, group_id(request.data.key))) {
@@ -117,9 +123,7 @@ ss::future<response_ptr> find_coordinator_handler::handle(
       std::move(ctx),
       [request = std::move(request)](request_context& ctx) mutable {
           /*
-           * map the group to a target ntp. this may fail because the internal
-           * metadata topic doesn't exist. in this case fall through and create
-           * the topic on-demand.
+           * TOI-TV: map the group to a partition
            */
           if (auto ntp = ctx.coordinator_mapper().ntp_for(
                 kafka::group_id(request.data.key));
@@ -127,6 +131,11 @@ ss::future<response_ptr> find_coordinator_handler::handle(
               return handle_ntp(ctx, std::move(ntp));
           }
 
+          /*
+           * TOI-TV:
+           *   - it may be that that the internal topic needs to be created!
+           *   - if so, the above calculation is repeated after creation
+           */
           return try_create_consumer_group_topic(
                    ctx.coordinator_mapper(), ctx.topics_frontend())
             .then([&ctx, request = std::move(request)](bool created) {

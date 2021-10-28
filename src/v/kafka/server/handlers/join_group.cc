@@ -40,6 +40,12 @@ ss::future<response_ptr> join_group_handler::handle(
     join_group_request request;
     decode_request(ctx, request);
 
+    /*
+     * TOI-TV: static membership is unsupported
+     *
+     * - Roughly versions 2.4/2.5 of Kafka
+     * - But not everything is supported
+     */
     if (request.data.group_instance_id) {
         co_return co_await ctx.respond(
           join_group_response(error_code::unsupported_version));
@@ -50,6 +56,9 @@ ss::future<response_ptr> join_group_handler::handle(
           join_group_response(error_code::group_authorization_failed));
     }
 
+    /*
+     * TOI-TV: route the request to the correct core
+     */
     auto resp = co_await ctx.groups().join_group(std::move(request));
     co_return co_await ctx.respond(std::move(resp));
 }

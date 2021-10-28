@@ -443,6 +443,9 @@ group::handle_join_group(join_group_request&& r, bool is_new_group) {
       join_group_response(error_code::none));
 
     if (r.data.member_id == unknown_member_id) {
+        /*
+         * TOI-TV: let's join. there are several cases
+         */
         ret = join_group_unknown_member(std::move(r));
     } else {
         ret = join_group_known_member(std::move(r));
@@ -488,6 +491,17 @@ group::join_group_unknown_member(join_group_request&& r) {
         return make_join_error(
           unknown_member_id, error_code::coordinator_not_available);
 
+    /*
+     * TOI-TV: verify protocols
+     *
+     *   - Basically this says: make sure that all group members all agree that
+     *   they are working on the same instance type of the group membership api.
+     *
+     *   - For example: if a schema registry client expects to join a group
+     *   managing leadership election, but joins a group where the other members
+     *   are dividing up consumer work, the schema registry client won't
+     *   understand the sub-protocol.
+     */
     } else if (!supports_protocols(r)) {
         return make_join_error(
           unknown_member_id, error_code::inconsistent_group_protocol);
@@ -627,6 +641,14 @@ group::join_group_known_member(join_group_request&& r) {
     __builtin_unreachable();
 }
 
+/*
+ * TOI-TV:
+ *
+ *  - When a member shows up existing members may need to be bounced so that the
+ *  whole group can rebalance
+ *
+ *  - This goes on and on... implemeting the state machine
+ */
 ss::future<join_group_response> group::add_member_and_rebalance(
   kafka::member_id member_id, join_group_request&& r) {
     auto member = ss::make_lw_shared<group_member>(
@@ -1113,7 +1135,14 @@ group::handle_sync_group(sync_group_request&& r) {
     __builtin_unreachable();
 }
 
+/*
+ * TOI-TV: checkpoints packaged into a normal record batch
+ */
 model::record_batch group::checkpoint(const assignments_type& assignments) {
+
+    /*
+     * TOI-TV: first the group metadata
+     */
     group_log_group_metadata gr;
 
     gr.protocol_type = protocol_type().value_or(kafka::protocol_type(""));
@@ -1125,6 +1154,9 @@ model::record_batch group::checkpoint(const assignments_type& assignments) {
                            state_timestamp)
                            .count();
 
+    /*
+     * TOI-TV: then all the group members state
+     */
     for (const auto& it : _members) {
         auto& member = it.second;
         auto state = it.second->state().copy();
@@ -1137,6 +1169,10 @@ model::record_batch group::checkpoint(const assignments_type& assignments) {
     cluster::simple_batch_builder builder(
       model::record_batch_type::raft_data, model::offset(0));
 
+    /*
+     * TOI-TV: record key is the group-id, which let's us use compaction to
+     * automatically garbage collect old versions of group state
+     */
     group_log_record_key key{
       .record_type = group_log_record_key::type::group_metadata,
       .key = reflection::to_iobuf(_id),
@@ -1173,6 +1209,9 @@ ss::future<sync_group_response> group::sync_group_completing_rebalance(
     auto assignments = std::move(r).member_assignments();
     add_missing_assignments(assignments);
 
+    /*
+     * TOI-TV: build a checkpoint
+     */
     auto batch = checkpoint(assignments);
     auto reader = model::make_memory_record_batch_reader(std::move(batch));
 

@@ -47,6 +47,13 @@ public:
       : _md(md)
       , _tp_ns(model::kafka_internal_namespace, model::kafka_group_topic) {}
 
+    /*
+     * TOI-TV:
+     *  - num_partitions = num_partitions(consumer_group_topic)
+     *  - h = hash(group-id)
+     *  - p = h % num_partitions
+     *  - return p
+     */
     std::optional<model::ntp> ntp_for(const kafka::group_id& group) const {
         auto md = _md.local().get_topic_metadata(_tp_ns);
         if (!md) {

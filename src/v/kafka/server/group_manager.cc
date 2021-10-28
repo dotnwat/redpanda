@@ -41,9 +41,7 @@ group_manager::group_manager(
 
 ss::future<> group_manager::start() {
     /*
-     * receive notifications when group-metadata partitions come under
-     * management on this core. note that the notify callback will be
-     * synchronously invoked for all existing partitions that match the query.
+     * TOI-TV: register for when a partition is managed by *this* node
      */
     _manage_notify_handle = _pm.local().register_manage_notification(
       model::kafka_internal_namespace,
@@ -61,9 +59,7 @@ ss::future<> group_manager::start() {
       });
 
     /*
-     * receive notifications for partition leadership changes. when we become a
-     * leader we recovery. when we become a follower (or the partition is
-     * mapped to another node/core) the in-memory cache may be cleared.
+     * TOI-TV: when partition leadership changes we can GC in memory state
      */
     _leader_notify_handle = _gm.local().register_leadership_notification(
       [this](
@@ -77,9 +73,8 @@ ss::future<> group_manager::start() {
       });
 
     /*
-     * subscribe to topic modification events. In particular, when a topic is
-     * deleted, consumer group metadata associated with the affected partitions
-     * are cleaned-up.
+     * TOI-TV: for *consumer groups* we can delete metadata associated with
+     * topics when the topics are deleted
      */
     _topic_table_notify_handle
       = _topic_table.local().register_delta_notification(
@@ -210,6 +205,9 @@ void group_manager::handle_leader_change(
   ss::lw_shared_ptr<cluster::partition> part,
   std::optional<model::node_id> leader) {
     (void)with_gate(_gate, [this, term, part = std::move(part), leader] {
+        /*
+         * TOI-TV: grab a lock around the partition while we recover
+         */
         if (auto it = _partitions.find(part->ntp()); it != _partitions.end()) {
             /*
              * In principle a race could occur by which a validate_group_status
@@ -229,6 +227,9 @@ void group_manager::handle_leader_change(
             }
             return ss::with_semaphore(
               it->second->sem, 1, [this, term, p = it->second, leader] {
+                  /*
+                   * TOI-TV:
+                   */
                   return handle_partition_leader_change(term, p, leader);
               });
         }
@@ -315,10 +316,16 @@ ss::future<> group_manager::handle_partition_leader_change(
                   std::nullopt,
                   std::nullopt);
 
+                /*
+                 * TOI-TV: start replaying the log
+                 */
                 return p->partition->make_reader(reader_config)
                   .then([this, term, p, timeout](
                           model::record_batch_reader reader) {
                       return std::move(reader)
+                        /*
+                         * TOI-TV: Replay the log into a recovery bathc consumer
+                         */
                         .consume(recovery_batch_consumer(p->as), timeout)
                         .then([this, term, p](
                                 recovery_batch_consumer_state state) {
@@ -337,9 +344,7 @@ ss::future<> group_manager::handle_partition_leader_change(
 }
 
 /*
- * TODO: this routine can be improved from a copy vs move perspective, but is
- * rather complicated at the moment to start having to also analyze all the data
- * dependencies that would support optimizing for moves.
+ * TOI-TV: we replayed the log and now have lots of group metadata to install
  */
 ss::future<> group_manager::recover_partition(
   model::term_id term,
@@ -360,6 +365,10 @@ ss::future<> group_manager::recover_partition(
                   group_id, group_state::empty, _conf, p->partition);
                 group->reset_tx_state(term);
                 _groups.emplace(group_id, group);
+                /*
+                 * TOI-TV: once we rehydrate the group all the members
+                 * heartbeats need to be setup again
+                 */
                 group->reschedule_all_member_heartbeats();
             }
 
@@ -379,6 +388,9 @@ ss::future<> group_manager::recover_partition(
         }
     }
 
+    /*
+     * TOI-TV: transaction stuff!
+     */
     for (auto& [group_id, group_stm] : ctx.groups) {
         if (group_stm.prepared_txs().size() == 0) {
             continue;
@@ -523,12 +535,18 @@ recovery_batch_consumer::operator()(model::record_batch batch) {
     }
 }
 
+/*
+ * TOI-TV: break down each batch type
+ */
 ss::future<> recovery_batch_consumer::handle_record(model::record r) {
     auto key = reflection::adl<group_log_record_key>{}.from(r.share_key());
     auto value = r.has_value() ? r.release_value() : std::optional<iobuf>();
 
     switch (key.record_type) {
     case group_log_record_key::type::group_metadata:
+        /*
+         * TOI-TV: today we're looking at basic group recovery
+         */
         return handle_group_metadata(std::move(key.key), std::move(value));
 
     case group_log_record_key::type::offset_commit:
@@ -554,16 +572,22 @@ ss::future<> recovery_batch_consumer::handle_group_metadata(
     vlog(klog.trace, "Recovering group metadata {}", group_id);
 
     if (val_buf) {
-        // until we switch over to a compacted topic or use raft snapshots,
-        // always take the latest entry in the log.
+        /*
+         * TOI-TV: with a valid value we have some group metadata!
+         */
 
         auto metadata = reflection::from_iobuf<group_log_group_metadata>(
           std::move(*val_buf));
 
+        /*
+         * TOI-TV: so track it
+         */
         auto [group_it, _] = st.groups.try_emplace(group_id, group_stm());
         group_it->second.overwrite_metadata(std::move(metadata));
     } else {
-        // tombstone
+        /*
+         * TOI-TV: a null value means: group was removed.
+         */
         auto [group_it, _] = st.groups.try_emplace(group_id, group_stm());
         group_it->second.remove();
     }
@@ -596,14 +620,26 @@ ss::future<> recovery_batch_consumer::handle_offset_metadata(
     return ss::make_ready_future<>();
 }
 
+/*
+ * TOI-TV: join_group handler on the destination core
+ */
 ss::future<join_group_response>
 group_manager::join_group(join_group_request&& r) {
+    /*
+     * TOI-TV:
+     *
+     * - Check if the underlying partition is ready
+     */
     auto error = validate_group_status(
       r.ntp, r.data.group_id, join_group_api::key);
+
     if (error != error_code::none) {
         return make_join_error(r.data.member_id, error);
     }
 
+    /*
+     * TOI-TV: request validation
+     */
     if (
       r.data.session_timeout_ms < _conf.group_min_session_timeout_ms()
       || r.data.session_timeout_ms > _conf.group_max_session_timeout_ms()) {
@@ -620,6 +656,9 @@ group_manager::join_group(join_group_request&& r) {
           r.data.member_id, error_code::invalid_session_timeout);
     }
 
+    /*
+     * TOI-TV: does the group already exist?
+     */
     bool is_new_group = false;
     auto group = get_group(r.data.group_id);
     if (!group) {
@@ -651,6 +690,9 @@ group_manager::join_group(join_group_request&& r) {
             return make_join_error(
               r.data.member_id, error_code::not_coordinator);
         }
+        /*
+         * TOI-TV: create a new group
+         */
         auto p = it->second->partition;
         group = ss::make_lw_shared<kafka::group>(
           r.data.group_id, group_state::empty, _conf, p);
@@ -661,6 +703,9 @@ group_manager::join_group(join_group_request&& r) {
         vlog(klog.trace, "Created new group {} while joining", r.data.group_id);
     }
 
+    /*
+     * TOI-TV: either join an existing group or join the new group
+     */
     return group->handle_join_group(std::move(r), is_new_group)
       .finally([group] {});
 }

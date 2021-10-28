@@ -54,14 +54,21 @@ class group_router final {
           Request&&>;
         using resp_type = typename return_type::value_type;
 
+        /*
+         * TOI-TV: two level sharding (partition then shard)
+         */
         auto m = shard_for(r.data.group_id);
         if (!m) {
             return ss::make_ready_future<resp_type>(
               resp_type(r, error_code::not_coordinator));
         }
         r.ntp = std::move(m->first);
+
         return with_scheduling_group(
           _sg, [this, func, shard = m->second, r = std::move(r)]() mutable {
+              /*
+               * TOI-TV: cross core operation
+               */
               return _group_manager.invoke_on(
                 shard,
                 _ssg,
@@ -115,6 +122,16 @@ public:
       , _shards(shards)
       , _coordinators(coordinators) {}
 
+    /*
+     * TOI-TV: Routing an operation is a two step process.
+     *
+     * - First, the coordinator key is mapped to its associated ntp using the
+     *   coordinator_ntp_mapper. Same as find_coordinator
+     *
+     * - Then find out which shard / core on this node manages the partition
+     *
+     * - Finally, route the request to the destination core
+     */
     auto join_group(join_group_request&& request) {
         return route(std::move(request), &group_manager::join_group);
     }
