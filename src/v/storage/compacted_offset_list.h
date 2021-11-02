@@ -15,7 +15,7 @@
 #include "vassert.h"
 
 #include <bits/stdint-uintn.h>
-#include <roaring/roaring.hh>
+#include <roaring.hh>
 namespace storage::internal {
 
 /// This class contains batches of *individual* records. That is you take the

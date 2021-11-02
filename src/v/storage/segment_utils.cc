@@ -51,7 +51,7 @@
 #include <absl/container/btree_map.h>
 #include <absl/container/flat_hash_map.h>
 #include <fmt/core.h>
-#include <roaring/roaring.hh>
+#include <roaring.hh>
 
 namespace storage::internal {
 using namespace storage; // NOLINT

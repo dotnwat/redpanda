@@ -65,8 +65,8 @@ set(ROARING_DISABLE_AVX ON CACHE BOOL "")# we target -march=westmere which doesn
 set(ROARING_DISABLE_NATIVE ON)
 FetchContent_Declare(
   roaring
-  GIT_REPOSITORY https://github.com/vectorizedio/CRoaring.git
-  GIT_TAG 7b9c83740d4f764941d38144cc8e2122076e38e4
+  GIT_REPOSITORY https://github.com/RoaringBitmap/CRoaring.git
+  GIT_TAG 9809c8e60a5ca8f9175fe30831a9047eb2e60861
 )
 
 FetchContent_MakeAvailable(seastar abseil hdr_histogram crc32c roaring)

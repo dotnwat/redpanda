@@ -25,7 +25,7 @@
 #include <seastar/core/rwlock.hh>
 #include <seastar/core/shared_ptr.hh>
 
-#include <roaring/roaring.hh>
+#include <roaring.hh>
 
 namespace storage::internal {
 
