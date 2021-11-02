@@ -194,7 +194,7 @@ size_t number_of_chunks_from_config(const ntp_config& ntpc) {
     return def;
 }
 
-ss::future<Roaring>
+ss::future<roaring::Roaring>
 natural_index_of_entries_to_keep(compacted_index_reader reader) {
     reader.reset();
     return reader.consume(compaction_key_reducer(), model::no_timeout);
@@ -202,7 +202,7 @@ natural_index_of_entries_to_keep(compacted_index_reader reader) {
 
 ss::future<> copy_filtered_entries(
   compacted_index_reader reader,
-  Roaring to_copy_index,
+  roaring::Roaring to_copy_index,
   compacted_index_writer writer) {
     return ss::do_with(
       std::move(writer),
@@ -225,7 +225,7 @@ ss::future<> copy_filtered_entries(
 static ss::future<> do_write_clean_compacted_index(
   compacted_index_reader reader, compaction_config cfg) {
     return natural_index_of_entries_to_keep(reader).then([reader,
-                                                          cfg](Roaring bitmap) {
+                                                          cfg](roaring::Roaring bitmap) {
         const auto tmpname = std::filesystem::path(
           fmt::format("{}.staging", reader.filename()));
         return make_handle(
