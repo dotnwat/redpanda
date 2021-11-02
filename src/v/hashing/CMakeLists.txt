@@ -1,5 +1,6 @@
 find_package(xxHash REQUIRED)
-find_package(Crc32c REQUIRED)
+#find_package(Crc32c REQUIRED)
+
 v_cc_library(
   NAME rphashing
   SRCS murmur.cc
@@ -7,9 +8,10 @@ v_cc_library(
     -Wno-implicit-fallthrough
   DEPS
     xxHash::xxhash
-    Crc32c::crc32c
+    crc32c
   DEFINES
     -DXXH_PRIVATE_API
+  PUBLIC
 )
 
-add_subdirectory(tests)
+#add_subdirectory(tests)

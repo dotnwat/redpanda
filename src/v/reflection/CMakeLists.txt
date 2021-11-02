@@ -9,4 +9,4 @@ v_cc_library (
     Seastar::seastar
 ) 
 
-add_subdirectory(test)
+#add_subdirectory(test)

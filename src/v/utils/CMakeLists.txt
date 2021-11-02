@@ -15,4 +15,4 @@ v_cc_library(
     v::rphashing
     v::rprandom
     v::bytes)
-add_subdirectory(tests)
+#add_subdirectory(tests)

@@ -39,9 +39,9 @@ v_cc_library(
     v::finjector
     v::model
   )
-add_subdirectory(tests)
-add_subdirectory(tron)
-add_subdirectory(kvelldb)
+#add_subdirectory(tests)
+#add_subdirectory(tron)
+#add_subdirectory(kvelldb)
 
 set_source_files_properties(
     consensus.cc # too big => negative impact on minimal rebuilds for unity

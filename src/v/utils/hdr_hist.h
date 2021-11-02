@@ -24,7 +24,7 @@
 #include <seastar/core/temporary_buffer.hh>
 
 #include <boost/intrusive/list.hpp>
-#include <hdr/hdr_histogram.h>
+#include <hdr_histogram.h>
 
 #include <chrono>
 #include <memory>

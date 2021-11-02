@@ -7,4 +7,4 @@ v_cc_library(
   DEPS
     Seastar::seastar
   )
-add_subdirectory(tests)
+#add_subdirectory(tests)

@@ -27,4 +27,4 @@ v_cc_library(
     -DZSTD_STATIC_LINKING_ONLY
 )
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
