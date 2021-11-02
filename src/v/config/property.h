@@ -125,8 +125,6 @@ public:
 template<typename T>
 class clamped_property : public property<T> {
 public:
-    using property<T>::property;
-
     clamped_property(
       config_store& conf,
       std::string_view name,

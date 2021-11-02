@@ -9,6 +9,24 @@ Set(FETCHCONTENT_QUIET FALSE)
 
 include(FetchContent)
 
+
+#set(Seastar_CXX_FLAGS=${seastar_cxx_flags}
+#set(DSeastar_LD_FLAGS=${seastar_ld_flags}"
+#set(Seastar_DPDK_MACHINE=wsm
+#set(Boost_USE_STATIC_LIBS OFF CACHE BOOL "")
+#set(Boost_NO_BOOST_CMAKE ON CACHE BOOL "")
+#set(Boost_NO_SYSTEM_PATHS TRUE CACHE BOOL "")
+#set(Protobuf_USE_STATIC_LIBS ON CACHE BOOL "")
+set(Seastar_INSTALL ON CACHE BOOL "")
+set(Seastar_DPDK OFF CACHE BOOL "")
+set(Seastar_APPS ON CACHE BOOL "")
+set(Seastar_DEMOS OFF CACHE BOOL "")
+set(Seastar_DOCS OFF CACHE BOOL "")
+set(Seastar_TESTING OFF CACHE BOOL "")
+set(Seastar_API_LEVEL 6)
+set(Seastar_CXX_DIALECT c++20)
+set(Seastar_UNUSED_RESULT_ERROR ON CACHE BOOL "")
+
 FetchContent_Declare(
   seastar
   GIT_REPOSITORY https://github.com/vectorizedio/seastar.git
@@ -40,13 +58,18 @@ FetchContent_Declare(
   URL_MD5 a4fd05e928a44ed8ae61a6a8b92935f9
 )
 
+set(ENABLE_ROARING_TESTS OFF CACHE BOOL "")
+set(ROARING_BUILD_STATIC ON CACHE BOOL "")
+set(ROARING_DISABLE_NEON ON CACHE BOOL "") # we target -march=westmere which doesn't have avx
+set(ROARING_DISABLE_AVX ON CACHE BOOL "")# we target -march=westmere which doesn't have avx
+set(ROARING_DISABLE_NATIVE ON)
 FetchContent_Declare(
-  base64
-  URL https://storage.googleapis.com/vectorizedio-public/dependencies/base64-eaebee8.tar.xz
-  URL_MD5 1fd5d4d053cc08c11f20e48188a28063
+  roaring
+  GIT_REPOSITORY https://github.com/vectorizedio/CRoaring.git
+  GIT_TAG 7b9c83740d4f764941d38144cc8e2122076e38e4
 )
 
-FetchContent_MakeAvailable(seastar abseil hdr_histogram crc32c base64)
+FetchContent_MakeAvailable(seastar abseil hdr_histogram crc32c roaring)
 
 add_subdirectory(src)
 

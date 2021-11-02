@@ -23,6 +23,7 @@ v_cc_library(
     LZ4::LZ4
     Snappy::snappy
     ZLIB::ZLIB
+    absl::base
   DEFINES
     -DZSTD_STATIC_LINKING_ONLY
 )

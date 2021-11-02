@@ -10,4 +10,4 @@ v_cc_library(
     v::model
    boost_filesystem
 )
-add_subdirectory(tests)
+#add_subdirectory(tests)

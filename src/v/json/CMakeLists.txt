@@ -6,4 +6,4 @@ v_cc_library(
     Seastar::seastar
 )
 
-add_subdirectory(tests)
+#add_subdirectory(tests)

@@ -1,5 +1,8 @@
 find_package(Hdrhistogram)
 find_package(Base64)
+
+# Base64::base64
+# find_package(Base64)
 v_cc_library(
   NAME utils
   SRCS
@@ -10,9 +13,9 @@ v_cc_library(
     retry_chain_node.cc
   DEPS
     Seastar::seastar
-    Hdrhistogram::hdr_histogram
-    Base64::base64
+    hdr_histogram_static
     v::rphashing
     v::rprandom
     v::bytes)
+
 #add_subdirectory(tests)

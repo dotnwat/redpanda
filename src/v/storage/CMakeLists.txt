@@ -1,4 +1,5 @@
-find_package(Roaring REQUIRED)
+#find_package(Roaring REQUIRED)
+
 v_cc_library(
   NAME storage
   SRCS
@@ -44,14 +45,14 @@ v_cc_library(
     v::rprandom
     absl::flat_hash_map
     absl::btree
-    Roaring::roaring
+    roaring
   PUBLIC
 )
 
-add_subdirectory(tests)
-add_subdirectory(opfuzz)
+#add_subdirectory(tests)
+#add_subdirectory(opfuzz)
 
-set_source_files_properties(
-    disk_log_impl.cc # too big => negative impact on minimal rebuilds for unity
-    segment.cc # too big => negative impact on minimal rebuilds for unity
-  PROPERTIES SKIP_UNITY_BUILD_INCLUSION 1)
+#set_source_files_properties(
+#    disk_log_impl.cc # too big => negative impact on minimal rebuilds for unity
+#    segment.cc # too big => negative impact on minimal rebuilds for unity
+#  PROPERTIES SKIP_UNITY_BUILD_INCLUSION 1)

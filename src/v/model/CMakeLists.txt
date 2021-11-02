@@ -13,4 +13,4 @@ v_cc_library(
     v::reflection
     Seastar::seastar
   )
-add_subdirectory(tests)
+#add_subdirectory(tests)

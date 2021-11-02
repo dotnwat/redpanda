@@ -2,7 +2,9 @@ include(CMakeParseArguments)
 
 set(V_CXX_STANDARD 20)
 set(V_DEFAULT_LINKOPTS)
-set(V_DEFAULT_COPTS -Wall -Wextra -Werror -Wno-missing-field-initializers)
+set(V_DEFAULT_COPTS -Wall -Wextra -Werror -Wno-missing-field-initializers
+    -Wno-unused-parameter -Wno-ignored-qualifiers -Wno-unused-variable
+    -Wno-uninitialized)
 set(V_COMMON_INCLUDE_DIRS
   "${PROJECT_SOURCE_DIR}/src/v")
 # v_cc_library()

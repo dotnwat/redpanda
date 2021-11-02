@@ -6,5 +6,6 @@ v_cc_library(
     "iobuf.cc"
   DEPS
     Seastar::seastar
+    absl::base
   )
 #add_subdirectory(tests)
