@@ -1,4 +1,4 @@
-find_package(Roaring REQUIRED)
+#find_package(Roaring REQUIRED)
 include(rpcgen)
 rpcgen(
   TARGET controller_rpc
@@ -85,9 +85,9 @@ v_cc_library(
     id_allocator_rpc
     tx_gateway_rpc
     v::raft
-    Roaring::roaring
+    roaring
     absl::flat_hash_map
     v::model
     v::v8_engine
   )
-add_subdirectory(tests)
+#add_subdirectory(tests)

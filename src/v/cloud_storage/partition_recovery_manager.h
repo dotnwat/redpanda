@@ -92,7 +92,7 @@ private:
 
     struct recovery_material {
         std::vector<remote_manifest_path> paths;
-        topic_manifest topic_manifest;
+        cloud_storage::topic_manifest topic_manifest;
     };
 
     /// Locate all data needed to recover single partition
