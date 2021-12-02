@@ -22,6 +22,71 @@
 
 #include <optional>
 
+namespace {
+namespace serde_compat {
+
+std::optional<storage::index_state> read_index_state_v3(iobuf_parser& parser) {
+    storage::index_state retval;
+
+    retval.size = reflection::adl<uint32_t>{}.from(parser);
+    if (unlikely(parser.bytes_left() != retval.size)) {
+        vlog(
+          storage::stlog.debug,
+          "Index size does not match header size. Got:{}, expected:{}",
+          parser.bytes_left(),
+          retval.size);
+        return std::nullopt;
+    }
+
+    retval.checksum = reflection::adl<uint64_t>{}.from(parser);
+    retval.bitflags = reflection::adl<uint32_t>{}.from(parser);
+    retval.base_offset = model::offset(
+      reflection::adl<model::offset::type>{}.from(parser));
+    retval.max_offset = model::offset(
+      reflection::adl<model::offset::type>{}.from(parser));
+    retval.base_timestamp = model::timestamp(
+      reflection::adl<model::timestamp::type>{}.from(parser));
+    retval.max_timestamp = model::timestamp(
+      reflection::adl<model::timestamp::type>{}.from(parser));
+
+    const uint32_t vsize = ss::le_to_cpu(
+      reflection::adl<uint32_t>{}.from(parser));
+
+    for (auto i = 0U; i < vsize; ++i) {
+        retval.relative_offset_index.push_back(
+          reflection::adl<uint32_t>{}.from(parser));
+    }
+
+    for (auto i = 0U; i < vsize; ++i) {
+        retval.relative_time_index.push_back(
+          reflection::adl<uint32_t>{}.from(parser));
+    }
+
+    for (auto i = 0U; i < vsize; ++i) {
+        retval.position_index.push_back(
+          reflection::adl<uint64_t>{}.from(parser));
+    }
+
+    retval.relative_offset_index.shrink_to_fit();
+    retval.relative_time_index.shrink_to_fit();
+    retval.position_index.shrink_to_fit();
+
+    const auto computed_checksum = storage::index_state::checksum_state(retval);
+    if (unlikely(retval.checksum != computed_checksum)) {
+        vlog(
+          storage::stlog.debug,
+          "Invalid checksum for index. Got:{}, expected:{}",
+          computed_checksum,
+          retval.checksum);
+        return std::nullopt;
+    }
+
+    return retval;
+}
+
+}; // namespace serde_compat
+}; // namespace
+
 namespace storage {
 
 uint64_t index_state::checksum_state(const index_state& r) {
@@ -103,7 +168,6 @@ std::ostream& operator<<(std::ostream& o, const index_state& s) {
 
 std::optional<index_state> index_state::hydrate_from_buffer(iobuf b) {
     iobuf_parser parser(std::move(b));
-    index_state retval;
 
     auto version = reflection::adl<int8_t>{}.from(parser);
     switch (version) {
@@ -135,54 +199,7 @@ std::optional<index_state> index_state::hydrate_from_buffer(iobuf b) {
         return std::nullopt;
     }
 
-    retval.size = reflection::adl<uint32_t>{}.from(parser);
-    if (unlikely(parser.bytes_left() != retval.size)) {
-        vlog(
-          stlog.debug,
-          "Index size does not match header size. Got:{}, expected:{}",
-          parser.bytes_left(),
-          retval.size);
-        return std::nullopt;
-    }
-
-    retval.checksum = reflection::adl<uint64_t>{}.from(parser);
-    retval.bitflags = reflection::adl<uint32_t>{}.from(parser);
-    retval.base_offset = model::offset(
-      reflection::adl<model::offset::type>{}.from(parser));
-    retval.max_offset = model::offset(
-      reflection::adl<model::offset::type>{}.from(parser));
-    retval.base_timestamp = model::timestamp(
-      reflection::adl<model::timestamp::type>{}.from(parser));
-    retval.max_timestamp = model::timestamp(
-      reflection::adl<model::timestamp::type>{}.from(parser));
-
-    const uint32_t vsize = ss::le_to_cpu(
-      reflection::adl<uint32_t>{}.from(parser));
-    for (auto i = 0U; i < vsize; ++i) {
-        retval.relative_offset_index.push_back(
-          reflection::adl<uint32_t>{}.from(parser));
-    }
-    for (auto i = 0U; i < vsize; ++i) {
-        retval.relative_time_index.push_back(
-          reflection::adl<uint32_t>{}.from(parser));
-    }
-    for (auto i = 0U; i < vsize; ++i) {
-        retval.position_index.push_back(
-          reflection::adl<uint64_t>{}.from(parser));
-    }
-    retval.relative_offset_index.shrink_to_fit();
-    retval.relative_time_index.shrink_to_fit();
-    retval.position_index.shrink_to_fit();
-    const auto computed_checksum = storage::index_state::checksum_state(retval);
-    if (unlikely(retval.checksum != computed_checksum)) {
-        vlog(
-          stlog.debug,
-          "Invalid checksum for index. Got:{}, expected:{}",
-          computed_checksum,
-          retval.checksum);
-        return std::nullopt;
-    }
-    return retval;
+    return serde_compat::read_index_state_v3(parser);
 }
 
 iobuf index_state::checksum_and_serialize() {
