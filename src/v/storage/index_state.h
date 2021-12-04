@@ -100,6 +100,30 @@ struct index_state
     static uint64_t checksum_state(const index_state&);
     friend std::ostream& operator<<(std::ostream&, const index_state&);
 
+    index_state copy() const {
+        index_state st;
+        st.size = size;
+        st.checksum = checksum;
+        st.bitflags = bitflags;
+        st.base_offset = base_offset;
+        st.max_offset = max_offset;
+        st.base_timestamp = base_timestamp;
+        st.max_timestamp = max_timestamp;
+        std::copy(
+          relative_offset_index.begin(),
+          relative_offset_index.end(),
+          std::back_inserter(st.relative_offset_index));
+        std::copy(
+          relative_time_index.begin(),
+          relative_time_index.end(),
+          std::back_inserter(st.relative_time_index));
+        std::copy(
+          position_index.begin(),
+          position_index.end(),
+          std::back_inserter(st.position_index));
+        return st;
+    }
+
     friend void read_nested(iobuf_parser&, index_state&, size_t);
 
     auto serde_fields() {

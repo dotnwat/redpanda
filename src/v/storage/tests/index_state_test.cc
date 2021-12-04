@@ -1,6 +1,7 @@
 #define BOOST_TEST_MODULE storage
 #include "bytes/bytes.h"
 #include "random/generators.h"
+#include "serde/serde.h"
 #include "storage/index_state.h"
 
 #include <boost/test/unit_test.hpp>
@@ -106,4 +107,15 @@ BOOST_AUTO_TEST_CASE(encode_decode_future_version) {
     // cannot decode future version
     auto dst = storage::index_state::hydrate_from_buffer(src_buf.copy());
     BOOST_REQUIRE(!dst);
+}
+
+BOOST_AUTO_TEST_CASE(serde_test) {
+    auto input = make_random_index_state();
+    const auto input_copy = input.copy();
+    BOOST_REQUIRE_EQUAL(input, input_copy);
+
+    auto buf = serde::to_iobuf(std::move(input));
+    const auto output = serde::from_iobuf<storage::index_state>(std::move(buf));
+
+    BOOST_REQUIRE_EQUAL(output, input_copy);
 }
