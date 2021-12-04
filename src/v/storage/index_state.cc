@@ -12,7 +12,10 @@
 #include "bytes/iobuf_parser.h"
 #include "hashing/xx.h"
 #include "likely.h"
+#include "model/timestamp.h"
 #include "reflection/adl.h"
+#include "serde/serde.h"
+#include "serde/serde_exception.h"
 #include "storage/index_state_serde_compat.h"
 #include "storage/logger.h"
 #include "vassert.h"
@@ -145,6 +148,54 @@ std::optional<index_state> index_state::hydrate_from_buffer(iobuf b) {
 
 iobuf index_state::checksum_and_serialize() {
     return serde_compat::index_state_serde::encode(*this);
+}
+
+void read_nested(
+  iobuf_parser& in, index_state& st, const size_t bytes_left_limit) {
+    if (
+      serde::peek_version(in)
+      > serde_compat::index_state_serde::ondisk_version) {
+        serde::read_nested(in, st.size, bytes_left_limit);
+        serde::read_nested(in, st.checksum, bytes_left_limit);
+        serde::read_nested(in, st.bitflags, bytes_left_limit);
+        serde::read_nested(in, st.base_offset, bytes_left_limit);
+        serde::read_nested(in, st.max_offset, bytes_left_limit);
+        serde::read_nested(in, st.base_timestamp, bytes_left_limit);
+        serde::read_nested(in, st.max_timestamp, bytes_left_limit);
+        serde::read_nested(in, st.relative_offset_index, bytes_left_limit);
+        serde::read_nested(in, st.relative_time_index, bytes_left_limit);
+        serde::read_nested(in, st.position_index, bytes_left_limit);
+        return;
+    }
+
+    /*
+     * supported old version to avoid rebuilding all indices.
+     */
+    const auto version = reflection::adl<int8_t>{}.from(in);
+    if (version == serde_compat::index_state_serde::ondisk_version) {
+        st = serde_compat::index_state_serde::decode(in);
+        return;
+    }
+
+    /*
+     * unsupported old version. the call will rebuild the index.
+     */
+    vlog(stlog.debug, "Rebuilding index for version {}", version);
+    throw serde::serde_exception(
+      fmt_with_ctx(fmt::format, "Unsupported version: {}", version));
+}
+
+void write(iobuf& out, index_state st) {
+    serde::write(out, st.size);
+    serde::write(out, st.checksum);
+    serde::write(out, st.bitflags);
+    serde::write(out, st.base_offset);
+    serde::write(out, st.max_offset);
+    serde::write(out, st.base_timestamp);
+    serde::write(out, st.max_timestamp);
+    serde::write(out, std::move(st.relative_offset_index));
+    serde::write(out, std::move(st.relative_time_index));
+    serde::write(out, std::move(st.position_index));
 }
 
 } // namespace storage
