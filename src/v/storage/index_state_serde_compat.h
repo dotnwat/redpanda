@@ -19,6 +19,8 @@
 namespace storage::serde_compat {
 
 struct index_state_serde {
+    static constexpr int8_t ondisk_version = 3;
+
     static uint64_t checksum(const index_state& r) {
         auto xx = incremental_xxhash64{};
         xx.update_all(
@@ -124,7 +126,7 @@ struct index_state_serde {
         st.checksum = storage::index_state::checksum_state(st);
         reflection::serialize(
           out,
-          index_state::ondisk_version,
+          ondisk_version,
           st.size,
           st.checksum,
           st.bitflags,
