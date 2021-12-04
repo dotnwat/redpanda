@@ -10,8 +10,12 @@
 #include "storage/index_state.h"
 
 #include "bytes/iobuf_parser.h"
+#include "bytes/utils.h"
 #include "likely.h"
+#include "model/timestamp.h"
 #include "reflection/adl.h"
+#include "serde/serde.h"
+#include "serde/serde_exception.h"
 #include "storage/index_state_serde_compat.h"
 #include "storage/logger.h"
 #include "vassert.h"
@@ -122,6 +126,92 @@ std::optional<index_state> index_state::hydrate_from_buffer(iobuf b) {
 
 iobuf index_state::checksum_and_serialize() {
     return serde_compat::index_state_serde::encode(*this);
+}
+
+void index_state::serde_write(iobuf& out) const {
+    using serde::write;
+
+    iobuf tmp;
+    write(tmp, bitflags);
+    write(tmp, base_offset);
+    write(tmp, max_offset);
+    write(tmp, base_timestamp);
+    write(tmp, max_timestamp);
+    write(tmp, relative_offset_index.copy());
+    write(tmp, relative_time_index.copy());
+    write(tmp, position_index.copy());
+
+    crc::crc32c crc;
+    crc_extend_iobuf(crc, tmp);
+    const uint32_t tmp_crc = crc.value();
+
+    // data blob + crc
+    write(out, std::move(tmp));
+    write(out, tmp_crc);
+}
+
+void read_nested(
+  iobuf_parser& in, index_state& st, const size_t bytes_left_limit) {
+    /*
+     * peek at the 1-byte version prefix. serde support starts with the version
+     * immediately following the on-disk deprecated version.
+     */
+    if (
+      serde::peek_version(in)
+      > serde_compat::index_state_serde::ondisk_version) {
+        // consume the full serde header from the input
+        const auto hdr = serde::read_header<index_state>(in, bytes_left_limit);
+
+        using serde::read_nested;
+
+        // data blog + crc
+        iobuf tmp;
+        uint32_t tmp_crc = 0;
+        read_nested(in, tmp, hdr._bytes_left_limit);
+        read_nested(in, tmp_crc, hdr._bytes_left_limit);
+
+        crc::crc32c crc;
+        crc_extend_iobuf(crc, tmp);
+        const uint32_t expected_tmp_crc = crc.value();
+
+        if (tmp_crc != expected_tmp_crc) {
+            throw serde::serde_exception(fmt_with_ctx(
+              fmt::format,
+              "Mistmatched checksum {} expected {}",
+              tmp_crc,
+              expected_tmp_crc));
+        }
+
+        // unwrap actual fields
+        iobuf_parser p(std::move(tmp));
+        st.bitflags = read_nested<decltype(st.bitflags)>(p, 0U);
+        st.base_offset = read_nested<decltype(st.base_offset)>(p, 0U);
+        st.max_offset = read_nested<decltype(st.max_offset)>(p, 0U);
+        st.base_timestamp = read_nested<decltype(st.base_timestamp)>(p, 0U);
+        st.max_timestamp = read_nested<decltype(st.max_timestamp)>(p, 0U);
+        st.relative_offset_index
+          = read_nested<decltype(st.relative_offset_index)>(p, 0U);
+        st.relative_time_index = read_nested<decltype(st.relative_time_index)>(
+          p, 0U);
+        st.position_index = read_nested<decltype(st.position_index)>(p, 0U);
+
+        return;
+    }
+
+    /*
+     * supported old version to avoid rebuilding all indices.
+     */
+    const auto version = reflection::adl<int8_t>{}.from(in);
+    if (version == serde_compat::index_state_serde::ondisk_version) {
+        st = serde_compat::index_state_serde::decode(in);
+        return;
+    }
+
+    /*
+     * unsupported old version. the call will rebuild the index.
+     */
+    throw serde::serde_exception(
+      fmt_with_ctx(fmt::format, "Unsupported version: {}", version));
 }
 
 } // namespace storage
