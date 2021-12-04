@@ -40,7 +40,9 @@ constexpr inline auto envelope_to_tuple(T&& t) {
     return t.serde_fields();
 }
 
-template<typename T>
+template<
+  typename T,
+  std::enable_if_t<!detail::has_serde_fields_v<T>, void*> = nullptr>
 constexpr inline auto envelope_to_tuple(T& t) {
     constexpr auto const a = reflection::arity<T>() - 1;
     if constexpr (a == 0) {

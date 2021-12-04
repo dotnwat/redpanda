@@ -255,7 +255,7 @@ iobuf index_state::checksum_and_serialize() {
 
 void read_nested(iobuf_parser& in, index_state& st, size_t bytes_left_limit) {
     if (serde::peek_version(in) > index_state::ondisk_version) {
-        st = serde::read_nested<index_state>(in, bytes_left_limit);
+        serde::read_nested(in, st, bytes_left_limit);
         return;
     }
 
