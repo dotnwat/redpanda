@@ -14,6 +14,7 @@
 #include "bytes/iobuf.h"
 #include "model/fundamental.h"
 #include "model/timestamp.h"
+#include "serde/envelope.h"
 #include "utils/fragmented_vector.h"
 
 #include <cstdint>
@@ -34,7 +35,8 @@ namespace storage {
    [] relative_time_index
    [] position_index
  */
-struct index_state {
+struct index_state
+  : serde::envelope<index_state, serde::version<4>, serde::compat_version<4>> {
 
     index_state() = default;
     index_state(index_state&&) noexcept = default;
@@ -96,6 +98,23 @@ struct index_state {
     static std::optional<index_state> hydrate_from_buffer(iobuf);
     static uint64_t checksum_state(const index_state&);
     friend std::ostream& operator<<(std::ostream&, const index_state&);
+
+    friend void read_nested(iobuf_parser&, index_state&, size_t);
+
+    auto serde_fields() {
+        // TODO: check if arrays are the same size
+        return std::tie(
+          size,
+          checksum,
+          bitflags,
+          base_offset,
+          max_offset,
+          base_timestamp,
+          max_timestamp,
+          relative_offset_index,
+          relative_time_index,
+          position_index);
+    }
 };
 
 } // namespace storage
