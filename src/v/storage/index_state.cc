@@ -154,6 +154,23 @@ void read_nested(iobuf_parser& in, index_state& st, size_t bytes_left_limit) {
       serde::peek_version(in)
       > serde_compat::index_state_serde::ondisk_version) {
         serde::read_nested(in, st, bytes_left_limit);
+        // TODO: verify checksum
+        // which also means we need to be writing the checksum
+        // so it doesn't seem like the basic serde_fields will work
+        // because we need to update the checksum when writing
+        //
+        // so we probably need a custom ::write. the reason this wasn't in place
+        // for felix's version is because he relied on checksum_and_serialize
+        // to do that extra work.
+        //
+        // so what we should od is:
+        //
+        // we can compute checksum of blob and then stick it at the end
+        //
+        // 1. remove size/checksum from the structure
+        // 2. add a custom write method to write out the checksum
+        // 3. verify it in read_nested
+        // 4. i guess get rid of serde_fields?
         return;
     }
 
