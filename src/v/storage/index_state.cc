@@ -155,16 +155,17 @@ void read_nested(
     if (
       serde::peek_version(in)
       > serde_compat::index_state_serde::ondisk_version) {
-        serde::read_nested(in, st.size, bytes_left_limit);
-        serde::read_nested(in, st.checksum, bytes_left_limit);
-        serde::read_nested(in, st.bitflags, bytes_left_limit);
-        serde::read_nested(in, st.base_offset, bytes_left_limit);
-        serde::read_nested(in, st.max_offset, bytes_left_limit);
-        serde::read_nested(in, st.base_timestamp, bytes_left_limit);
-        serde::read_nested(in, st.max_timestamp, bytes_left_limit);
-        serde::read_nested(in, st.relative_offset_index, bytes_left_limit);
-        serde::read_nested(in, st.relative_time_index, bytes_left_limit);
-        serde::read_nested(in, st.position_index, bytes_left_limit);
+        using serde::read_nested;
+        read_nested(in, st.size, bytes_left_limit);
+        read_nested(in, st.checksum, bytes_left_limit);
+        read_nested(in, st.bitflags, bytes_left_limit);
+        read_nested(in, st.base_offset, bytes_left_limit);
+        read_nested(in, st.max_offset, bytes_left_limit);
+        read_nested(in, st.base_timestamp, bytes_left_limit);
+        read_nested(in, st.max_timestamp, bytes_left_limit);
+        read_nested(in, st.relative_offset_index, bytes_left_limit);
+        read_nested(in, st.relative_time_index, bytes_left_limit);
+        read_nested(in, st.position_index, bytes_left_limit);
         return;
     }
 
@@ -186,16 +187,17 @@ void read_nested(
 }
 
 void write(iobuf& out, index_state st) {
-    serde::write(out, st.size);
-    serde::write(out, st.checksum);
-    serde::write(out, st.bitflags);
-    serde::write(out, st.base_offset);
-    serde::write(out, st.max_offset);
-    serde::write(out, st.base_timestamp);
-    serde::write(out, st.max_timestamp);
-    serde::write(out, std::move(st.relative_offset_index));
-    serde::write(out, std::move(st.relative_time_index));
-    serde::write(out, std::move(st.position_index));
+    using serde::write;
+    write(out, st.size);
+    write(out, st.checksum);
+    write(out, st.bitflags);
+    write(out, st.base_offset);
+    write(out, st.max_offset);
+    write(out, st.base_timestamp);
+    write(out, st.max_timestamp);
+    write(out, std::move(st.relative_offset_index));
+    write(out, std::move(st.relative_time_index));
+    write(out, std::move(st.position_index));
 }
 
 } // namespace storage
