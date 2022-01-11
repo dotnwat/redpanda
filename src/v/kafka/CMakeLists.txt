@@ -1,3 +1,9 @@
+#set(CMAKE_CXX_CLANG_TIDY
+#    /home/nwatkins/src/redpanda/vbuild/llvm/install/bin/clang-tidy;-checks=-*,abseil*,bugprone*,cppcoreguidelines*,hicpp*,misc*,modernize*,performance*,portability*,readability*,-readability-named-parameter,-hicpp-named-parameter,-modernize-use-trailing-return-type,-modernize-use-nodiscard;)
+
+set(CMAKE_CXX_CLANG_TIDY
+    /home/nwatkins/src/redpanda/vbuild/llvm/install/bin/clang-tidy;)
+
 add_subdirectory(protocol)
 
 set(handlers_srcs
