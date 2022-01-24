@@ -21,14 +21,15 @@ class LogLevelTest(RedpandaTest):
         node = self.redpanda.nodes[0]
 
         # This test assumes the default log level while testing is trace
-        default_log_level = "trace"
+        # TODO: we should read this value from environemtn or self.redpanda
+        default_log_level = "info"
 
         # set to warn level. message seen at trace
         with self.redpanda.monitor_log(node) as mon:
             admin.set_log_level("admin_api_server", "warn")
             mon.wait_until(
                 f"Set log level for {{admin_api_server}}: {default_log_level} -> warn",
-                timeout_sec=5,
+                timeout_sec=20,
                 backoff_sec=1,
                 err_msg="Never saw message")
 
@@ -38,7 +39,7 @@ class LogLevelTest(RedpandaTest):
                 admin.set_log_level("admin_api_server", "debug")
                 mon.wait_until(
                     "Set log level for {admin_api_server}: warn -> debug",
-                    timeout_sec=10,
+                    timeout_sec=20,
                     backoff_sec=1,
                     err_msg="Never saw message")
             assert False, "Should not have seen message"
@@ -50,7 +51,7 @@ class LogLevelTest(RedpandaTest):
             admin.set_log_level("admin_api_server", "info")
             mon.wait_until(
                 "Set log level for {admin_api_server}: debug -> info",
-                timeout_sec=5,
+                timeout_sec=20,
                 backoff_sec=1,
                 err_msg="Never saw message")
 
@@ -58,6 +59,6 @@ class LogLevelTest(RedpandaTest):
             admin.set_log_level("admin_api_server", "debug", expires=5)
             mon.wait_until(
                 f"Expiring log level for {{admin_api_server}} to {default_log_level}",
-                timeout_sec=10,
+                timeout_sec=20,
                 backoff_sec=1,
                 err_msg="Never saw message")

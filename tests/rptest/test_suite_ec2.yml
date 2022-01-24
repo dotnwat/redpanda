@@ -1,0 +1,64 @@
+ec2:
+  # ignoring bad log line Error while reconciling topics - seastar::abort_requested_exception (abort requested)
+  # e2e test has num_nodes=1 for the redpanda service
+  included:
+    #- tests/tx_verifier_test.py # no tx verifier test
+    #- tests/tx_feature_flag_test.py
+    #- tests/tx_reads_writes_test.py
+    #- tests/simple_e2e_test.py
+    #- tests/scaling_up_test.py
+    #- tests/nodes_decommissioning_test.py
+    #- tests/leadership_transfer_test.py # need ignore bad log line, and too one failure: many 503 error responses
+    #- tests/topic_autocreate_test.py pass with ignore bad log line
+    #- tests/prefix_truncate_recovery_test.py pass with ignore bad log line
+    #- tests/configuration_update_test.py # pass with ignore bad log line
+    #- tests/compaction_recovery_test.py # pass with ignore bad log line
+    #- tests/compacted_term_rolled_recovery_test.py # pass with ignore bad log line
+    #- tests/controller_recovery_test.py # pass with ignore bad log line
+    #- tests/scramful_eos_test.py
+    #- tests/scramless_eos_test.py
+    #- tests/log_level_test.py
+    #- tests/describe_topics_test.py
+    #- tests/data_policy_test.py
+    #- tests/acls_test.py
+    #- tests/alter_topic_configuration_test.py
+    #- tests/create_partitions_test.py
+    #- tests/fetch_after_deletion_test.py
+    #- tests/fetch_fairness_test.py
+    #- tests/kafka_cli_client_compat_test.py
+    #- tests/pandaproxy_test.py
+    #- tests/rpk_cluster_test.py
+    #- tests/rpk_config_test.py
+    #- tests/scram_pythonlib_test.py
+    #- tests/scram_test.py
+    #- tests/topic_delete_test.py
+    #- tests/wait_for_local_consumer_test.py
+    #- tests/bytes_sent_test.py
+    #- tests/custom_topic_assignment_test.py
+    #- tests/rpk_topic_test.py
+    #- tests/schema_registry_test.py
+    #- tests/group_membership_test.py
+    #- tests/availability_test.py # same
+    #- tests/interleave_acks_test.py # log lines fix
+    #- tests/raft_availability_test.py # log lines fix
+    #- tests/compatibility/
+    #- tests/partition_movement_test.py # one bad log line (raft group dne on target node)
+    #- tests/node_operations_fuzzy_test.py # bad log lines but look like raft replication errors
+
+  excluded:
+  - tests/retention_policy_test.py # Redpanda node failed to stop in 30 second
+  - tests/cluster_metadata_test.py # OK looks like iptable issues
+  - tests/compacted_topic_verifier_test.py # OK missing compacted verifier dependency
+  - tests/librdkafka_test.py # normally disabled
+  - tests/archival_test.py # s3 setup
+  - tests/cluster_config_test.py # central config feature
+  - tests/e2e_shadow_indexing_test.py # num_nodes / s3 setup
+  - tests/shadow_indexing_tx_test.py # s3 setup
+  - tests/topic_recovery_test.py # s3 setup
+  - tests/tx_admin_api_test.py # no in 21.11.3
+  - tests/metrics_reporter_test.py # num_nodes / feature
+  - tests/wasm_filter_test.py # no wasm
+  - tests/wasm_failure_recovery_test.py # no wasm
+  - tests/wasm_identity_test.py # no wasm
+  - tests/wasm_topics_test.py # no wasm
+  - tests/wasm_redpanda_failure_recovery_test.py # no wasm

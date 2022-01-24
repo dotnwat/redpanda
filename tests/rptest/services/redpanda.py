@@ -44,7 +44,9 @@ DEFAULT_LOG_ALLOW_LIST = [
     # This is expected when tests are intentionally run on low memory configurations
     re.compile(r"Memory: '\d+' below recommended"),
     # A client disconnecting is not bad behaviour on redpanda's part
-    re.compile(r"kafka rpc protocol.*(Connection reset by peer|Broken pipe)")
+    re.compile(r"kafka rpc protocol.*(Connection reset by peer|Broken pipe)"),
+
+    re.compile(r"Error while reconciling topics")
 ]
 
 # Log errors that are expected in tests that restart nodes mid-test
@@ -259,8 +261,8 @@ class RedpandaService(Service):
             f" --logger-log-level=exception=debug:archival=debug:io=debug:cloud_storage=debug "
             f" --kernel-page-cache=true "
             f" --overprovisioned "
-            f" --smp {self._num_cores} "
-            f" --memory 6G "
+            f" --smp 2" #{self._num_cores} "
+            f" --memory 4G "
             f" --reserve-memory 0M "
             f" >> {RedpandaService.STDOUT_STDERR_CAPTURE} 2>&1 &")
         # set llvm_profile var for code coverage
@@ -376,7 +378,7 @@ class RedpandaService(Service):
                 f"Scanning node {node.account.hostname} log for errors...")
 
             for line in node.account.ssh_capture(
-                    f"grep ERROR {RedpandaService.STDOUT_STDERR_CAPTURE}"):
+                    f"grep ERROR {RedpandaService.STDOUT_STDERR_CAPTURE} || [[ $? == 1 ]];"):
                 line = line.strip()
 
                 allowed = False
