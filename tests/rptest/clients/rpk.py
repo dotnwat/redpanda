@@ -173,7 +173,7 @@ class RpkTool:
                                 hw=int(m.group('hw')),
                                 start_offset=int(m.group("logstart")))
 
-        return filter(lambda p: p != None, map(partition_line, lines))
+        return filter(None, map(partition_line, lines))
 
     def describe_topic_configs(self, topic):
         cmd = ['describe', topic, '-c']
