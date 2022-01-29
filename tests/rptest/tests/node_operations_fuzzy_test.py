@@ -264,9 +264,8 @@ class NodeOperationFuzzyTest(EndToEndTest):
 
             idx_node = self.redpanda.get_node(idx)
             return list(
-                filter(
-                    lambda n: n['address'] != idx_node.
-                    account.hostname, seeds))
+                filter(lambda n: n['address'] != idx_node.account.hostname,
+                       seeds))
 
         def add_node(idx, cleanup=True):
             assert self.redpanda
