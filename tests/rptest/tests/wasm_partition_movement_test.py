@@ -57,6 +57,7 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
         self._build_tool = WasmBuildTool(self._rpk_tool)
 
     def restart_random_redpanda_node(self):
+        assert self.redpanda
         node = random.sample(self.redpanda.nodes, 1)[0]
         self.logger.info(f"Randomly killing redpanda node: {node.name}")
         self.redpanda.restart_nodes(node)
@@ -171,6 +172,7 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
 
     @cluster(num_nodes=6)
     def test_dynamic_with_failure(self):
+        assert self.redpanda
         s = self._prime_env()
         _, partition, assignments = self._do_move_and_verify(
             s['topic'], s['partition'])

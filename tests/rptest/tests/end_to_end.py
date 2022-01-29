@@ -17,7 +17,7 @@
 # - Reformatted code
 # - Replaced dependency on Kafka with Redpanda
 # - Imported annotate_missing_msgs helper from kafka test suite
-
+from typing import Optional
 from collections import namedtuple
 
 from ducktape.tests.test import Test
@@ -50,6 +50,8 @@ class EndToEndTest(Test):
       - Perform some action (e.g. partition movement)
       - Run validation
     """
+    redpanda: Optional[RedpandaService]
+
     def __init__(self, test_context, extra_rp_conf=None):
         super(EndToEndTest, self).__init__(test_context=test_context)
         if extra_rp_conf is None:
