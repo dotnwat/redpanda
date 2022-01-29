@@ -6,7 +6,7 @@
 # As of the Change Date specified in that file, in accordance with
 # the Business Source License, use of this software will be governed
 # by the Apache License, Version 2.0
-
+from typing import Optional
 import random
 
 from rptest.services.admin import Admin
@@ -32,6 +32,10 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
     is working as expected. This feature has materialized topics move to
     where their respective sources are moved to.
     """
+    _rpk_tool: Optional[RpkTool]
+    _build_tool: Optional[WasmBuildTool]
+    mconsumer: Optional[VerifiableConsumer]
+
     def __init__(self, ctx, *args, **kvargs):
         super(WasmPartitionMovementTest, self).__init__(
             ctx,
@@ -63,6 +67,8 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
         self.redpanda.restart_nodes(node)
 
     def _deploy_identity_copro(self, inputs, outputs):
+        assert self._build_tool
+        assert self._rpk_tool
         script = WasmScript(inputs=inputs,
                             outputs=outputs,
                             script=WasmTemplateRepository.IDENTITY_TRANSFORM)
@@ -103,8 +109,14 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
         self.mconsumer.start()
 
     def _await_consumer(self, limit, timeout):
+        assert self.mconsumer
+
+        def cond():
+            assert self.mconsumer
+            return self.mconsumer.total_consumed() >= limit,
+
         wait_until(
-            lambda: self.mconsumer.total_consumed() >= limit,
+            cond,
             timeout_sec=timeout,
             err_msg=
             "Timeout of after %ds while awaiting delivery of %d materialized records, recieved: %d"
@@ -162,6 +174,7 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
         self._await_consumer(self.consumer.total_consumed(), 90)
 
         # Validate number of records & their content
+        assert self.mconsumer
         self.logger.info(
             f'A: {self.mconsumer.total_consumed()} B: {self.consumer.total_consumed()}'
         )
@@ -172,12 +185,12 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
 
     @cluster(num_nodes=6)
     def test_dynamic_with_failure(self):
-        assert self.redpanda
         s = self._prime_env()
         _, partition, assignments = self._do_move_and_verify(
             s['topic'], s['partition'])
 
         # Crash a node before verifying, it has a fixed amount of seconds to restart
+        assert self.redpanda
         n = random.sample(self.redpanda.nodes, 1)[0]
         self.redpanda.restart_nodes(n)
 
@@ -195,4 +208,5 @@ class WasmPartitionMovementTest(PartitionMovementMixin, EndToEndTest):
 
         # GTE due to the fact that upon error, copro may re-processed already processed
         # data depending on when offsets were checkpointed
+        assert self.mconsumer
         assert self.mconsumer.total_consumed() >= num_producer_acked
