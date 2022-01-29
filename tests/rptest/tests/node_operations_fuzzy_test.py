@@ -152,6 +152,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
             return id
 
         def failure_injector_loop():
+            assert self.redpanda
             f_injector = FailureInjector(self.redpanda)
             while enable_failures:
                 f_type = random.choice(FailureSpec.FAILURE_TYPES)
@@ -209,6 +210,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
             admin = Admin(self.redpanda)
 
             def is_node_removed(idx_to_query, node_id):
+                assert self.redpanda
                 try:
                     brokers = admin.get_brokers(
                         self.redpanda.get_node(idx_to_query))
@@ -218,6 +220,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
                     return False
 
             def node_removed():
+                assert self.redpanda
                 node_removed_cnt = 0
                 for idx in self.active_nodes:
                     if is_node_removed(idx, node_id):
@@ -237,6 +240,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
         kafkacat = KafkaCat(self.redpanda)
 
         def replicas_per_node():
+            assert self.redpanda
             node_replicas = {}
             md = kafkacat.metadata()
             self.redpanda.logger.info(f"metadata: {md}")
@@ -251,18 +255,21 @@ class NodeOperationFuzzyTest(EndToEndTest):
             return node_replicas
 
         def seed_servers_for(idx):
+            assert self.redpanda
             seeds = map(
                 lambda n: {
                     "address": n.account.hostname,
                     "port": 33145
                 }, self.redpanda.nodes)
 
+            idx_node = self.redpanda.get_node(idx)
             return list(
                 filter(
-                    lambda n: n['address'] != self.redpanda.get_node(idx).
+                    lambda n: n['address'] != idx_node.
                     account.hostname, seeds))
 
         def add_node(idx, cleanup=True):
+            assert self.redpanda
             id = get_next_id()
             self.logger.info(f"adding node: {idx} back with new id: {id}")
             self.ids_mapping[idx] = id
@@ -287,6 +294,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
                        backoff_sec=2)
 
         def is_topic_present(name):
+            assert self.redpanda
             kcl = KCL(self.redpanda)
             lines = kcl.list_topics().splitlines()
             self.redpanda.logger.debug(
@@ -297,6 +305,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
             return False
 
         def create_topic(spec):
+            assert self.redpanda
             try:
                 DefaultClient(self.redpanda).create_topic(spec)
             except Exception as e:
@@ -309,6 +318,7 @@ class NodeOperationFuzzyTest(EndToEndTest):
                 return False
 
         def delete_topic(name):
+            assert self.redpanda
             try:
                 DefaultClient(self.redpanda).delete_topic(name)
             except Exception as e:
