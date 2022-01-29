@@ -98,3 +98,4 @@ class KCL:
                     "kcl retrying after exit code {}: {}".format(
                         e.returncode, e.output))
                 time.sleep(1)
+        raise Exception(f"Retry limit exceeded for command: {cmd}")
