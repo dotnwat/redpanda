@@ -25,9 +25,10 @@ class ClusterViewTest(EndToEndTest):
 
         admin = Admin(self.redpanda)
 
-        seed = None
+        seed = {}
 
         def rp1_started():
+            assert self.redpanda
             nonlocal seed
             try:
                 #{"version": 0, "brokers": [{"node_id": 1, "num_cores": 3, "membership_status": "active", "is_alive": true}]}
@@ -49,6 +50,7 @@ class ClusterViewTest(EndToEndTest):
         self.redpanda.start_node(self.redpanda.nodes[2])
 
         def rest_started():
+            assert self.redpanda
             try:
                 last = None
                 ids = None
