@@ -74,6 +74,7 @@ v_cc_library(
   SRCS 
     admin_server.cc
     application.cc
+    drain_manager.cc
   DEPS
     Seastar::seastar
     v::cluster
