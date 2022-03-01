@@ -1028,6 +1028,13 @@ void application::wire_up_redpanda_services() {
         _scheduling_groups.compaction_sg(),
         priority_manager::local().compaction_priority()))
       .get();
+
+    construct_service(
+      drain_manager,
+      std::ref(_log),
+      controller.get(),
+      std::ref(partition_manager))
+      .get();
 }
 
 ss::future<> application::set_proxy_config(ss::sstring name, std::any val) {
