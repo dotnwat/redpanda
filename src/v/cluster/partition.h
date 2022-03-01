@@ -138,6 +138,21 @@ public:
 
     bool is_leader() const { return _raft->is_leader(); }
 
+    /*
+     * TODO by setting the target priority to zero we prevent this group from
+     * becoming a leader. Effectively it never tries to become a candidate.
+     * However, it's unclear if this is sticky or not. We need to check to make
+     * sure that the normal decay function that lets nodes eventually become
+     * leader independent of priority ignores a zero value.
+     *
+     * This already does seem to be the case if we look at the comment on zero
+     * and min voter priority constants. The min voter priority is the smallest
+     * priorty that lets a node become leader. So... i think answer given.
+     */
+    void block_new_leadership() const {
+        _raft->block_new_leadership();
+    }
+
     ss::future<result<model::offset>> linearizable_barrier() {
         return _raft->linearizable_barrier();
     }

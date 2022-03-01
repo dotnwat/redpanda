@@ -321,6 +321,29 @@ public:
 
     model::term_id get_term(model::offset) const;
 
+    /*
+     * Prevent the current node from becomming a leader for this raft group. If
+     * the node is the leader then this only takes affect if leadership is lost.
+     */
+    void block_new_leadership() {
+        if (!_prev_target_priority.has_value()) {
+            _prev_target_priority = std::exchange(
+              _target_priority, raft::zero_voter_priority);
+        }
+    }
+
+    /*
+     * Allow this group to become a leader on this node. If prior to blocking
+     * leadership the group was already prevented from obtaining leadership then
+     * that policy is left intact.
+     */
+    void unblock_new_leadership() {
+        if (_prev_target_priority.has_value()) {
+            _target_priority = _prev_target_priority.value();
+            _prev_target_priority.reset();
+        }
+    }
+
 private:
     friend replicate_entries_stm;
     friend vote_stm;
@@ -568,6 +591,8 @@ private:
     model::offset _majority_replicated_index;
     model::offset _visibility_upper_bound_index;
     voter_priority _target_priority = voter_priority::max();
+    std::optional<voter_priority> _prev_target_priority;
+
     /**
      * We keep an idex of the most recent entry replicated with quorum
      * consistency level to make sure that all requests replicated with quorum
