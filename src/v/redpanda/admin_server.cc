@@ -1429,6 +1429,27 @@ void admin_server::register_broker_routes() {
           co_await throw_on_error(*req, ec, model::controller_ntp, id);
           co_return ss::json::json_void();
       });
+
+    ss::httpd::broker_json::start_drain.set(
+      _server._routes,
+      [](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_return ss::json::json_void();
+      });
+
+    ss::httpd::broker_json::stop_drain.set(
+      _server._routes,
+      [](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_return ss::json::json_void();
+      });
+
+    ss::httpd::broker_json::get_drain.set(
+      _server._routes,
+      [](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_return ss::json::json_void();
+      });
 }
 
 // Helpers for partition routes
