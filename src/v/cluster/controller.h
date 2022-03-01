@@ -95,6 +95,14 @@ public:
     ss::future<> shutdown_input();
     ss::future<> stop();
 
+    void block_new_leadership() const {
+        _raft0->block_new_leadership();
+    }
+
+    void unblock_new_leadership() const {
+        _raft0->unblock_new_leadership();
+    }
+
 private:
     config_manager::preload_result _config_preload;
 
