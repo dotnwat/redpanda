@@ -155,6 +155,52 @@ static void log_system_resources(
     }
 }
 
+ss::future<> application::drain_leadership(cluster::partition_manager& pm) {
+    /*
+     * synchronization: we arrange at the beginning of the drain process for new
+     * and existing partitions to not acquire new leadership roles. thus here we
+     * need only operate on a current snapshot of partitions in order to ensure
+     * that leadership is drained for all partitions.
+     */
+    std::vector<ss::lw_shared_ptr<cluster::partition>> partitions;
+    partitions.reserve(pm.partitions().size());
+    for (const auto& p : pm.partitions()) {
+        partitions.push_back(p.second);
+        vlog(_log.info, "Draining partition: {}", partitions.back()->group());
+    }
+
+    co_return;
+}
+
+/*
+ * First signal -> start draining
+ * Set timer to hard shutdown (e.g. 1 minute)
+ * Maybe after that double signal for on-demand force shutdown?
+ */
+ss::future<> application::drain() {
+    vlog(_log.info, "Draining...");
+
+    /*
+     * Prevent this node from becomming a leader for new and existing raft
+     * groups. This does not immediately reliquish existing leadership.
+     */
+    co_await partition_manager.invoke_on_all(
+      [](cluster::partition_manager& pm) {
+          for (const auto& p : pm.partitions()) {
+              p.second->block_new_leadership();
+          }
+      });
+    controller->block_new_leadership();
+
+    /*
+     * Transfer leadership for all raft groups away from this node. This
+     * includes all kafka raft groups as well as the controller. This does not
+     * apply to raft groups with one replica.
+     */
+    co_await partition_manager.invoke_on_all(
+      [this](auto& pm) { return drain_leadership(pm); });
+}
+
 int application::run(int ac, char** av) {
     init_env();
     vlog(_log.info, "Redpanda {}", redpanda_version());
@@ -195,6 +241,7 @@ int application::run(int ac, char** av) {
                 configure_admin_server();
                 start(app_signal);
                 app_signal.wait().get();
+                drain().get();
                 vlog(_log.info, "Stopping...");
             } catch (...) {
                 vlog(
@@ -1028,6 +1075,9 @@ void application::wire_up_redpanda_services() {
         _scheduling_groups.compaction_sg(),
         priority_manager::local().compaction_priority()))
       .get();
+
+    construct_single_service(
+      drain_manager, controller.get(), partition_manager);
 }
 
 ss::future<> application::set_proxy_config(ss::sstring name, std::any val) {

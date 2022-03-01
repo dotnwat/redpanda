@@ -27,6 +27,7 @@
 #include "platform/stop_signal.h"
 #include "raft/fwd.h"
 #include "redpanda/admin_server.h"
+#include "redpanda/drain_manager.h"
 #include "resource_mgmt/cpu_scheduling.h"
 #include "resource_mgmt/memory_groups.h"
 #include "resource_mgmt/smp_groups.h"
@@ -59,6 +60,8 @@ public:
     void start(::stop_signal&);
     void start_redpanda();
     void start_kafka(::stop_signal&);
+    ss::future<> drain();
+    ss::future<> drain_leadership(cluster::partition_manager&);
 
     explicit application(ss::sstring = "redpanda::main");
     ~application();
@@ -98,6 +101,7 @@ public:
     ss::sharded<cluster::tx_gateway_frontend> tx_gateway_frontend;
     ss::sharded<v8_engine::data_policy_table> data_policies;
     ss::sharded<cloud_storage::cache> shadow_index_cache;
+    std::unique_ptr<drain_manager> drain_manager;
 
 private:
     using deferred_actions
