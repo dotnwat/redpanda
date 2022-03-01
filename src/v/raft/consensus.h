@@ -321,6 +321,16 @@ public:
 
     model::term_id get_term(model::offset) const;
 
+    /*
+     * Prevent the current node from becomming a leader for this raft group. If
+     * the node is the leader then this only takes affect if leadership is lost.
+     *
+     * TODO: save the default priority i guess so we can reset it
+     */
+    void block_new_leadership() {
+        _target_priority = raft::zero_voter_priority;
+    }
+
 private:
     friend replicate_entries_stm;
     friend vote_stm;
