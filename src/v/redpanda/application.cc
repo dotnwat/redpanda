@@ -446,7 +446,8 @@ void application::configure_admin_server() {
       std::ref(cp_partition_manager),
       controller.get(),
       std::ref(shard_table),
-      std::ref(metadata_cache))
+      std::ref(metadata_cache),
+      std::ref(drain_manager))
       .get();
 }
 
@@ -1027,6 +1028,10 @@ void application::wire_up_redpanda_services() {
       compaction_controller_config(
         _scheduling_groups.compaction_sg(),
         priority_manager::local().compaction_priority()))
+      .get();
+
+    construct_service(
+      drain_manager, std::ref(_log), controller.get(), std::ref(partition_manager))
       .get();
 }
 
