@@ -75,6 +75,7 @@ v_cc_library(
     admin_server.cc
     request_auth.cc
     application.cc
+    drain_manager.cc
   DEPS
     Seastar::seastar
     v::cluster
