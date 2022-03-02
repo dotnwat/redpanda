@@ -27,6 +27,8 @@
 
 #include <absl/container/flat_hash_map.h>
 
+class drain_manager;
+
 struct admin_server_cfg {
     std::vector<model::broker_endpoint> endpoints;
     std::vector<config::endpoint_tls_config> endpoints_tls;
@@ -49,7 +51,8 @@ public:
       ss::sharded<coproc::partition_manager>&,
       cluster::controller*,
       ss::sharded<cluster::shard_table>&,
-      ss::sharded<cluster::metadata_cache>&);
+      ss::sharded<cluster::metadata_cache>&,
+      ss::sharded<drain_manager>&);
 
     ss::future<> start();
     ss::future<> stop();
@@ -216,8 +219,7 @@ private:
     cluster::controller* _controller;
     ss::sharded<cluster::shard_table>& _shard_table;
     ss::sharded<cluster::metadata_cache>& _metadata_cache;
-
     request_authenticator _auth;
-
+    ss::sharded<drain_manager>& _drain_manager;
     bool _ready{false};
 };

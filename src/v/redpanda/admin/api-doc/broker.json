@@ -105,6 +105,40 @@
                     ]
                 }
             ]
+        },
+        {
+            "path": "/v1/drain",
+            "operations": [
+                {
+                    "method": "PUT",
+                    "summary": "Start draining broker",
+                    "type": "void",
+                    "nickname": "start_drain",
+                    "produces": [
+                        "application/json"
+                    ]
+                },
+                {
+                    "method": "DELETE",
+                    "summary": "Stop draining broker",
+                    "type": "void",
+                    "nickname": "stop_drain",
+                    "produces": [
+                        "application/json"
+                    ],
+                    "parameters": []
+                },
+                {
+                    "method": "GET",
+                    "summary": "Get draining status",
+                    "type": "drain_status",
+                    "nickname": "get_drain",
+                    "produces": [
+                        "application/json"
+                    ],
+                    "parameters": []
+                }
+            ]
         }
     ],
     "models": {
@@ -171,6 +205,40 @@
                 "total": {
                     "type": "long",
                     "description": "total space bytes"
+                }
+            }
+        },
+        "drain_status": {
+            "id": "drain_status",
+            "description": "Drain status",
+            "properties": {
+                "draining": {
+                    "type": "boolean",
+                    "description": "in draining state"
+                },
+                "finished": {
+                    "type": "boolean",
+                    "description": "drain finished"
+                },
+                "errors": {
+                    "type": "boolean",
+                    "description": "drain errors"
+                },
+                "partitions": {
+                    "type": "long",
+                    "description": "partition count"
+                },
+                "eligible": {
+                    "type": "long",
+                    "description": "eligible partition count"
+                },
+                "transferring": {
+                    "type": "long",
+                    "description": "transferring partition count"
+                },
+                "failed": {
+                    "type": "long",
+                    "description": "failed transfer partition count"
                 }
             }
         }
