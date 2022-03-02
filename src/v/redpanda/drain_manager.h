@@ -12,6 +12,7 @@
 #include "cluster/fwd.h"
 #include "seastarx.h"
 
+#include <seastar/core/abort_source.hh>
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/sharded.hh>
 #include <seastar/util/log.hh>
@@ -30,13 +31,27 @@ public:
 
     ss::future<> stop() { co_return; }
 
-    ss::future<> start_draining();
-    ss::future<> stop_draining();
+    /*
+     * Start draining this broker.
+     */
+    ss::future<> drain();
+
+    /*
+     * Restore broker to a non-drain[ing] state.
+     */
+    ss::future<> restore();
+
     ss::future<drain_status> status();
 
 private:
+    ss::future<> do_drain();
+    ss::future<> drain_leadership(cluster::partition_manager&);
+    ss::future<> do_restore();
+
     ss::logger& _log;
     [[maybe_unused]] cluster::controller* _controller;
     [[maybe_unused]] ss::sharded<cluster::partition_manager>&
       _partition_manager;
+    std::optional<ss::future<>> _drain;
+    ss::abort_source _abort;
 };
