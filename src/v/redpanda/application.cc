@@ -639,7 +639,8 @@ void application::wire_up_redpanda_services() {
         config::shard_local_cfg().raft_heartbeat_timeout_ms(),
         std::ref(_connection_cache),
         std::ref(storage),
-        std::ref(recovery_throttle))
+        std::ref(recovery_throttle),
+        std::ref(drain_manager))
       .get();
 
     // custom handling for recovery_throttle and raft group manager shutdown.

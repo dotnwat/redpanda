@@ -12,6 +12,7 @@
 #include "config/configuration.h"
 #include "model/metadata.h"
 #include "prometheus/prometheus_sanitize.h"
+#include "redpanda/drain_manager.h"
 #include "resource_mgmt/io_priority.h"
 
 #include <seastar/core/scheduling.hh>
@@ -28,14 +29,16 @@ group_manager::group_manager(
   std::chrono::milliseconds heartbeat_timeout,
   ss::sharded<rpc::connection_cache>& clients,
   ss::sharded<storage::api>& storage,
-  ss::sharded<recovery_throttle>& recovery_throttle)
+  ss::sharded<recovery_throttle>& recovery_throttle,
+  ss::sharded<drain_manager>& drain_manager)
   : _self(self)
   , _disk_timeout(disk_timeout)
   , _raft_sg(raft_sg)
   , _client(make_rpc_client_protocol(self, clients))
   , _heartbeats(heartbeat_interval, _client, _self, heartbeat_timeout)
   , _storage(storage.local())
-  , _recovery_throttle(recovery_throttle.local()) {
+  , _recovery_throttle(recovery_throttle.local())
+  , _drain_manager(drain_manager.local()) {
     setup_metrics();
 }
 
@@ -77,6 +80,12 @@ ss::future<ss::lw_shared_ptr<raft::consensus>> group_manager::create_group(
       },
       _storage,
       _recovery_throttle);
+
+    // we should make sure this is done after its registered in
+    // an index so it can be unblocked if necessary
+    if (_drain_manager.status()) {
+        raft->block_new_leadership();
+    }
 
     return ss::with_gate(_gate, [this, raft] {
         return _heartbeats.register_group(raft).then([this, raft] {

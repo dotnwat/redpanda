@@ -25,6 +25,8 @@
 
 #include <tuple>
 
+class drain_manager;
+
 namespace raft {
 
 /*
@@ -43,7 +45,8 @@ public:
       std::chrono::milliseconds heartbeat_timeout,
       ss::sharded<rpc::connection_cache>& clients,
       ss::sharded<storage::api>& storage,
-      ss::sharded<recovery_throttle>&);
+      ss::sharded<recovery_throttle>&,
+      ss::sharded<drain_manager>&);
 
     ss::future<> start();
     ss::future<> stop();
@@ -98,6 +101,7 @@ private:
     ss::metrics::metric_groups _metrics;
     storage::api& _storage;
     recovery_throttle& _recovery_throttle;
+    drain_manager& _drain_manager;
 };
 
 } // namespace raft
