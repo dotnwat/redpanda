@@ -82,7 +82,8 @@ admin_server::admin_server(
   ss::sharded<coproc::partition_manager>& cpm,
   cluster::controller* controller,
   ss::sharded<cluster::shard_table>& st,
-  ss::sharded<cluster::metadata_cache>& metadata_cache)
+  ss::sharded<cluster::metadata_cache>& metadata_cache,
+  ss::sharded<drain_manager>& drain_manager)
   : _log_level_timer([this] { log_level_timer_handler(); })
   , _server("admin")
   , _cfg(std::move(cfg))
@@ -91,8 +92,8 @@ admin_server::admin_server(
   , _controller(controller)
   , _shard_table(st)
   , _metadata_cache(metadata_cache)
-  , _auth(
-      config::shard_local_cfg().admin_api_require_auth.bind(), _controller) {}
+  , _auth(config::shard_local_cfg().admin_api_require_auth.bind(), _controller)
+  , _drain_manager(drain_manager) {}
 
 ss::future<> admin_server::start() {
     configure_metrics_route();
@@ -1505,6 +1506,50 @@ void admin_server::register_broker_routes() {
                       .recommission_node(id);
           co_await throw_on_error(*req, ec, model::controller_ntp, id);
           co_return ss::json::json_void();
+      });
+
+    register_route<superuser>(
+      ss::httpd::broker_json::start_drain,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_await _drain_manager.invoke_on_all(
+            [](drain_manager& dm) { return dm.drain(); });
+          co_return ss::json::json_void();
+      });
+
+    register_route<superuser>(
+      ss::httpd::broker_json::stop_drain,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_await _drain_manager.invoke_on_all(
+            [](drain_manager& dm) { return dm.restore(); });
+          co_return ss::json::json_void();
+      });
+
+    register_route<superuser>(
+      ss::httpd::broker_json::get_drain,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          auto status = co_await _drain_manager.local().status();
+          ss::httpd::broker_json::drain_status res;
+          res.draining = status.has_value();
+          if (status.has_value()) {
+              res.finished = status->finished;
+              res.errors = status->errors;
+              if (status->partitions.has_value()) {
+                  res.partitions = status->partitions.value();
+              }
+              if (status->eligible.has_value()) {
+                  res.eligible = status->eligible.value();
+              }
+              if (status->transferring.has_value()) {
+                  res.transferring = status->transferring.value();
+              }
+              if (status->failed.has_value()) {
+                  res.failed = status->failed.value();
+              }
+          }
+          co_return res;
       });
 }
 
