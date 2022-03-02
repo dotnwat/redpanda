@@ -145,6 +145,12 @@ public:
         return _tx_gateway_frontend;
     }
 
+    /*
+     * Block/unblock current node from leadership for new raft groups.
+     */
+    void block_new_leadership() { _block_new_leadership = true; }
+    void unblock_new_leadership() { _block_new_leadership = false; }
+
 private:
     /// Download log if partition_recovery_manager is initialized.
     ///
@@ -172,6 +178,7 @@ private:
     ss::sharded<cloud_storage::remote>& _cloud_storage_api;
     ss::sharded<cloud_storage::cache>& _cloud_storage_cache;
     ss::gate _gate;
+    bool _block_new_leadership{false};
 
     friend std::ostream& operator<<(std::ostream&, const partition_manager&);
 };
