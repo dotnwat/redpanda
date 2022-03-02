@@ -446,7 +446,8 @@ void application::configure_admin_server() {
       std::ref(cp_partition_manager),
       controller.get(),
       std::ref(shard_table),
-      std::ref(metadata_cache))
+      std::ref(metadata_cache),
+      std::ref(drain_manager))
       .get();
 }
 

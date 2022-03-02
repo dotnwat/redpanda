@@ -82,7 +82,8 @@ admin_server::admin_server(
   ss::sharded<coproc::partition_manager>& cpm,
   cluster::controller* controller,
   ss::sharded<cluster::shard_table>& st,
-  ss::sharded<cluster::metadata_cache>& metadata_cache)
+  ss::sharded<cluster::metadata_cache>& metadata_cache,
+  ss::sharded<drain_manager>& drain_manager)
   : _log_level_timer([this] { log_level_timer_handler(); })
   , _server("admin")
   , _cfg(std::move(cfg))
@@ -90,7 +91,8 @@ admin_server::admin_server(
   , _cp_partition_manager(cpm)
   , _controller(controller)
   , _shard_table(st)
-  , _metadata_cache(metadata_cache) {}
+  , _metadata_cache(metadata_cache)
+  , _drain_manager(drain_manager) {}
 
 ss::future<> admin_server::start() {
     configure_metrics_route();
@@ -1427,6 +1429,37 @@ void admin_server::register_broker_routes() {
                       .local()
                       .recommission_node(id);
           co_await throw_on_error(*req, ec, model::controller_ntp, id);
+          co_return ss::json::json_void();
+      });
+
+    ss::httpd::broker_json::start_drain.set(
+      _server._routes,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_await _drain_manager.invoke_on(
+            cluster::controller_stm_shard,
+            [](drain_manager& dm) { return dm.drain(); });
+          co_return ss::json::json_void();
+      });
+
+    ss::httpd::broker_json::stop_drain.set(
+      _server._routes,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          co_await _drain_manager.invoke_on(
+            cluster::controller_stm_shard,
+            [](drain_manager& dm) { return dm.restore(); });
+          co_return ss::json::json_void();
+      });
+
+    ss::httpd::broker_json::get_drain.set(
+      _server._routes,
+      [this](std::unique_ptr<ss::httpd::request> req)
+        -> ss::future<ss::json::json_return_type> {
+          auto status = co_await _drain_manager.invoke_on(
+            cluster::controller_stm_shard,
+            [](drain_manager& dm) { return dm.status(); });
+          (void)status;
           co_return ss::json::json_void();
       });
 }

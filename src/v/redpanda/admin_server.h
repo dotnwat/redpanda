@@ -14,6 +14,7 @@
 #include "config/endpoint_tls_config.h"
 #include "coproc/partition_manager.h"
 #include "model/metadata.h"
+#include "redpanda/drain_manager.h"
 #include "seastarx.h"
 
 #include <seastar/core/scheduling.hh>
@@ -42,7 +43,8 @@ public:
       ss::sharded<coproc::partition_manager>&,
       cluster::controller*,
       ss::sharded<cluster::shard_table>&,
-      ss::sharded<cluster::metadata_cache>&);
+      ss::sharded<cluster::metadata_cache>&,
+      ss::sharded<drain_manager>&);
 
     ss::future<> start();
     ss::future<> stop();
@@ -118,5 +120,6 @@ private:
     cluster::controller* _controller;
     ss::sharded<cluster::shard_table>& _shard_table;
     ss::sharded<cluster::metadata_cache>& _metadata_cache;
+    ss::sharded<drain_manager>& _drain_manager;
     bool _ready{false};
 };
