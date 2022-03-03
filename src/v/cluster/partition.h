@@ -137,6 +137,7 @@ public:
       timequery(model::timestamp, model::offset, ss::io_priority_class);
 
     bool is_leader() const { return _raft->is_leader(); }
+    bool has_followers() const { return _raft->has_followers(); }
 
     /*
      * TODO by setting the target priority to zero we prevent this group from
