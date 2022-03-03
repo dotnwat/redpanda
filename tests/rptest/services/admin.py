@@ -358,3 +358,28 @@ class Admin:
         leader = self.redpanda.get_node(details['leader_id'])
         ret = self._request('post', path=path, node=leader)
         return ret.status_code == 200
+
+    def maintenance_start(self, node, target=None):
+        """
+        Start maintenanceing on node.
+        """
+        id = self.redpanda.idx(node)
+        url = f"brokers/{id}/maintenance"
+        self.redpanda.logger.info(f"Starting maintenance on node {id}")
+        return self._request("put", url, node=target)
+
+    def maintenance_stop(self, node, target=None):
+        """
+        Stop maintenanceing on node.
+        """
+        id = self.redpanda.idx(node)
+        url = f"brokers/{id}/maintenance"
+        self.redpanda.logger.info(f"Stopping maintenance on node {id}")
+        return self._request("delete", url, node=target)
+
+    def maintenance_status(self, node):
+        """
+        Get maintenance status of a node.
+        """
+        self.redpanda.logger.info(f"Getting maintenance status on node {node}")
+        return self._request("get", "maintenance", node=node).json()
