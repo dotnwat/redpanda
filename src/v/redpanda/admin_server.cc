@@ -1614,6 +1614,7 @@ void admin_server::register_partition_routes() {
                         p.partition_id = it.first.tp.partition;
                         p.core = ss::this_shard_id();
                         p.materialized = materialized;
+                        p.is_leader = it.second->is_leader();
                         partitions.push_back(std::move(p));
                     }
                     return partitions;
