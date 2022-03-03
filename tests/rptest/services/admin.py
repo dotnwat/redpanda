@@ -313,3 +313,24 @@ class Admin:
         leader = self.redpanda.get_node(details['leader_id'])
         ret = self._request('post', path=path, node=leader)
         return ret.status_code == 200
+
+    def drain_start(self, node):
+        """
+        Start draining a node.
+        """
+        self.redpanda.logger.info(f"Starting drain on node {node}")
+        return self._request("put", "drain", node=node)
+
+    def drain_stop(self, node):
+        """
+        Stop draining a node.
+        """
+        self.redpanda.logger.info(f"Stopping drain on node {node}")
+        return self._request("delete", "drain", node=node)
+
+    def drain_status(self, node):
+        """
+        Get drain status of a node.
+        """
+        self.redpanda.logger.info(f"Getting drain status on node {node}")
+        return self._request("get", "drain", node=node).json()
