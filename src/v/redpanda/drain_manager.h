@@ -17,19 +17,25 @@
 #include <seastar/core/sharded.hh>
 #include <seastar/util/log.hh>
 
+#include <chrono>
+
 /*
  *
  */
 class drain_manager {
+    static constexpr size_t max_parallel_transfers = 25;
+    static constexpr std::chrono::duration transfer_throttle
+      = std::chrono::seconds(5);
+
 public:
     struct drain_status {};
 
     drain_manager(
       ss::logger&,
-      cluster::controller*,
       ss::sharded<cluster::partition_manager>&);
 
-    ss::future<> stop() { co_return; }
+    ss::future<> start();
+    ss::future<> stop();
 
     /*
      * Start draining this broker.
@@ -47,13 +53,14 @@ public:
     std::optional<drain_status> status();
 
 private:
+    ss::future<> task();
     ss::future<> do_drain();
     ss::future<> do_restore();
 
     ss::logger& _log;
-    [[maybe_unused]] cluster::controller* _controller;
-    [[maybe_unused]] ss::sharded<cluster::partition_manager>&
-      _partition_manager;
+    ss::sharded<cluster::partition_manager>& _partition_manager;
     std::optional<ss::future<>> _drain;
-    ss::abort_source _abort;
+    bool _draining{false};
+    bool _stop{false};
+    ss::semaphore _sem{0};
 };
