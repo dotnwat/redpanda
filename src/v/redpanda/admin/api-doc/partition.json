@@ -241,6 +241,10 @@
                 "materialized": {
                     "type": "boolean",
                     "description": "materialized"
+                },
+                "is_leader": {
+                    "type": "boolean",
+                    "description": "node is leader"
                 }
             }
         },
