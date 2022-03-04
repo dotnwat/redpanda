@@ -97,6 +97,9 @@ class DefaultClient:
         res = client.describe_topics(topics)
         return [make_topic_desc(d) for d in res]
 
+    def list_topics(self):
+        return map(lambda t: t.name, self.describe_topics())
+
     def describe_topic(self, topic: str):
         td = self.describe_topics([topic])
         assert len(td) == 1, f"Received {len(td)} topics expected 1: {td}"
