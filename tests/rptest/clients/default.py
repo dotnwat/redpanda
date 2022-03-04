@@ -73,7 +73,7 @@ class DefaultClient:
             for b in brokers.values()
         }
 
-    def delete_topic(self, name):
+    def delete_topic(self, name: str):
         client = KafkaCliTools(self._redpanda)
         client.delete_topic(name)
 
