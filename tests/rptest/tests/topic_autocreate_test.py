@@ -39,7 +39,7 @@ class TopicAutocreateTest(RedpandaTest):
             self.rpk.produce(auto_topic, "foo", "bar")
         except Exception:
             # The write failed, and shouldn't have created a topic
-            assert auto_topic not in self.kafka_tools.list_topics()
+            assert auto_topic not in self.client().list_topics()
         else:
             assert False, "Producing to a nonexistent topic should fail"
 
@@ -48,9 +48,9 @@ class TopicAutocreateTest(RedpandaTest):
                                     {'auto_create_topics_enabled': True})
 
         # Auto create topic
-        assert auto_topic not in self.kafka_tools.list_topics()
+        assert auto_topic not in self.client().list_topics()
         self.client().produce(auto_topic, 1, 4096)
-        assert auto_topic in self.kafka_tools.list_topics()
+        assert auto_topic in self.client().list_topics()
         auto_topic_spec = self.kafka_tools.describe_topic(auto_topic)
         assert auto_topic_spec.retention_ms is None
         assert auto_topic_spec.retention_bytes is None
