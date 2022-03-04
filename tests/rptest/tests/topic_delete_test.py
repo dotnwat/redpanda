@@ -12,7 +12,6 @@ from ducktape.utils.util import wait_until
 
 from rptest.clients.types import TopicSpec
 from rptest.tests.redpanda_test import RedpandaTest
-from rptest.clients.kafka_cli_tools import KafkaCliTools
 
 
 class TopicDeleteTest(RedpandaTest):
@@ -29,12 +28,10 @@ class TopicDeleteTest(RedpandaTest):
                                               num_brokers=3,
                                               extra_rp_conf=extra_rp_conf)
 
-        self.kafka_tools = KafkaCliTools(self.redpanda)
-
     @cluster(num_nodes=3)
     def topic_delete_test(self):
         def produce_until_partitions():
-            self.kafka_tools.produce(self.topic, 1024, 1024)
+            self.client().produce(self.topic, 1024, 1024)
             storage = self.redpanda.storage()
             return len(list(storage.partitions("kafka", self.topic))) == 9
 

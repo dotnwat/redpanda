@@ -49,7 +49,7 @@ class TopicAutocreateTest(RedpandaTest):
 
         # Auto create topic
         assert auto_topic not in self.kafka_tools.list_topics()
-        self.kafka_tools.produce(auto_topic, 1, 4096)
+        self.client().produce(auto_topic, 1, 4096)
         assert auto_topic in self.kafka_tools.list_topics()
         auto_topic_spec = self.kafka_tools.describe_topic(auto_topic)
         assert auto_topic_spec.retention_ms is None
