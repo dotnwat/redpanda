@@ -147,3 +147,21 @@ class DefaultClient:
     def delete_broker_config(self, keys: list[str], incremental: bool):
         kcl = KCL(self._redpanda)
         return kcl.delete_broker_config(keys, incremental)
+
+    def produce(self,
+                topic,
+                num_records,
+                record_size,
+                acks=-1,
+                throughput=-1,
+                batch_size=81960):
+        """
+        Simple produce interface for small tasks.
+        """
+        kafka_tools = KafkaCliTools(self._redpanda)
+        kafka_tools.produce(topic,
+                            num_records,
+                            record_size,
+                            acks=acks,
+                            throughput=throughput,
+                            batch_size=batch_size)
