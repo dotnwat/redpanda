@@ -43,7 +43,7 @@ class TopicDeleteTest(RedpandaTest):
                    backoff_sec=2,
                    err_msg="Expected partition did not materialize")
 
-        self.kafka_tools.delete_topic(self.topic)
+        self.client().delete_topic(self.topic)
 
         def topic_storage_purged():
             storage = self.redpanda.storage()
