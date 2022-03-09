@@ -299,6 +299,24 @@ ss::future<finish_reallocation_reply> service::finish_reallocation(
       [this, req]() mutable { return do_finish_reallocation(req); });
 }
 
+ss::future<set_drain_mode_reply>
+service::set_drain_mode(set_drain_mode_request&& req, rpc::streaming_context&) {
+    return ss::with_scheduling_group(
+      get_scheduling_group(), [this, req]() mutable {
+          return _members_frontend.local()
+            .set_drain_mode(req.id, req.enabled)
+            .then([](std::error_code ec) {
+                if (!ec) {
+                    return set_drain_mode_reply{.error = errc::success};
+                }
+                if (ec.category() == cluster::error_category()) {
+                    return set_drain_mode_reply{.error = errc(ec.value())};
+                }
+                return set_drain_mode_reply{.error = errc::replication_error};
+            });
+      });
+}
+
 ss::future<config_status_reply>
 service::config_status(config_status_request&& req, rpc::streaming_context&) {
     auto ec = co_await _config_frontend.local().set_status(

@@ -85,6 +85,9 @@ public:
     ss::future<get_cluster_health_reply> get_cluster_health_report(
       get_cluster_health_request&&, rpc::streaming_context&) final;
 
+    ss::future<set_drain_mode_reply>
+    set_drain_mode(set_drain_mode_request&&, rpc::streaming_context&) final;
+
 private:
     std::
       pair<std::vector<model::topic_metadata>, std::vector<topic_configuration>>

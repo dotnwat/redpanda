@@ -44,6 +44,8 @@ public:
     ss::future<std::error_code> recommission_node(model::node_id);
     ss::future<std::error_code> finish_node_reallocations(model::node_id);
 
+    ss::future<std::error_code> set_drain_mode(model::node_id, bool enabled);
+
 private:
     template<typename T>
     ss::future<std::error_code> do_replicate_node_command(model::node_id id) {
