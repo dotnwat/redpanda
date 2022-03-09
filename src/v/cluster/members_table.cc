@@ -140,6 +140,56 @@ std::vector<model::node_id> members_table::get_decommissioned() const {
     return ret;
 }
 
+std::error_code
+members_table::apply(model::offset version, maintenance_mode_cmd cmd) {
+    _version = model::revision_id(version());
+
+    const auto target = _brokers.find(cmd.key);
+    if (target == _brokers.end()) {
+        return errc::node_does_not_exists;
+    }
+
+    // no rules to enforce when disabling maintenance mode
+    const auto enable = cmd.value;
+    if (!enable) {
+        target->second->set_maintenance_state(
+          model::maintenance_state::inactive);
+        return errc::success;
+    }
+
+    if (
+      target->second->get_maintenance_state()
+      == model::maintenance_state::active) {
+        return errc::success;
+    }
+
+    /*
+     * enforce one-node-at-a-time in maintenance mode rule
+     */
+    const auto other = std::find_if(
+      _brokers.cbegin(), _brokers.cend(), [](const auto& b) {
+          return b.second->get_maintenance_state()
+                 == model::maintenance_state::active;
+      });
+
+    if (other != _brokers.cend()) {
+        vlog(
+          clusterlog.info,
+          "cannot place node {} into maintenance mode. node {} already in "
+          "maintenance mode",
+          target->first,
+          other->first);
+        return errc::invalid_node_operation;
+    }
+
+    vlog(
+      clusterlog.info, "changing node {} to maintenance state", target->first);
+
+    target->second->set_maintenance_state(model::maintenance_state::active);
+
+    return errc::success;
+}
+
 bool members_table::contains(model::node_id id) const {
     return _brokers.contains(id)
            && _brokers.find(id)->second->get_membership_state()

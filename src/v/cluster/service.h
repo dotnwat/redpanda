@@ -89,6 +89,9 @@ public:
     ss::future<feature_action_response>
     feature_action(feature_action_request&& req, rpc::streaming_context&) final;
 
+    ss::future<set_maintenance_mode_reply> set_maintenance_mode(
+      set_maintenance_mode_request&&, rpc::streaming_context&) final;
+
 private:
     std::
       pair<std::vector<model::topic_metadata>, std::vector<topic_configuration>>

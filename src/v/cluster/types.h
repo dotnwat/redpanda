@@ -839,6 +839,15 @@ struct finish_reallocation_reply {
     errc error;
 };
 
+struct set_maintenance_mode_request {
+    model::node_id id;
+    bool enabled;
+};
+
+struct set_maintenance_mode_reply {
+    errc error;
+};
+
 struct config_status_request {
     config_status status;
 };
