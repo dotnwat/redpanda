@@ -120,6 +120,11 @@ enum class violation_recovery_policy { crash = 0, best_effort };
  */
 enum class membership_state : int8_t { active, draining, removed };
 
+/*
+ *
+ */
+enum class drain_state { active, inactive };
+
 std::ostream& operator<<(std::ostream&, membership_state);
 
 class broker {
@@ -164,6 +169,9 @@ public:
     membership_state get_membership_state() const { return _membership_state; }
     void set_membership_state(membership_state st) { _membership_state = st; }
 
+    drain_state get_drain_state() const { return _drain_state; }
+    void set_drain_state(drain_state st) { _drain_state = st; }
+
     bool operator==(const model::broker& other) const = default;
     bool operator<(const model::broker& other) const { return _id < other._id; }
 
@@ -175,6 +183,7 @@ private:
     broker_properties _properties;
     // in memory state, not serialized
     membership_state _membership_state = membership_state::active;
+    drain_state _drain_state{drain_state::inactive};
 
     friend std::ostream& operator<<(std::ostream&, const broker&);
 };
