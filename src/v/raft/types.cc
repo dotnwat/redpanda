@@ -154,6 +154,20 @@ std::ostream& operator<<(std::ostream& o, const install_snapshot_reply& r) {
     return o;
 }
 
+std::ostream& operator<<(std::ostream& o, const hello_request& r) {
+    fmt::print(
+      o,
+      "{{node_id: {}, target_node_id: {}, group: {}}}",
+      r.node_id,
+      r.target_node_id,
+      r.group);
+    return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const hello_reply&) {
+    return o << "{empty}";
+}
+
 } // namespace raft
 
 namespace reflection {

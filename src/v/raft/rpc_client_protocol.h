@@ -53,6 +53,9 @@ public:
 
     ss::future<> reset_backoff(model::node_id n);
 
+    ss::future<result<hello_reply>>
+    hello(model::node_id, hello_request&&, rpc::client_opts) final;
+
 private:
     model::node_id _self;
     ss::sharded<rpc::connection_cache>& _connection_cache;

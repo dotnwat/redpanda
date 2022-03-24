@@ -476,6 +476,17 @@ struct transfer_leadership_reply {
     raft::errc result;
 };
 
+struct hello_request {
+    // initiator and intended receiver
+    vnode node_id;
+    vnode target_node_id;
+
+    group_id group;
+    raft::group_id target_group() const { return group; }
+};
+
+struct hello_reply {};
+
 // key types used to store data in key-value store
 enum class metadata_key : int8_t {
     voted_for = 0,
@@ -530,6 +541,8 @@ std::ostream& operator<<(std::ostream& o, const vote_request& r);
 std::ostream& operator<<(std::ostream& o, const follower_index_metadata& i);
 std::ostream& operator<<(std::ostream& o, const heartbeat_request& r);
 std::ostream& operator<<(std::ostream& o, const heartbeat_reply& r);
+std::ostream& operator<<(std::ostream& o, const hello_request& r);
+std::ostream& operator<<(std::ostream& o, const hello_reply& r);
 } // namespace raft
 
 namespace reflection {

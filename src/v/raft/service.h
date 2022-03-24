@@ -184,6 +184,16 @@ public:
           });
     }
 
+    [[gnu::always_inline]] ss::future<hello_reply>
+    hello(hello_request&& r, rpc::streaming_context&) final {
+        return dispatch_request(
+          std::move(r),
+          &service::make_failed_hello_reply,
+          [](hello_request&& r, consensus_ptr c) {
+              return c->hello(std::move(r));
+          });
+    }
+
 private:
     using consensus_ptr = seastar::lw_shared_ptr<consensus>;
     using hbeats_t = std::vector<append_entries_request>;
@@ -220,6 +230,10 @@ private:
     make_failed_transfer_leadership_reply() {
         return ss::make_ready_future<transfer_leadership_reply>(
           transfer_leadership_reply{});
+    }
+
+    static ss::future<hello_reply> make_failed_hello_reply() {
+        return ss::make_ready_future<hello_reply>(hello_reply{});
     }
 
     template<typename Req, typename ErrorFactory, typename Func>

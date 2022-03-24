@@ -37,6 +37,7 @@
 #include <seastar/core/fstream.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
+#include <seastar/core/shared_ptr.hh>
 #include <seastar/util/defer.hh>
 
 #include <fmt/ostream.h>
@@ -1178,7 +1179,8 @@ ss::future<> consensus::do_start() {
                                    + 2 * _jit.next_jitter_duration();
               }
               if (!_bg.is_closed()) {
-                  _vote_timeout.rearm(next_election);
+                  // will arm the vote timeout timer
+                  broadcast_hello(next_election);
               }
           })
           .then([this] {
@@ -1201,6 +1203,141 @@ ss::future<> consensus::do_start() {
                 _configuration_manager.get_latest());
           });
     });
+}
+
+/*
+ * Announce to peers that we are starting, and set the vote timeout timer.
+ *
+ * When a peer knows that another peer is starting there is opportunity for
+ * optimizations around voting see consensus::hello for more information.
+ *
+ * One component of the optimization is that *this* node should not prematurely
+ * call for a vote. This broadcast_hello method is called during startup and
+ * sequences the hello messages before arming the vote timeout timer.
+ *
+ * This method makes a simple guarantee: it will always arm the timeout timer,
+ * and further, it will arm the timeout timer as soon as it appears at least one
+ * peer is alive. if no peers appear to be alive then there is no advantage to
+ * arming the timer because no election could be held anyway.
+ *
+ * A 'hello' message is sent to every known broker, rather than omitting some
+ * brokers like learners. The reasoning here is that we have incomplete
+ * knowledge before fully joining the raft group. It may be that set set
+ * of nodes eligible to be leader has changed, and the leader who receives
+ * the hello message is the primary target for this optimization.
+ */
+void consensus::broadcast_hello(clock_type::time_point next_election) {
+    ssx::spawn_with_gate(_bg, [this, next_election] {
+        return ss::do_with(
+          bool{true}, [this, next_election](bool& arm_timeout) {
+              std::vector<ss::future<>> hellos;
+
+              const auto& conf = _configuration_manager.get_latest();
+              conf.for_each_broker_id(
+                [this, &hellos, &arm_timeout, next_election](vnode target) {
+                    if (target == _self) {
+                        return;
+                    }
+                    auto f = try_say_hello(target).finally(
+                      [this, &arm_timeout, next_election] {
+                          if (arm_timeout) {
+                              _vote_timeout.rearm(next_election);
+                              arm_timeout = false;
+                          }
+                      });
+                    hellos.push_back(std::move(f));
+                });
+
+              return ss::when_all_succeed(hellos.begin(), hellos.end())
+                .finally([this, &arm_timeout, next_election] {
+                    if (arm_timeout) {
+                        _vote_timeout.rearm(next_election);
+                        arm_timeout = false;
+                    }
+                });
+          });
+    });
+}
+
+/*
+ * Attempt to say hello to a peer. In general success is defined by an error
+ * free reply from the peer, or any error that implies that the peer is alive.
+ */
+ss::future<> consensus::try_say_hello(vnode target) {
+    const hello_request req{
+      .node_id = _self,
+      .target_node_id = target,
+      .group = _group,
+    };
+
+    int retries = 3;
+    while ((retries-- > 0) && !_as.abort_requested()) {
+        try {
+            auto reply = co_await _client_protocol.hello(
+              target.id(), req, rpc::client_opts(_jit.base_duration()));
+
+            if (reply) {
+                vlog(
+                  _ctxlog.debug,
+                  "Hello reply from {}: {}",
+                  target.id(),
+                  reply.value());
+                co_return;
+            }
+
+            vlog(
+              _ctxlog.debug,
+              "Hello request to {} experienced an error: {}",
+              target.id(),
+              reply.error().message());
+
+            /*
+             * if the connection cache doesn't yet have a connection for this
+             * node then retry. this is most common for raft0 because the
+             * initial set of connections are not established before raft0
+             * starts. the delay uses the vote timeout duration under the
+             * assumption that this timeout could be armed at startup and is
+             * tuned such that connections would be established in time.
+             */
+            if (reply.error() == rpc::errc::missing_node_rpc_client) {
+                vlog(
+                  _ctxlog.debug, "Retrying hello request to {}", target.id());
+                co_await ss::sleep_abortable(_jit.next_duration(), _as);
+                continue;
+            }
+
+            /*
+             * if the peer reports that the rpc method 'hello' was not found
+             * then it implies that the other node is alive but is an older
+             * version of redpanda (most likely we are in an upgrade scenario).
+             * in this case the optimization isn't available, so we'll treat
+             * this as success and bootup as normal.
+             */
+            if (reply.error() == rpc::errc::method_not_found) {
+                co_return;
+            }
+
+        } catch (const std::exception& e) {
+            vlog(
+              _ctxlog.debug,
+              "Hello request to {} experienced an error: {}",
+              target.id(),
+              e);
+        }
+
+        /*
+         * the error is inconclusive regarding the connectivity / state of the
+         * peer. retry after a short delay. the hello announcement is a pure
+         * optimization strategy, and further more, in the context of raft it
+         * would be safe for the target node to be misbehaving while a healthy
+         * quroum still exists. so there is no reason to prolong the process.
+         */
+        try {
+            co_await ss::sleep_abortable(_jit.next_jitter_duration(), _as);
+        } catch (...) {
+            // ignore
+        }
+    }
 }
 
 ss::future<>
@@ -1347,6 +1484,13 @@ ss::future<vote_reply> consensus::do_vote(vote_request&& r) {
     // to have been recently restarted (have failed heartbeats
     // and an <= present term), reset their RPC backoff to get
     // a heartbeat sent out sooner.
+    //
+    // TODO: with the 'hello' RPC this optimization should not be
+    // necessary. however, leaving it in (1) should not conflict
+    // with the 'hello' RPC based version and (2) leaving this
+    // optimization in place for a release cycle means we can
+    // simplify a rolling upgrade scenario where nodes are mixed
+    // w.r.t. supporting the 'hello' RPC.
     if (is_leader() and r.term <= _term) {
         // Look up follower stats for the requester
         if (auto it = _fstats.find(r.node_id); it != _fstats.end()) {
@@ -2879,6 +3023,29 @@ consensus::do_transfer_leadership(std::optional<model::node_id> target) {
     });
 
     return f.finally([this] { _transferring_leadership = false; });
+}
+
+/*
+ * the hello request is sent by a node to its peers when it becomes operational.
+ * the optimization here is to reset the rpc backoff so that the node
+ * immediately begins to receive heartbeats preventing it from entering into a
+ * vote/pre-vote state if the current leader is not sending frequent heartbeats
+ * due to backoff from the node being temporarily unavailable during restart
+ * period.
+ */
+ss::future<hello_reply> consensus::hello(hello_request r) {
+    vlog(
+      _ctxlog.debug,
+      "Hello request from peer {}, {}: {}",
+      r.node_id,
+      is_leader() ? "resetting backoff" : "ignoring as non-leader",
+      r);
+
+    if (is_leader()) {
+        co_await _client_protocol.reset_backoff(r.node_id.id());
+    }
+
+    co_return hello_reply{};
 }
 
 ss::future<> consensus::remove_persistent_state() {

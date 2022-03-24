@@ -54,6 +54,9 @@ public:
 
         virtual ss::future<> reset_backoff(model::node_id) = 0;
 
+        virtual ss::future<result<hello_reply>>
+        hello(model::node_id, hello_request&&, rpc::client_opts) = 0;
+
         virtual ~impl() noexcept = default;
     };
 
@@ -109,6 +112,11 @@ public:
 
     ss::future<> reset_backoff(model::node_id target_node) {
         return _impl->reset_backoff(target_node);
+    }
+
+    ss::future<result<hello_reply>>
+    hello(model::node_id target_node, hello_request r, rpc::client_opts opts) {
+        return _impl->hello(target_node, std::move(r), std::move(opts));
     }
 
 private:

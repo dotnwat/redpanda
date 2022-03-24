@@ -288,6 +288,11 @@ public:
     ss::future<std::error_code>
       request_leadership(model::timeout_clock::time_point);
 
+    /*
+     * Handle a peer announcing that it is starting.
+     */
+    ss::future<hello_reply> hello(hello_request);
+
     ss::future<> remove_persistent_state();
 
     /**
@@ -536,6 +541,10 @@ private:
         }
         return false;
     }
+
+    ss::future<> try_say_hello(vnode target);
+    void broadcast_hello(clock_type::time_point next_election);
+
     // args
     vnode _self;
     raft::group_id _group;
