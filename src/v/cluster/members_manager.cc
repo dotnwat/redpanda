@@ -74,16 +74,60 @@ members_manager::members_manager(
 ss::future<> members_manager::start() {
     vlog(clusterlog.info, "starting cluster::members_manager...");
 
+    /*
+     * Initialize connections to cluster members. Since raft0 is a cluster-wide
+     * raft group this will create a connection to all known brokers. Once a
+     * connection is established a 'hello' request is sent to the node to allow
+     * it to react to the newly started node. See cluster::service::hello for
+     * more information about how this signal is used. A short timeout is used
+     * for the 'hello' request as this is a best effort optimization.
+     */
     for (auto c = _raft0->config(); auto& b : c.brokers()) {
         if (b.id() == _self.id()) {
             continue;
         }
-        co_await update_broker_client(
+        co_await with_client<controller_client_protocol>(
           _self.id(),
           _connection_cache,
           b.id(),
           b.rpc_address(),
-          _rpc_tls_config);
+          _rpc_tls_config,
+          2s,
+          [self = _self.id()](controller_client_protocol c) {
+              return c.hello(hello_request{.peer = self}, rpc::client_opts(2s))
+                .then(&rpc::get_ctx_data<hello_reply>);
+          })
+          .then([peer = b.id()](result<hello_reply> r) {
+              if (r) {
+                  if (r.value().error != errc::success) {
+                      vlog(
+                        clusterlog.info,
+                        "Hello response from {} contained error {}",
+                        peer,
+                        r.value().error);
+                  }
+                  return;
+              }
+
+              /*
+               * In a rolling upgrade scenario the peer may not have the hello
+               * rpc endpoint available. hello is an optimization, so ignore.
+               */
+              if (r.error() == rpc::errc::method_not_found) {
+                  vlog(
+                    clusterlog.debug,
+                    "Ignoring failed hello request to {}: {}",
+                    peer,
+                    r.error());
+                  return;
+              }
+
+              vlog(
+                clusterlog.info,
+                "Hello response from {} failed: {}",
+                peer,
+                r.error());
+          });
     }
 }
 
