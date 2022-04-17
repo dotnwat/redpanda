@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/redpanda-data/redpanda/src/go/rpk/pkg/api/admin"
 	"github.com/redpanda-data/redpanda/src/go/rpk/pkg/config"
@@ -22,6 +23,9 @@ import (
 )
 
 func newEnableCommand(fs afero.Fs) *cobra.Command {
+	var (
+		wait bool
+	)
 	cmd := &cobra.Command{
 		Use:   "enable <node-id>",
 		Short: "Enable maintenance mode for a node.",
@@ -65,7 +69,28 @@ node exists that is already in maintenance mode then an error will be returned.
 
 			out.MaybeDie(err, "error enabling maintenance mode for node %d: %v", node_id, err)
 			fmt.Printf("Successfully enabled maintenance mode for node %d\n", node_id)
+
+			if !wait {
+				return
+			}
+
+			fmt.Println("Waiting for node to drain...")
+
+			retries := 3
+			for {
+				b, err := client.Broker(node_id)
+				if err != nil {
+					if retries <= 0 {
+						out.Die("Error retrieving broker status: %v", err)
+					}
+					retries--
+					time.Sleep(time.Second * 2)
+					continue
+				}
+				retries = 3
+			}
 		},
 	}
+	cmd.Flags().BoolVarP(&wait, "wait", "w", false, "Wait until node is drained")
 	return cmd
 }
