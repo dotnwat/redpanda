@@ -7,7 +7,6 @@
 # the Business Source License, use of this software will be governed
 # by the Apache License, Version 2.0
 
-from collections import namedtuple
 import subprocess
 import re
 import typing
@@ -16,7 +15,6 @@ from ducktape.cluster.cluster import ClusterNode
 DEFAULT_TIMEOUT = 30
 
 DEFAULT_PRODUCE_TIMEOUT = 5
-
 
 class RpkException(Exception):
     def __init__(self, msg, stderr=""):
@@ -80,6 +78,15 @@ class RpkClusterInfoNode:
         self.id = id
         self.address = address
 
+class RpkMaintenanceStatus(typing.NamedTuple):
+    node_id: int
+    draining: bool
+    finished: bool
+    errors: bool
+    partitions: int
+    eligible: int
+    transferring: int
+    failed: int
 
 class RpkTool:
     """
@@ -490,3 +497,32 @@ class RpkTool:
             str(node_id)
         ]
         return self._execute(cmd)
+
+    def cluster_maintenance_status(self):
+        # me@node:~/src/redpanda$ rpk cluster maintenance status
+        # NODE-ID  DRAINING  FINISHED  ERRORS  PARTITIONS  ELIGIBLE  TRANSFERRING  FAILED
+        # 1        false     false     false   0           0         0             0
+
+        def parse(line):
+            line = line.split()
+            assert len(line) == 8, f"`rpk cluster maintenance status` has changed: {line}"
+            line = [x.strip() for x in line]
+            if line[0] == "NODE-ID":
+                return None
+            return RpkMaintenanceStatus(
+                node_id = int(line[0]),
+                draining = line[1] == "true",
+                finished = line[2] == "true",
+                errors = line[3] == "true",
+                partitions = int(line[4]),
+                eligible = int(line[5]),
+                transferring = int(line[6]),
+                failed = int(line[7]))
+
+        cmd = [
+            self._rpk_binary(), "--api-urls",
+            self._admin_host(), "cluster", "maintenance", "status",
+        ]
+
+        output = self._execute(cmd)
+        return list(filter(None, map(parse, output.splitlines())))
