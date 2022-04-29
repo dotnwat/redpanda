@@ -49,11 +49,13 @@ public:
       bool enabled,
       std::optional<key_cert> key_cert,
       std::optional<ss::sstring> truststore,
-      bool require_client_auth)
+      bool require_client_auth,
+      std::optional<ss::sstring> principal_mapping_rules)
       : _enabled(enabled)
       , _key_cert(std::move(key_cert))
       , _truststore_file(std::move(truststore))
-      , _require_client_auth(require_client_auth) {}
+      , _require_client_auth(require_client_auth)
+      , _principal_mapping_rules(std::move(principal_mapping_rules)) {}
 
     bool is_enabled() const { return _enabled; }
 
@@ -66,6 +68,12 @@ public:
     }
 
     bool get_require_client_auth() const { return _require_client_auth; }
+    bool get_enable_dn_fetch() const {
+        return _principal_mapping_rules.has_value();
+    }
+    const std::optional<ss::sstring>& get_principal_mapping_rules() const {
+        return _principal_mapping_rules;
+    }
 
     ss::future<std::optional<ss::tls::credentials_builder>>
     get_credentials_builder() const& {
@@ -111,6 +119,10 @@ public:
             return "Trust store is required when client authentication is "
                    "enabled";
         }
+        if (c.get_enable_dn_fetch() && !c.get_require_client_auth()) {
+            return "Client authentication is required when principal mapping "
+                   "rules are set";
+        }
 
         return std::nullopt;
     }
@@ -122,6 +134,7 @@ private:
     std::optional<key_cert> _key_cert;
     std::optional<ss::sstring> _truststore_file;
     bool _require_client_auth{false};
+    std::optional<ss::sstring> _principal_mapping_rules;
 };
 
 } // namespace config
@@ -137,7 +150,8 @@ static inline ostream& operator<<(ostream& o, const config::tls_config& c) {
       << "enabled: " << c.is_enabled() << " "
       << "key/cert files: " << c.get_key_cert_files() << " "
       << "ca file: " << c.get_truststore_file() << " "
-      << "client_auth_required: " << c.get_require_client_auth() << " }";
+      << "client_auth_required: " << c.get_require_client_auth() << " "
+      << "enable_dn_fetch: " << c.get_enable_dn_fetch() << " }";
     return o;
 }
 } // namespace std
@@ -167,6 +181,7 @@ struct convert<config::tls_config> {
 
         node["enabled"] = rhs.is_enabled();
         node["require_client_auth"] = rhs.get_require_client_auth();
+        node["enable_dn_fetch"] = rhs.get_enable_dn_fetch();
 
         if (rhs.get_key_cert_files()) {
             node["cert_file"] = (*rhs.get_key_cert_files()).key_file;
@@ -197,7 +212,8 @@ struct convert<config::tls_config> {
         }
         auto enabled = node["enabled"] && node["enabled"].as<bool>();
         if (!enabled) {
-            rhs = config::tls_config(false, std::nullopt, std::nullopt, false);
+            rhs = config::tls_config(
+              false, std::nullopt, std::nullopt, false, std::nullopt);
         } else {
             auto key_cert
               = node["key_file"]
@@ -205,12 +221,17 @@ struct convert<config::tls_config> {
                     to_absolute(node["key_file"].as<ss::sstring>()),
                     to_absolute(node["cert_file"].as<ss::sstring>())})
                   : std::nullopt;
+            auto principal_mapping_rules
+              = node["principal_mapping_rules"]
+                  ? node["principal_mapping_rules"].as<ss::sstring>()
+                  : std::optional<ss::sstring>();
             rhs = config::tls_config(
               enabled,
               key_cert,
               to_absolute(read_optional(node, "truststore_file")),
               node["require_client_auth"]
-                && node["require_client_auth"].as<bool>());
+                && node["require_client_auth"].as<bool>(),
+              principal_mapping_rules);
         }
         return true;
     }

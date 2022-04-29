@@ -49,6 +49,9 @@ void rjson_serialize(
     w.Key("require_client_auth");
     w.Bool(v.get_require_client_auth());
 
+    w.Key("enable_dn_fetch");
+    w.Bool(v.get_enable_dn_fetch());
+
     if (v.get_key_cert_files()) {
         w.Key("key_file");
         w.String(v.get_key_cert_files()->key_file.c_str());
@@ -99,6 +102,9 @@ void rjson_serialize(
 
     w.Key("require_client_auth");
     w.Bool(v.config.get_require_client_auth());
+
+    w.Key("enable_dn_fetch");
+    w.Bool(v.config.get_enable_dn_fetch());
 
     if (v.config.get_key_cert_files()) {
         w.Key("key_file");
