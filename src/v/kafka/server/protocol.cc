@@ -17,6 +17,7 @@
 #include "kafka/server/logger.h"
 #include "kafka/server/request_context.h"
 #include "kafka/server/response.h"
+#include "security/mtls.h"
 #include "security/scram_algorithm.h"
 #include "utils/utf8.h"
 #include "vlog.h"
@@ -25,6 +26,7 @@
 #include <seastar/core/loop.hh>
 #include <seastar/core/metrics.hh>
 #include <seastar/core/semaphore.hh>
+#include <seastar/net/api.hh>
 #include <seastar/net/socket_defs.hh>
 #include <seastar/util/log.hh>
 
@@ -33,6 +35,7 @@
 #include <chrono>
 #include <exception>
 #include <limits>
+#include <memory>
 
 namespace kafka {
 
@@ -101,6 +104,15 @@ ss::future<> protocol::apply(net::server::resources rs) {
       config::shard_local_cfg().enable_sasl()
         ? security::sasl_server::sasl_state::initial
         : security::sasl_server::sasl_state::complete);
+
+    auto tls_pm = rs.conn->get_principal_mapping();
+    if (tls_pm.has_value()) {
+        sasl.set_mechanism(std::make_unique<security::tls::sasl_mechanism>(
+          std::move(*tls_pm),
+          rs.conn->get_distinguished_name(),
+          rs.conn_gate()));
+        sasl.set_state(security::sasl_server::sasl_state::complete);
+    }
 
     auto ctx = ss::make_lw_shared<connection_context>(
       *this,
