@@ -12,8 +12,13 @@
 #pragma once
 
 #include "seastarx.h"
+#include "security/logger.h"
+#include "security/sasl_authentication.h"
+#include "ssx/future-util.h"
+#include "vlog.h"
 
 #include <seastar/core/sstring.hh>
+#include <seastar/net/api.hh>
 #include <seastar/util/bool_class.hh>
 
 #include <fmt/core.h>
@@ -80,6 +85,58 @@ private:
     operator<<(std::ostream& os, const principal_mapper& p);
 
     std::vector<rule> _rules;
+};
+
+class sasl_mechanism final : public security::sasl_mechanism {
+public:
+    explicit sasl_mechanism(
+      principal_mapper tls_pm,
+      ss::future<std::optional<ss::session_dn>> fut,
+      ss::gate& gate)
+      : _tls_pm{std::move(tls_pm)}
+      , _gate{gate}
+      , _fut{accept_dn(std::move(fut))} {}
+
+    result<bytes> authenticate(bytes_view) final { return bytes{}; }
+
+    bool complete() const final { return !_fut.has_value(); }
+    bool failed() const final {
+        return !_fut.has_value() && !_principal.has_value();
+    }
+    const ss::sstring& principal() const final { return *_principal; }
+
+private:
+    ss::future<> accept_dn(ss::future<std::optional<ss::session_dn>> fut) {
+        return ss::with_gate(_gate, [this, fut{std::move(fut)}]() mutable {
+            return fut
+              .then([this](auto dn) {
+                  vlog(
+                    seclog.info,
+                    "got distinguished name: {}",
+                    dn ? dn->subject : "<none>");
+                  if (dn.has_value()) {
+                      auto maybe_principal = _tls_pm.apply(dn->subject);
+                      if (maybe_principal) {
+                          vlog(
+                            seclog.info,
+                            "got principal: {}, from distinguished name: {}",
+                            *maybe_principal,
+                            dn ? dn->subject : "<none>");
+                          _principal = *maybe_principal;
+                      }
+                  }
+                  _fut.reset();
+              })
+              .handle_exception([](std::exception_ptr e) {
+                  vlog(seclog.info, "Auth failed: {}", e);
+              });
+        });
+    }
+
+    principal_mapper _tls_pm;
+    ss::gate& _gate;
+    std::optional<ss::future<>> _fut;
+    std::optional<ss::sstring> _principal;
 };
 
 } // namespace security::tls
