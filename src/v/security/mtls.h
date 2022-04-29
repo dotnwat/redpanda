@@ -16,7 +16,7 @@
 #include <seastar/core/sstring.hh>
 #include <seastar/util/bool_class.hh>
 
-#include <fmt/ranges.h>
+#include <fmt/core.h>
 
 #include <iosfwd>
 #include <optional>
@@ -91,24 +91,7 @@ struct fmt::formatter<security::tls::rule> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template<typename FormatContext>
-    auto format(const type& r, FormatContext& ctx) {
-        if (r._is_default) {
-            return format_to(ctx.out(), "DEFAULT");
-        }
-        format_to(ctx.out(), "RULE:");
-        if (r._pattern.has_value()) {
-            format_to(ctx.out(), "{}", *r._pattern);
-        }
-        if (r._replacement.has_value()) {
-            format_to(ctx.out(), "/{}", *r._replacement);
-        }
-        if (r._to_lower) {
-            format_to(ctx.out(), "/L");
-        } else if (r._to_upper) {
-            format_to(ctx.out(), "/U");
-        }
-        return ctx.out();
-    }
+    typename FormatContext::iterator format(const type& r, FormatContext& ctx);
 };
 
 template<>
@@ -118,7 +101,5 @@ struct fmt::formatter<security::tls::principal_mapper> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template<typename FormatContext>
-    auto format(const type& r, FormatContext& ctx) {
-        return format_to(ctx.out(), "[{}]", fmt::join(r._rules, ", "));
-    }
+    typename FormatContext::iterator format(const type& r, FormatContext& ctx);
 };

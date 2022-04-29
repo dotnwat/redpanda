@@ -158,3 +158,43 @@ std::ostream& operator<<(std::ostream& os, const principal_mapper& p) {
 }
 
 } // namespace security::tls
+
+// explicit instantiations so as to avoid bringing in <fmt/ranges.h> in the
+// header, whch breaks compilation in another part of the codebase.
+template<>
+std::back_insert_iterator<fmt::detail::buffer<char>>
+fmt::formatter<security::tls::rule>::format(
+  const security::tls::rule& r,
+  fmt::basic_format_context<
+    std::back_insert_iterator<fmt::detail::buffer<char>>,
+    char>& ctx) {
+    if (r._is_default) {
+        return format_to(ctx.out(), "DEFAULT");
+    }
+    format_to(ctx.out(), "RULE:");
+    if (r._pattern.has_value()) {
+        format_to(ctx.out(), "{}", *r._pattern);
+    }
+    if (r._replacement.has_value()) {
+        format_to(ctx.out(), "/{}", *r._replacement);
+    }
+    if (r._to_lower) {
+        format_to(ctx.out(), "/L");
+    } else if (r._to_upper) {
+        format_to(ctx.out(), "/U");
+    }
+    return ctx.out();
+}
+
+template<>
+std::back_insert_iterator<fmt::detail::buffer<char>>
+fmt::formatter<security::tls::principal_mapper>::format<
+  fmt::basic_format_context<
+    std::back_insert_iterator<fmt::detail::buffer<char>>,
+    char>>(
+  const security::tls::principal_mapper& r,
+  fmt::basic_format_context<
+    std::back_insert_iterator<fmt::detail::buffer<char>>,
+    char>& ctx) {
+    return format_to(ctx.out(), "[{}]", fmt::join(r._rules, ", "));
+}
