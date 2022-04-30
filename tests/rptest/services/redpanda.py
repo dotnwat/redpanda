@@ -404,6 +404,14 @@ class RedpandaService(Service):
             "path": STDOUT_STDERR_CAPTURE,
             "collect_default": True
         },
+        "redpanda_node_config_file": {
+            "path": NODE_CONFIG_FILE,
+            "collect_default": True
+        },
+        "redpanda_cluster_bootstrap_config_file": {
+            "path": CLUSTER_BOOTSTRAP_CONFIG_FILE,
+            "collect_default": True
+        },
         "wasm_engine_start_stdout_stderr": {
             "path": WASM_STDOUT_STDERR_CAPTURE,
             "collect_default": True
