@@ -35,6 +35,16 @@ redpanda:
   kafka_api:
   - address: "0.0.0.0"
     port: 9092
+    name: default
+
+  kafka_api_tls:
+  - cert_file: server.crt
+    enabled: true
+    key_file: server.key
+    require_client_auth: true
+    principal_mapping_rules: "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1/L, DEFAULT"
+    name: default
+    truststore_file: ca.crt
 
   admin:
     address: "0.0.0.0"

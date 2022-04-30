@@ -9,7 +9,7 @@
 
 quick:
   included:
-  - tests/
+  - tests/acls_test.py
 
   excluded:
   - tests/librdkafka_test.py

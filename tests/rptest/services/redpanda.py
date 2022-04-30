@@ -18,6 +18,7 @@ import requests
 import random
 import threading
 import collections
+import subprocess
 import re
 import uuid
 from typing import Mapping, Optional, Union, Any
@@ -33,7 +34,7 @@ from prometheus_client.parser import text_string_to_metric_families
 from rptest.clients.kafka_cat import KafkaCat
 from rptest.services.storage import ClusterStorage, NodeStorage
 from rptest.services.admin import Admin
-from rptest.clients.python_librdkafka import PythonLibrdkafka
+from rptest.clients.rpk import RpkTool
 
 Partition = collections.namedtuple('Partition',
                                    ['index', 'leader', 'replicas'])
@@ -350,12 +351,249 @@ class SISettings:
 
         return conf
 
+class Security3:
+    def generate_ca(self):
+        self.index = tempfile.NamedTemporaryFile()
+        self.serial = tempfile.NamedTemporaryFile()
+
+        ca_cnf_content = f"""
+        # OpenSSL CA configuration file
+        [ ca ]
+        default_ca = CA_default
+        [ CA_default ]
+        default_days = 365
+        database = {self.index.name}
+        serial = {self.serial.name}
+        default_md = sha256
+        copy_extensions = copy
+        unique_subject = no
+        # Used to create the CA certificate.
+        [ req ]
+        prompt=no
+        distinguished_name = distinguished_name
+        x509_extensions = extensions
+        [ distinguished_name ]
+        organizationName = Vectorized
+        commonName = Vectorized CA
+        [ extensions ]
+        keyUsage = critical,digitalSignature,nonRepudiation,keyEncipherment,keyCertSign
+        basicConstraints = critical,CA:true,pathlen:1
+        # Common policy for nodes and users.
+        [ signing_policy ]
+        organizationName = supplied
+        commonName = optional
+        # Used to sign node certificates.
+        [ signing_node_req ]
+        keyUsage = critical,digitalSignature,keyEncipherment
+        extendedKeyUsage = serverAuth,clientAuth
+        # Used to sign client certificates.
+        [ signing_client_req ]
+        keyUsage = critical,digitalSignature,keyEncipherment
+        extendedKeyUsage = clientAuth
+        """
+        self.ca_cnf = tempfile.NamedTemporaryFile()
+        self.ca_cnf.write(ca_cnf_content.encode())
+        self.ca_cnf.flush()
+
+        self.mtls_ca_key = tempfile.NamedTemporaryFile()
+        self.mtls_ca_crt = tempfile.NamedTemporaryFile()
+        subprocess.check_output(["openssl", "genrsa", "-out", self.mtls_ca_key.name, "2048"])
+        subprocess.check_output(["chmod", "400", self.mtls_ca_key.name])
+        subprocess.check_output(
+            f"openssl req -new -x509 -config {self.ca_cnf.name} -key".split() +
+            f"{self.mtls_ca_key.name} -out {self.mtls_ca_crt.name} -days 365 -batch".split())
+
+    def generate_server(self):
+        cnf_content = """
+        [ req ]
+        prompt=no
+        distinguished_name = distinguished_name
+        req_extensions = extensions
+        [ distinguished_name ]
+        organizationName = FooOrg
+        [ extensions ]
+        subjectAltName = critical,DNS:localhost,IP:127.0.0.1
+        """
+        cnf = tempfile.NamedTemporaryFile()
+        cnf.write(cnf_content.encode())
+        cnf.flush()
+
+        self.server_key = tempfile.NamedTemporaryFile()
+        csr = tempfile.NamedTemporaryFile()
+        self.server_crt = tempfile.NamedTemporaryFile(suffix=".pem")
+        outdir = tempfile.TemporaryDirectory()
+        subprocess.check_output(f"openssl genrsa -out {self.server_key.name} 2048".split())
+        subprocess.check_output(["chmod", "400", self.server_key.name])
+        subprocess.check_output(
+            f"openssl req -new -config {cnf.name} -key".split() +
+            f"{self.server_key.name} -out {csr.name} -batch".split())
+        subprocess.check_output(
+            f"openssl ca -config {self.ca_cnf.name} -keyfile {self.mtls_ca_key.name}".split() +
+            f"-cert {self.mtls_ca_crt.name} -policy signing_policy -extensions".split() +
+            f"-outdir {outdir.name} signing_node_req -out {self.server_crt.name} -in {csr.name} -batch".split())
+        print(self.server_crt.name)
+        print(os.stat(self.server_crt.name))
+        print(os.listdir(outdir.name))
+
+    def generate_client(self):
+        cnf_content = """
+        [ req ]
+        prompt=no
+        distinguished_name = distinguished_name
+        req_extensions = extensions
+        [ distinguished_name ]
+        organizationName = FooOrg
+        [ extensions ]
+        subjectAltName = critical,DNS:localhost,IP:127.0.0.1
+        """
+        cnf = tempfile.NamedTemporaryFile()
+        cnf.write(cnf_content.encode())
+        cnf.flush()
+
+        self.client_key = tempfile.NamedTemporaryFile()
+        csr = tempfile.NamedTemporaryFile()
+        self.client_crt = tempfile.NamedTemporaryFile()
+        outdir = tempfile.TemporaryDirectory()
+        subprocess.check_output(f"openssl genrsa -out {self.client_key.name} 2048".split())
+        subprocess.check_output(["chmod", "400", self.client_key.name])
+        subprocess.check_output(
+            f"openssl req -new -config {cnf.name} -key".split() +
+            f"{self.client_key.name} -out {csr.name} -batch".split())
+        subprocess.check_output(
+            f"openssl ca -config {self.ca_cnf.name} -keyfile {self.mtls_ca_key.name}".split() +
+            f"-cert {self.mtls_ca_crt.name} -policy signing_policy -extensions".split() +
+            f"-outdir {outdir.name} signing_node_req -out {self.client_crt.name} -in {csr.name} -batch".split())
+
+    def generate_cert(self):
+        self.generate_server()
+        self.generate_client()
+
+class Security:
+    def generate_ca(self):
+        cfg = """
+        [ req ]
+        default_bits = 4096
+        default_keyfile = db.key
+        distinguished_name = req_distinguished_name
+        req_extensions = v3_req
+        prompt = no
+        [ req_distinguished_name ]
+        C = SE
+        ST = Stockholm
+        L = Stockholm
+        O = foo.bar
+        OU = foo.bar
+        CN= db.foo.bar
+        emailAddress = postmaster@foo.bar
+        [v3_ca]
+        subjectKeyIdentifier=hash
+        authorityKeyIdentifier=keyid:always,issuer:always
+        basicConstraints = CA:true
+        [v3_req]
+        # Extensions to add to a certificate request
+        basicConstraints = CA:FALSE
+        keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+        """
+        self.cfg = tempfile.NamedTemporaryFile()
+        self.cfg.write(cfg.encode())
+        self.cfg.flush()
+
+        self.mtls_ca_key = tempfile.NamedTemporaryFile()
+        self._run(f"openssl genrsa -out {self.mtls_ca_key.name} 4096")
+
+        self.mtls_ca_crt = tempfile.NamedTemporaryFile()
+        self._run(f"openssl req -x509 -new -nodes -key {self.mtls_ca_key.name} -days 3650 -config {self.cfg.name} -out {self.mtls_ca_crt.name}")
+
+        self.server_key = tempfile.NamedTemporaryFile()
+        self._run(f"openssl genrsa -out {self.server_key.name} 4096")
+
+        self.csr = tempfile.NamedTemporaryFile()
+        self._run(f"openssl req -new -key {self.server_key.name} -out {self.csr.name} -config {self.cfg.name}")
+
+        self.server_crt = tempfile.NamedTemporaryFile()
+        self._run(f"openssl x509 -req -in {self.csr.name} -CA {self.mtls_ca_crt.name} -CAkey {self.mtls_ca_key.name} -CAcreateserial -out {self.server_crt.name} -days 365")
+
+    def generate_cert(self):
+        pass
+
+    def _run(self, cmd):
+        if not isinstance(cmd, list):
+            cmd = cmd.split()
+        subprocess.check_output(cmd)
+
+class Security2:
+    """
+    TODO
+    - use test prefix or dir for tmp files. things like serial file are
+      generated relative to those files not in the current working dir.
+    """
+
+    def generate_ca(self):
+		# run in some other dir
+        server="localhost"
+        domain="localhost"
+        country="SE"
+        state="Stockholm"
+        locality=state
+        self.common=server
+        self.subject=f"/C={country}/ST={state}/L={locality}/O={domain}/OU={domain}/CN={self.common}"
+        self.client1=f"/C={country}/ST={state}/L={locality}/O={domain}/OU={domain}/CN=client1.org"
+        self.mtls_ca_key = tempfile.NamedTemporaryFile()
+        self.mtls_ca_crt = tempfile.NamedTemporaryFile()
+        self._run(f"openssl ecparam -name prime256v1 -genkey -noout -out {self.mtls_ca_key.name}")
+        self._run(
+            f"openssl req -new -x509 -sha256 -key {self.mtls_ca_key.name}".split() +
+            f"-out {self.mtls_ca_crt.name} -subj".split() + [self.subject] +
+            ["-addext", f"subjectAltName = DNS:ducktape, DNS:docker-rp-1, DNS:docker-rp-2, DNS:docker-rp-3"])
+
+    def generate_server(self):
+        extfile = tempfile.NamedTemporaryFile()
+        #extfile.write(f"subjectAltName=DNS:{self.common}".encode())
+        extfile.write(f"subjectAltName=DNS:ducktape, DNS:docker-rp-1, DNS:docker-rp-2, DNS:docker-rp-3".encode())
+        extfile.flush()
+
+        self.server_key = tempfile.NamedTemporaryFile()
+        server_csr = tempfile.NamedTemporaryFile()
+        self.server_crt = tempfile.NamedTemporaryFile()
+        self._run(f"openssl ecparam -name prime256v1 -genkey -noout -out {self.server_key.name}")
+        self._run(f"openssl req -new -sha256 -key {self.server_key.name} -out {server_csr.name}".split() +
+                ["-subj", self.subject, "-addext", f"subjectAltName = DNS:ducktape, DNS:docker-rp-1, DNS:docker-rp-2, DNS:docker-rp-3"])
+             #["-subj", self.subject, "-addext", f"subjectAltName = DNS:{self.common}"])
+        self._run(f"openssl x509 -req -in {server_csr.name} -CA {self.mtls_ca_crt.name} -CAkey {self.mtls_ca_key.name}".split() +
+            f"-CAcreateserial -out {self.server_crt.name} -days 1000 -sha256 -extfile {extfile.name}".split())
+
+    def generate_client(self):
+        self.client_key = tempfile.NamedTemporaryFile()
+        csr = tempfile.NamedTemporaryFile()
+        self.client_crt = tempfile.NamedTemporaryFile()
+        self._run(f"openssl ecparam -name prime256v1 -genkey -noout -out {self.client_key.name}")
+        self._run(f"openssl req -new -sha256 -key {self.client_key.name} -out {csr.name}".split() +
+                ["-subj", self.client1, "-addext", f"subjectAltName = DNS:ducktape, DNS:docker-rp-1, DNS:docker-rp-2, DNS:docker-rp-3"])
+        self._run(f"openssl x509 -req -in {csr.name} -CA {self.mtls_ca_crt.name} -CAkey {self.mtls_ca_key.name}".split() +
+            f"-CAcreateserial -out {self.client_crt.name} -days 1000 -sha256".split())
+
+    def generate_cert(self):
+        self.generate_server()
+        self.generate_client()
+        pass
+
+    def _run(self, cmd):
+        if not isinstance(cmd, list):
+            cmd = cmd.split()
+        subprocess.check_output(cmd)
+
+class SecuritySettings:
+    def __init__(self):
+        self.tls_provider = None
 
 class RedpandaService(Service):
     PERSISTENT_ROOT = "/var/lib/redpanda"
     DATA_DIR = os.path.join(PERSISTENT_ROOT, "data")
     NODE_CONFIG_FILE = "/etc/redpanda/redpanda.yaml"
     CLUSTER_BOOTSTRAP_CONFIG_FILE = "/etc/redpanda/.bootstrap.yaml"
+    TLS_SERVER_KEY_FILE = "/etc/redpanda/server.key"
+    TLS_SERVER_CRT_FILE = "/etc/redpanda/server.crt"
+    TLS_CA_CRT_FILE = "/etc/redpanda/ca.crt"
     STDOUT_STDERR_CAPTURE = os.path.join(PERSISTENT_ROOT, "redpanda.log")
     BACKTRACE_CAPTURE = os.path.join(PERSISTENT_ROOT, "redpanda_backtrace.log")
     WASM_STDOUT_STDERR_CAPTURE = os.path.join(PERSISTENT_ROOT,
@@ -412,6 +650,18 @@ class RedpandaService(Service):
             "path": CLUSTER_BOOTSTRAP_CONFIG_FILE,
             "collect_default": True
         },
+        "redpanda_tls_server_key_file": {
+            "path": TLS_SERVER_KEY_FILE,
+            "collect_default": True
+        },
+        "redpanda_server_crt_file": {
+            "path": TLS_SERVER_CRT_FILE,
+            "collect_default": True
+        },
+        "redpanda_ca_crt_file": {
+            "path": TLS_CA_CRT_FILE,
+            "collect_default": True
+        },
         "wasm_engine_start_stdout_stderr": {
             "path": WASM_STDOUT_STDERR_CAPTURE,
             "collect_default": True
@@ -442,13 +692,15 @@ class RedpandaService(Service):
                  resource_settings=None,
                  si_settings=None,
                  log_level: Optional[str] = None,
-                 environment: Optional[dict[str, str]] = None):
+                 environment: Optional[dict[str, str]] = None,
+                 security_settings=SecuritySettings()):
         super(RedpandaService, self).__init__(context, num_nodes=num_brokers)
         self._context = context
         self._enable_rp = enable_rp
         self._extra_rp_conf = extra_rp_conf or dict()
         self._enable_pp = enable_pp
         self._enable_sr = enable_sr
+        self.security_settings = security_settings
 
         self._extra_node_conf = {}
         for node in self.nodes:
@@ -1163,6 +1415,41 @@ class RedpandaService(Service):
                 doc["redpanda"].update(override_cfg_params)
             conf = yaml.dump(doc)
 
+        #principal_mapping_rules = "RULE:^CN=(.*?),OU=ServiceUsers.*$/$1/L, DEFAULT",
+        if self.security_settings.tls_provider:
+            provider = self.security_settings.tls_provider
+
+            self.logger.info("Writing Redpanda node tls server key file: {}".format(
+                RedpandaService.TLS_SERVER_KEY_FILE))
+            self.logger.debug(provider.server_key())
+            node.account.create_file(RedpandaService.TLS_SERVER_KEY_FILE,
+                    provider.server_key())
+
+            self.logger.info("Writing Redpanda node tls server cert file: {}".format(
+                RedpandaService.TLS_SERVER_CRT_FILE))
+            self.logger.debug(provider.server_cert())
+            node.account.create_file(RedpandaService.TLS_SERVER_CRT_FILE,
+                    provider.server_cert())
+
+            self.logger.info("Writing Redpanda node tls ca cert file: {}".format(
+                RedpandaService.TLS_CA_CRT_FILE))
+            self.logger.debug(provider.ca_cert())
+            node.account.create_file(RedpandaService.TLS_CA_CRT_FILE,
+                    provider.ca_cert())
+
+            tls_config = dict(
+                enabled = True,
+                require_client_auth = False,
+                name = "dnslistener",
+                key_file = RedpandaService.TLS_SERVER_KEY_FILE,
+                cert_file = RedpandaService.TLS_SERVER_CRT_FILE,
+                truststore_file = RedpandaService.TLS_CA_CRT_FILE,
+            )
+
+            doc = yaml.full_load(conf)
+            doc["redpanda"]["kafka_api_tls"] = tls_config
+            conf = yaml.dump(doc)
+
         self.logger.info("Writing Redpanda node config file: {}".format(
             RedpandaService.NODE_CONFIG_FILE))
         self.logger.debug(conf)
@@ -1247,17 +1534,14 @@ class RedpandaService(Service):
                     f"registered: node {node.name} now visible in peer {peer.name}'s broker list ({admin_brokers})"
                 )
 
-        client = PythonLibrdkafka(self)
-        brokers = client.brokers()
-        broker = brokers.get(idx, None)
-        if broker is None:
-            # This should never happen, because we already checked via the admin API
-            # that the node of interest had become visible to all peers.
-            self.logger.error(
-                f"registered: node {node.name} not found in kafka metadata!")
-            assert broker is not None
+        # This should never happen, because we already checked via the admin API
+        # that the node of interest had become visible to all peers.
+        client = RpkTool(self)
+        brokers = client.broker_ids()
+        assert idx in brokers, \
+            f"registered: node {node.name} not found in kafka metadata! broker ids {brokers}"
 
-        self.logger.debug(f"registered: found broker info: {broker}")
+        self.logger.debug(f"registered: found broker info:")
         return True
 
     def controller(self):

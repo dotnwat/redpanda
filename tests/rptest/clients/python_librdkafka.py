@@ -67,5 +67,17 @@ class PythonLibrdkafka:
                 'sasl.username': c[0],
                 'sasl.password': c[1],
             })
+        #if self._redpanda.security_settings.tls_provider:
+        #    provider = self._redpanda.security_settings.tls_provider
+        #    conf.update({
+        #        'ssl.key.location': provider.client_key_file(),
+        #        'ssl.certificate.location': provider.client_cert_file(),
+        #        'ssl.ca.location': provider.ca_cert_file(),
+        #        'enable.ssl.certificate.verification': 'false',
+        #    })
+        #    if self._redpanda.sasl_enabled():
+        #        conf.update({'security.protocol': 'sasl_ssl'})
+        #    else:
+        #        conf.update({'security.protocol': 'ssl'})
         self._redpanda.logger.info(conf)
         return conf

@@ -538,3 +538,35 @@ class RpkTool:
 
         output = self._execute(cmd)
         return list(filter(None, map(parse, output.splitlines())))
+
+    def broker_ids(self):
+        def parse(line):
+            line = line.split()
+            assert len(line) == 3, f"rpk cluster metadata format changed: {line}"
+            line = [x.strip() for x in line]
+            if line[0] == "ID":
+                return None
+            if line[0].endswith("*"):
+                line[0] = line[:-1]
+            return int(line[0])
+        cmd = [
+            self._rpk_binary(),
+            "cluster",
+            "metadata",
+            "-b",
+            "--brokers",
+            self._redpanda.brokers(),
+        ]
+        if self._redpanda.security_settings.tls_provider:
+            provider = self._redpanda.security_settings.tls_provider
+            cmd += [
+                "--tls-truststore",
+                provider.ca_cert_file(),
+                "--tls-key",
+                provider.server_key_file(),
+                "--tls-enabled",
+                "--tls-cert",
+                provider.server_cert_file(),
+            ]
+        output = self._execute(cmd)
+        return list(filter(None, map(parse, output.splitlines())))
