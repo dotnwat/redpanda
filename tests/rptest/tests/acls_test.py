@@ -28,9 +28,7 @@ class MTLSProvider(TLSProvider):
         return self.tls.create_cert(node.name)
 
     def create_service_client_cert(self, _, name) -> tls._Cert:
-        return self.tls.create_cert(
-            socket.gethostname(),
-            name=name)
+        return self.tls.create_cert(socket.gethostname(), name=name)
 
 
 class AccessControlListTest(RedpandaTest):
