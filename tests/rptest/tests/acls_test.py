@@ -6,6 +6,7 @@
 # As of the Change Date specified in that file, in accordance with
 # the Business Source License, use of this software will be governed
 # by the Apache License, Version 2.0
+import socket
 from rptest.tests.redpanda_test import RedpandaTest
 from rptest.services.cluster import cluster
 from rptest.services.admin import Admin
@@ -26,8 +27,10 @@ class MTLSProvider(TLSProvider):
         assert node in redpanda.nodes
         return self.tls.create_cert(node.name)
 
-    def create_service_client_cert(self, service: Service, name: str) -> tls._Cert:
-        pass
+    def create_service_client_cert(self, _, name) -> tls._Cert:
+        return self.tls.create_cert(
+            socket.gethostname(),
+            name=name)
 
 
 class AccessControlListTest(RedpandaTest):
