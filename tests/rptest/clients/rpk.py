@@ -17,6 +17,14 @@ DEFAULT_TIMEOUT = 30
 DEFAULT_PRODUCE_TIMEOUT = 5
 
 
+class ClusterAuthorizationError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
+
 class RpkException(Exception):
     def __init__(self, msg, stderr=""):
         self.msg = msg
@@ -95,8 +103,15 @@ class RpkTool:
     """
     Wrapper around rpk.
     """
-    def __init__(self, redpanda):
+    def __init__(self,
+                 redpanda,
+                 username: str = None,
+                 password: str = None,
+                 sasl_mechanism: str = None):
         self._redpanda = redpanda
+        self._username = username
+        self._password = password
+        self._sasl_mechanism = sasl_mechanism
 
     def create_topic(self, topic, partitions=1, replicas=None, config=None):
         cmd = ["create", topic]
@@ -538,3 +553,35 @@ class RpkTool:
 
         output = self._execute(cmd)
         return list(filter(None, map(parse, output.splitlines())))
+
+    def _kafka_conn_settings(self):
+        flags = [
+            "--brokers",
+            self._redpanda.brokers(),
+        ]
+        if self._username:
+            flags += [
+                "--user",
+                self._username,
+                "--password",
+                self._password,
+                "--sasl-mechanism",
+                self._sasl_mechanism,
+            ]
+        return flags
+
+    def acl_list(self):
+        """
+        """
+        cmd = [
+            self._rpk_binary(),
+            "acl",
+            "list",
+        ] + self._kafka_conn_settings()
+
+        output = self._execute(cmd)
+
+        if "CLUSTER_AUTHORIZATION_FAILED" in output:
+            raise ClusterAuthorizationError("acl list")
+
+        return output

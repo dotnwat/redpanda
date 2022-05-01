@@ -10,7 +10,8 @@ import socket
 from rptest.tests.redpanda_test import RedpandaTest
 from rptest.services.cluster import cluster
 from rptest.services.admin import Admin
-from rptest.clients.kafka_cli_tools import KafkaCliTools, ClusterAuthorizationError
+from rptest.clients.rpk import RpkTool, ClusterAuthorizationError
+from rptest.clients.kafka_cli_tools import KafkaCliTools
 from rptest.services import tls
 from rptest.services.redpanda import SecurityConfig, TLSProvider
 
@@ -39,7 +40,7 @@ class AccessControlListTest(RedpandaTest):
         self.tls_provider = MTLSProvider()
         security = SecurityConfig()
         security.enable_sasl = True
-        security.tls_provider = self.tls_provider
+        #security.tls_provider = self.tls_provider
         super(AccessControlListTest,
               self).__init__(test_context,
                              num_brokers=3,
@@ -48,6 +49,19 @@ class AccessControlListTest(RedpandaTest):
 
     def get_client(self, user):
         return KafkaCliTools(self.redpanda, user=user, passwd=self.password)
+
+    def get_client2(self, username):
+        return RpkTool(self.redpanda,
+                       username=username,
+                       password=self.password,
+                       sasl_mechanism=self.algorithm)
+
+    def get_super_client2(self):
+        username, password, _ = self.redpanda.SUPERUSER_CREDENTIALS
+        return RpkTool(self.redpanda,
+                       username=username,
+                       password=password,
+                       sasl_mechanism=self.algorithm)
 
     def get_super_client(self):
         user, password, _ = self.redpanda.SUPERUSER_CREDENTIALS
@@ -77,10 +91,10 @@ class AccessControlListTest(RedpandaTest):
         self.prepare_users()
 
         try:
-            self.get_client("base").list_acls()
+            self.get_client2("base").acl_list()
             assert False, "list acls should have failed"
         except ClusterAuthorizationError:
             pass
 
-        self.get_client("cluster_describe").list_acls()
-        self.get_super_client().list_acls()
+        self.get_client2("cluster_describe").acl_list()
+        self.get_super_client2().acl_list()
