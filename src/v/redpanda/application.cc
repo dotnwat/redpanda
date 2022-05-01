@@ -1027,6 +1027,13 @@ void application::wire_up_redpanda_services() {
                             : nullptr;
                   }
 
+                  if (credentails) {
+                      credentails->set_dn_verification_callback(
+                        [this](auto a, auto b, auto c) {
+                            vlog(_log.info, "DN_VERF: {}, {}, {}", a, b, c);
+                        });
+                  }
+
                   c.addrs.emplace_back(
                     ep.name, net::resolve_dns(ep.address).get0(), credentails);
               }

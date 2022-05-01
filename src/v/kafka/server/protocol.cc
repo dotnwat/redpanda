@@ -102,15 +102,23 @@ ss::future<> protocol::apply(net::server::resources rs) {
         ? security::sasl_server::sasl_state::initial
         : security::sasl_server::sasl_state::complete);
 
+    // this hangs forever
+    //auto dn = co_await rs.conn->get_distinguished_name();
+    // if (dn.has_value()) {
+    //    vlog(klog.info, "XXXXXXXXXXXX: {}, {}", dn->issuer, dn->subject);
+    //} else {
+    //    vlog(klog.info, "XXXXXXXXXXXX: nullopt");
+    //}
+
     auto ctx = ss::make_lw_shared<connection_context>(
       *this,
       std::move(rs),
       std::move(sasl),
       config::shard_local_cfg().enable_sasl());
 
-    return ss::do_until(
-             [ctx] { return ctx->is_finished_parsing(); },
-             [ctx] { return ctx->process_one_request(); })
+    co_return co_await ss::do_until(
+      [ctx] { return ctx->is_finished_parsing(); },
+      [ctx] { return ctx->process_one_request(); })
       .handle_exception([ctx](std::exception_ptr eptr) {
           if (config::shard_local_cfg().enable_sasl()) {
               vlog(

@@ -31,10 +31,30 @@ namespace kafka {
 
 ss::future<> connection_context::process_one_request() {
     return parse_size(_rs.conn->input())
+      .then([this](std::optional<size_t> sz) {
+          if (dn.has_value()) {
+              return ss::make_ready_future<std::optional<size_t>>(sz);
+          }
+          return _rs.conn->get_distinguished_name().then([this, sz](auto d) {
+              dn = d;
+              return sz;
+          });
+      })
       .then([this](std::optional<size_t> sz) mutable {
           if (!sz) {
               return ss::make_ready_future<>();
           }
+
+          if (dn.value().has_value()) {
+              vlog(
+                klog.info,
+                "XXXXXXXXXXXX: {}, {}",
+                dn.value()->issuer,
+                dn.value()->subject);
+          } else {
+              vlog(klog.info, "XXXXXXXXXXXX: nullopt");
+          }
+
           /*
            * Intercept the wire protocol when:
            *
@@ -256,6 +276,7 @@ connection_context::dispatch_method_once(request_header hdr, size_t size) {
               _seq_idx = _seq_idx + sequence_id(1);
               auto res = kafka::process_request(
                 std::move(rctx), _proto.smp_group());
+
               /**
                * first stage processed in a foreground.
                */

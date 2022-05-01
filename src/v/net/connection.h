@@ -50,6 +50,11 @@ public:
     // NOLINTNEXTLINE
     const ss::socket_address addr;
 
+    // this only makes sense for a server connection
+    ss::future<std::optional<ss::session_dn>> get_distinguished_name() {
+        return _fd.get_distinguished_name();
+    }
+
 private:
     boost::intrusive::list<connection>& _hook;
     ss::sstring _name;

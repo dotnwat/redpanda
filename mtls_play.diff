@@ -1,0 +1,76 @@
+diff --git a/src/v/kafka/server/protocol.cc b/src/v/kafka/server/protocol.cc
+index a36d9cf5d..ae3af5cc2 100644
+--- a/src/v/kafka/server/protocol.cc
++++ b/src/v/kafka/server/protocol.cc
+@@ -102,13 +102,21 @@ ss::future<> protocol::apply(net::server::resources rs) {
+         ? security::sasl_server::sasl_state::initial
+         : security::sasl_server::sasl_state::complete);
+ 
++    // this hangs forever
++    auto dn = co_await rs.conn->get_distinguished_name();
++    if (dn.has_value()) {
++        vlog(klog.info, "XXXXXXXXXXXX: {}, {}", dn->issuer, dn->subject);
++    } else {
++        vlog(klog.info, "XXXXXXXXXXXX: nullopt");
++    }
++
+     auto ctx = ss::make_lw_shared<connection_context>(
+       *this,
+       std::move(rs),
+       std::move(sasl),
+       config::shard_local_cfg().enable_sasl());
+ 
+-    return ss::do_until(
++    co_return co_await ss::do_until(
+              [ctx] { return ctx->is_finished_parsing(); },
+              [ctx] { return ctx->process_one_request(); })
+       .handle_exception([ctx](std::exception_ptr eptr) {
+diff --git a/src/v/net/connection.h b/src/v/net/connection.h
+index 611059966..24b3e6a2a 100644
+--- a/src/v/net/connection.h
++++ b/src/v/net/connection.h
+@@ -50,6 +50,11 @@ public:
+     // NOLINTNEXTLINE
+     const ss::socket_address addr;
+ 
++    // this only makes sense for a server connection
++    ss::future<std::optional<ss::session_dn>> get_distinguished_name() {
++        return _fd.get_distinguished_name();
++    }
++
+ private:
+     boost::intrusive::list<connection>& _hook;
+     ss::sstring _name;
+diff --git a/src/v/net/server.cc b/src/v/net/server.cc
+index 90a22e2eb..b36845b37 100644
+--- a/src/v/net/server.cc
++++ b/src/v/net/server.cc
+@@ -78,7 +78,9 @@ void server::start() {
+                 ss = ss::engine().listen(endpoint.addr, lo);
+             } else {
+                 ss = ss::tls::listen(
+-                  endpoint.credentials, ss::engine().listen(endpoint.addr, lo));
++                  endpoint.credentials,
++                  ss::engine().listen(endpoint.addr, lo),
++                  true);
+             }
+         } catch (...) {
+             throw std::runtime_error(fmt::format(
+diff --git a/src/v/redpanda/application.cc b/src/v/redpanda/application.cc
+index 6f26bd03a..ff87d4bf0 100644
+--- a/src/v/redpanda/application.cc
++++ b/src/v/redpanda/application.cc
+@@ -1027,6 +1027,13 @@ void application::wire_up_redpanda_services() {
+                             : nullptr;
+                   }
+ 
++                  if (credentails) {
++                      credentails->set_dn_verification_callback(
++                        [this](auto a, auto b, auto c) {
++                            vlog(_log.info, "DN_VERF: {}, {}, {}", a, b, c);
++                        });
++                  }
++
+                   c.addrs.emplace_back(
+                     ep.name, net::resolve_dns(ep.address).get0(), credentails);
+               }

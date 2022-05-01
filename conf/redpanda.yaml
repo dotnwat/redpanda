@@ -35,6 +35,15 @@ redpanda:
   kafka_api:
   - address: "0.0.0.0"
     port: 9092
+    name: default
+
+  kafka_api_tls:
+  - name: default
+    enabled: true
+    require_client_auth: true
+    cert_file: "/home/nwatkins/src/tls/server.pem"
+    key_file: "/home/nwatkins/src/tls/server-key.pem"
+    truststore_file: "/home/nwatkins/src/tls/ca.pem"
 
   admin:
     address: "0.0.0.0"

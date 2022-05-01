@@ -78,7 +78,9 @@ void server::start() {
                 ss = ss::engine().listen(endpoint.addr, lo);
             } else {
                 ss = ss::tls::listen(
-                  endpoint.credentials, ss::engine().listen(endpoint.addr, lo));
+                  endpoint.credentials,
+                  ss::engine().listen(endpoint.addr, lo),
+                  true);
             }
         } catch (...) {
             throw std::runtime_error(fmt::format(
