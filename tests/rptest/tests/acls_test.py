@@ -7,6 +7,7 @@
 # the Business Source License, use of this software will be governed
 # by the Apache License, Version 2.0
 import socket
+from ducktape.mark import matrix
 from rptest.tests.redpanda_test import RedpandaTest
 from rptest.services.cluster import cluster
 from rptest.services.admin import Admin
@@ -16,8 +17,8 @@ from rptest.services import tls
 
 
 class MTLSProvider(TLSProvider):
-    def __init__(self):
-        self.tls = tls.TLSCertManager()
+    def __init__(self, tls):
+        self.tls = tls
 
     @property
     def ca(self):
@@ -27,7 +28,7 @@ class MTLSProvider(TLSProvider):
         assert node in redpanda.nodes
         return self.tls.create_cert(node.name)
 
-    def create_service_client_cert(self, _, name) -> tls._Cert:
+    def create_service_client_cert(self, _, name):
         return self.tls.create_cert(socket.gethostname(), name=name)
 
 
@@ -36,28 +37,36 @@ class AccessControlListTest(RedpandaTest):
     algorithm = "SCRAM-SHA-256"
 
     def __init__(self, test_context):
-        self.tls_provider = MTLSProvider()
+        self.cert = None
+
         security = SecurityConfig()
         security.enable_sasl = True
-        security.tls_provider = self.tls_provider
+
+        if test_context.injected_args["tls"]:
+            self.tls = tls.TLSCertManager()
+            self.cert = self.tls.create_cert(
+                    socket.gethostname(), name="client")
+            security.tls_provider = MTLSProvider(self.tls)
+
         super(AccessControlListTest,
               self).__init__(test_context,
                              num_brokers=3,
-                             security=security,
-                             extra_node_conf={'developer_mode': True})
+                             security=security)
 
     def get_client(self, username):
         return RpkTool(self.redpanda,
                        username=username,
                        password=self.password,
-                       sasl_mechanism=self.algorithm)
+                       sasl_mechanism=self.algorithm,
+                       tls_cert=self.cert)
 
     def get_super_client(self):
         username, password, _ = self.redpanda.SUPERUSER_CREDENTIALS
         return RpkTool(self.redpanda,
                        username=username,
                        password=password,
-                       sasl_mechanism=self.algorithm)
+                       sasl_mechanism=self.algorithm,
+                       tls_cert=self.cert)
 
     def prepare_users(self):
         """
@@ -76,7 +85,8 @@ class AccessControlListTest(RedpandaTest):
         client.acl_create_allow_cluster("cluster_describe", "describe")
 
     @cluster(num_nodes=3)
-    def test_describe_acls(self):
+    @matrix(tls=[True, False])
+    def test_describe_acls(self, tls):
         """
         security::acl_operation::describe, security::default_cluster_name
         """
