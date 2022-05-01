@@ -321,10 +321,12 @@ class TLSProvider:
     def ca(self) -> tls._CA:
         raise NotImplementedError("ca")
 
-    def create_broker_cert(self, service: Service, node: ClusterNode) -> tls._Cert:
+    def create_broker_cert(self, service: Service,
+                           node: ClusterNode) -> tls._Cert:
         raise NotImplementedError("create_broker_cert")
 
-    def create_service_client_cert(self, service: Service, name: str) -> tls._Cert:
+    def create_service_client_cert(self, service: Service,
+                                   name: str) -> tls._Cert:
         raise NotImplementedError("create_service_client_cert")
 
 
@@ -489,7 +491,8 @@ class RedpandaService(Service):
         # to the redpanda service.
         self._tls_client_cert = None
         if self.security.tls_provider:
-            self._tls_client_cert = self.security.tls_provider.create_service_client_cert(self, "redpanda.service.admin")
+            self._tls_client_cert = self.security.tls_provider.create_service_client_cert(
+                self, "redpanda.service.admin")
 
     def set_environment(self, environment: dict[str, str]):
         self._environment = environment
