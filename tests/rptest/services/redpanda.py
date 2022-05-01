@@ -1174,7 +1174,7 @@ class RedpandaService(Service):
 
         if self._security.tls_provider:
             ca = self._security.tls_provider.ca
-            cert = self._security.tls_provider.create_cert(self, node)
+            cert = self._security.tls_provider.create_broker_cert(self, node)
 
             self.logger.info(
                 f"Writing Redpanda node tls key file: {RedpandaService.TLS_SERVER_KEY_FILE}"
