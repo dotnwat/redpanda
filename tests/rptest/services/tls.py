@@ -72,8 +72,8 @@ organizationName = Vectorized
 subjectAltName = critical,DNS:{host}
 """
 
-_CA = collections.namedtuple("CA", ["cfg", "key", "crt"])
-_Cert = collections.namedtuple("Cert", ["cfg", "key", "crt", "ca"])
+CertificateAuthority = collections.namedtuple("CertificateAuthority", ["cfg", "key", "crt"])
+Certificate = collections.namedtuple("Certificate", ["cfg", "key", "crt", "ca"])
 
 
 class TLSCertManager:
@@ -109,7 +109,7 @@ class TLSCertManager:
         with open(srl, "w") as f:
             f.writelines(["01"])
 
-        return _CA(cfg, key, crt)
+        return CertificateAuthority(cfg, key, crt)
 
     @property
     def ca(self):
@@ -146,6 +146,6 @@ class TLSCertManager:
                    f"-extensions signing_node_req -in {csr} -out {crt} "
                    f"-outdir {self.dir.name} -batch")
 
-        cert = _Cert(cfg, key, crt, self.ca)
+        cert = Certificate(cfg, key, crt, self.ca)
         self.certs[name] = cert
         return cert
