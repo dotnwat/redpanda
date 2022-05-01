@@ -6,11 +6,29 @@
 # As of the Change Date specified in that file, in accordance with
 # the Business Source License, use of this software will be governed
 # by the Apache License, Version 2.0
+import socket
 from rptest.tests.redpanda_test import RedpandaTest
 from rptest.services.cluster import cluster
 from rptest.services.admin import Admin
 from rptest.clients.rpk import RpkTool, ClusterAuthorizationError
-from rptest.services.redpanda import SecurityConfig
+from rptest.services.redpanda import SecurityConfig, TLSProvider
+from rptest.services import tls
+
+
+class MTLSProvider(TLSProvider):
+    def __init__(self):
+        self.tls = tls.TLSCertManager()
+
+    @property
+    def ca(self):
+        return self.tls.ca
+
+    def create_broker_cert(self, redpanda, node):
+        assert node in redpanda.nodes
+        return self.tls.create_cert(node.name)
+
+    def create_service_client_cert(self, _, name) -> tls._Cert:
+        return self.tls.create_cert(socket.gethostname(), name=name)
 
 
 class AccessControlListTest(RedpandaTest):
@@ -18,8 +36,10 @@ class AccessControlListTest(RedpandaTest):
     algorithm = "SCRAM-SHA-256"
 
     def __init__(self, test_context):
+        self.tls_provider = MTLSProvider()
         security = SecurityConfig()
         security.enable_sasl = True
+        security.tls_provider = self.tls_provider
         super(AccessControlListTest,
               self).__init__(test_context,
                              num_brokers=3,
