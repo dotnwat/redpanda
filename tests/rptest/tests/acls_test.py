@@ -22,9 +22,12 @@ class MTLSProvider(TLSProvider):
     def ca(self):
         return self.tls.ca
 
-    def create_cert(self, redpanda, node):
+    def create_broker_cert(self, redpanda, node):
         assert node in redpanda.nodes
         return self.tls.create_cert(node.name)
+
+    def create_service_client_cert(self, service: Service, name: str) -> tls._Cert:
+        pass
 
 
 class AccessControlListTest(RedpandaTest):
