@@ -35,6 +35,7 @@ from rptest.services.storage import ClusterStorage, NodeStorage
 from rptest.services.admin import Admin
 from rptest.services.utils import BadLogLines, NodeCrash
 from rptest.clients.python_librdkafka import PythonLibrdkafka
+from rptest.services import tls
 
 Partition = collections.namedtuple('Partition',
                                    ['index', 'leader', 'replicas'])
@@ -315,9 +316,19 @@ class SISettings:
         return conf
 
 
+class TLSProvider:
+    @property
+    def ca(self) -> tls._CA:
+        raise NotImplementedError("ca")
+
+    def create_cert(self, service: Service, node: ClusterNode) -> tls._Cert:
+        raise NotImplementedError("create_cert")
+
+
 class SecurityConfig:
     def __init__(self):
         self.enable_sasl = False
+        self.tls_provider: Optional[TLSProvider] = None
 
 
 class RedpandaService(Service):
@@ -325,6 +336,9 @@ class RedpandaService(Service):
     DATA_DIR = os.path.join(PERSISTENT_ROOT, "data")
     NODE_CONFIG_FILE = "/etc/redpanda/redpanda.yaml"
     CLUSTER_BOOTSTRAP_CONFIG_FILE = "/etc/redpanda/.bootstrap.yaml"
+    TLS_SERVER_KEY_FILE = "/etc/redpanda/server.key"
+    TLS_SERVER_CRT_FILE = "/etc/redpanda/server.crt"
+    TLS_CA_CRT_FILE = "/etc/redpanda/ca.crt"
     STDOUT_STDERR_CAPTURE = os.path.join(PERSISTENT_ROOT, "redpanda.log")
     BACKTRACE_CAPTURE = os.path.join(PERSISTENT_ROOT, "redpanda_backtrace.log")
     WASM_STDOUT_STDERR_CAPTURE = os.path.join(PERSISTENT_ROOT,
@@ -371,6 +385,18 @@ class RedpandaService(Service):
     logs = {
         "redpanda_start_stdout_stderr": {
             "path": STDOUT_STDERR_CAPTURE,
+            "collect_default": True
+        },
+        "redpanda_tls_server_key_file": {
+            "path": TLS_SERVER_KEY_FILE,
+            "collect_default": True
+        },
+        "redpanda_server_crt_file": {
+            "path": TLS_SERVER_CRT_FILE,
+            "collect_default": True
+        },
+        "redpanda_ca_crt_file": {
+            "path": TLS_CA_CRT_FILE,
             "collect_default": True
         },
         "wasm_engine_start_stdout_stderr": {
@@ -1123,6 +1149,41 @@ class RedpandaService(Service):
                     "Setting custom node configuration options: {}".format(
                         override_cfg_params))
                 doc["redpanda"].update(override_cfg_params)
+            conf = yaml.dump(doc)
+
+        if self._security.tls_provider:
+            ca = self._security.tls_provider.ca
+            cert = self._security.tls_provider.create_cert(self, node)
+
+            self.logger.info(
+                f"Writing Redpanda node tls key file: {RedpandaService.TLS_SERVER_KEY_FILE}"
+            )
+            self.logger.debug(open(cert.key, "r").read())
+            node.account.copy_to(cert.key, RedpandaService.TLS_SERVER_KEY_FILE)
+
+            self.logger.info(
+                f"Writing Redpanda node tls cert file: {RedpandaService.TLS_SERVER_CRT_FILE}"
+            )
+            self.logger.debug(open(cert.crt, "r").read())
+            node.account.copy_to(cert.crt, RedpandaService.TLS_SERVER_CRT_FILE)
+
+            self.logger.info(
+                f"Writing Redpanda node tls ca cert file: {RedpandaService.TLS_CA_CRT_FILE}"
+            )
+            self.logger.debug(open(ca.crt, "r").read())
+            node.account.copy_to(ca.crt, RedpandaService.TLS_CA_CRT_FILE)
+
+            tls_config = dict(
+                enabled=True,
+                require_client_auth=False,
+                name="dnslistener",
+                key_file=RedpandaService.TLS_SERVER_KEY_FILE,
+                cert_file=RedpandaService.TLS_SERVER_CRT_FILE,
+                truststore_file=RedpandaService.TLS_CA_CRT_FILE,
+            )
+
+            doc = yaml.full_load(conf)
+            doc["redpanda"].update(dict(kafka_api_tls=tls_config))
             conf = yaml.dump(doc)
 
         self.logger.info("Writing Redpanda node config file: {}".format(
