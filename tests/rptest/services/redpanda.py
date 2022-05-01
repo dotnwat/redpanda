@@ -318,15 +318,15 @@ class SISettings:
 
 class TLSProvider:
     @property
-    def ca(self) -> tls._CA:
+    def ca(self) -> tls.CertificateAuthority:
         raise NotImplementedError("ca")
 
     def create_broker_cert(self, service: Service,
-                           node: ClusterNode) -> tls._Cert:
+                           node: ClusterNode) -> tls.Certificate:
         raise NotImplementedError("create_broker_cert")
 
     def create_service_client_cert(self, service: Service,
-                                   name: str) -> tls._Cert:
+                                   name: str) -> tls.Certificate:
         raise NotImplementedError("create_service_client_cert")
 
 
