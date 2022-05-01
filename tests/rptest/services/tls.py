@@ -73,13 +73,13 @@ subjectAltName = critical,DNS:{host}
 """
 
 _CA = collections.namedtuple("CA", ["cfg", "key", "crt"])
-_Cert = collections.namedtuple("Cert", ["cfg", "key", "crt"])
+_Cert = collections.namedtuple("Cert", ["cfg", "key", "crt", "ca"])
 
 
 class TLSCertManager:
     def __init__(self):
         self.dir = tempfile.TemporaryDirectory()
-        self.ca = self._create_ca()
+        self._ca = self._create_ca()
         self.certs = {}
 
     def _with_dir(self, name):
@@ -110,6 +110,10 @@ class TLSCertManager:
             f.writelines(["01"])
 
         return _CA(cfg, key, crt)
+
+    @property
+    def ca(self):
+        return self._ca
 
     def create_cert(self,
                     host: str,
@@ -142,6 +146,6 @@ class TLSCertManager:
                    f"-extensions signing_node_req -in {csr} -out {crt} "
                    f"-outdir {self.dir.name} -batch")
 
-        cert = _Cert(cfg, key, crt)
+        cert = _Cert(cfg, key, crt, self.ca)
         self.certs[name] = cert
         return cert
