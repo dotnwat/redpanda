@@ -321,8 +321,11 @@ class TLSProvider:
     def ca(self) -> tls._CA:
         raise NotImplementedError("ca")
 
-    def create_cert(self, service: Service, node: ClusterNode) -> tls._Cert:
-        raise NotImplementedError("create_cert")
+    def create_broker_cert(self, service: Service, node: ClusterNode) -> tls._Cert:
+        raise NotImplementedError("create_broker_cert")
+
+    def create_service_client_cert(self, service: Service, name: str) -> tls._Cert:
+        raise NotImplementedError("create_service_client_cert")
 
 
 class SecurityConfig:
@@ -482,6 +485,12 @@ class RedpandaService(Service):
 
         self._saved_executable = False
 
+        # build a cert for clients used internally to
+        # to the redpanda service.
+        self._tls_client_cert = None
+        if self.security.tls_provider:
+            self._tls_client_cert = self.security.tls_provider.create_service_client_cert(self, "redpanda.service.admin")
+
     def set_environment(self, environment: dict[str, str]):
         self._environment = environment
 
@@ -497,6 +506,18 @@ class RedpandaService(Service):
 
     def sasl_enabled(self):
         return self._security.enable_sasl
+
+    @property
+    def security(self):
+        return self._security
+
+    @property
+    def default_tls_client_cert(self):
+        """
+        A default TLS client certificate for convenience.
+        """
+        assert self._tls_client_cert
+        return self._tls_client_cert
 
     @property
     def dedicated_nodes(self):
