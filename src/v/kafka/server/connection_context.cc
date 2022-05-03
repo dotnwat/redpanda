@@ -64,8 +64,55 @@ ss::future<> connection_context::process_one_request() {
                       _rs.probe().header_corrupted();
                       return ss::make_ready_future<>();
                   }
-                  return dispatch_method_once(std::move(h.value()), s);
+                  return handle_mtls_auth().then(
+                    [this, h = std::move(h.value()), s]() mutable {
+                        return dispatch_method_once(std::move(h), s);
+                    });
               });
+      });
+}
+
+/*
+ * handle mtls authentication. this should only happen once when the connection
+ * is setup. even though this is called in the normal request handling path,
+ * this property should hold becuase:
+ *
+ * 1. is a noop if a mtls principal has been extrcted
+ * 2. all code paths that don't set the principal throw and drop the connection
+ *
+ * NOTE: handle_mtls_auth is called after reading header off the wire. this is
+ * odd because we would expect that tls negotation etc... all happens before we
+ * here to the application layer. however, it appears that the way seastar works
+ * that we need to read some data off the wire to drive this process within the
+ * internal connection handling.
+ */
+ss::future<> connection_context::handle_mtls_auth() {
+    if (!_use_mtls || _mtls_principal.has_value()) {
+        return ss::now();
+    }
+    return ss::with_timeout(
+             5s, [this] { return _rs.conn->get_distinguished_name(); })
+      .then([this](std::optional<ss::session_dn> dn) {
+          if (!dn.has_value()) {
+              // some more appropriate exception
+              throw std::runtime_error("unauthorized. failed to fetch dn");
+          }
+          /*
+           * for now it probably is fine to store the mapping per connection.
+           * but it seems like we could also share this across all connections
+           * with the same tls configuration.
+           */
+          auto maybe_principal = _tls_pm.apply(dn->subject);
+          if (maybe_principal) {
+              vlog(
+                seclog.info,
+                "got principal: {}, from distinguished name: {}",
+                *maybe_principal,
+                dn ? dn->subject : "<none>");
+              _mtls_principal = *maybe_principal;
+          }
+          // some more appropriate exception
+          throw std::runtime_error("unauthorized. dn extraction failed");
       });
 }
 

@@ -106,7 +106,8 @@ ss::future<> protocol::apply(net::server::resources rs) {
       *this,
       std::move(rs),
       std::move(sasl),
-      config::shard_local_cfg().enable_sasl());
+      config::shard_local_cfg().enable_sasl(),
+      rs.conn->get_principal_mapping().has_value());
 
     return ss::do_until(
              [ctx] { return ctx->is_finished_parsing(); },
