@@ -1,4 +1,5 @@
 *
+!avro.wrap
 !ctre.wrap
 !hdr_histogram.wrap
 !rapidjson.wrap

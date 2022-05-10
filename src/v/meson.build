@@ -10,6 +10,7 @@ seastar_testing = dependency('seastar_testing')
 json2code = find_program('seastar-json2code')
 hdrhist = dependency('hdr_histogram')
 rapidjson = dependency('rapidjson')
+avro = dependency('avro')
 
 xxhash = dependency('libxxhash')
 roaring = dependency('roaring')
@@ -27,7 +28,6 @@ zlib = dependency('zlib')
 crc32c = dependency('Crc32c')
 
 cc = meson.get_compiler('cpp')
-avro = cc.find_library('avrocpp_s', required : true)
 protobuf = dependency('protobuf', modules : ['protobuf::libprotobuf',
 'protobuf::libprotoc'])
 

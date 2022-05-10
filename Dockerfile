@@ -25,9 +25,9 @@ run cd /src/base64 && make lib/libbase64.o
 run cd /src/base64 && cp lib/libbase64.o /usr/local/lib
 run cd /src/base64 && cp include/libbase64.h /usr/local/include
 
-run git clone https://github.com/redpanda-data/avro /src/avro
-run cd /src/avro/lang/c++ && cmake -GNinja -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=true . && \
-    ninja avrocpp avrocpp_s avrogencpp && ninja install
+#run git clone https://github.com/redpanda-data/avro /src/avro
+#run cd /src/avro/lang/c++ && cmake -GNinja -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=true . && \
+#    ninja avrocpp avrocpp_s avrogencpp && ninja install
 
 workdir /src/redpanda
 cmd ["bash", "-c", "meson builddir && cd builddir && meson compile"]
