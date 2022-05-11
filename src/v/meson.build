@@ -11,6 +11,7 @@ json2code = find_program('seastar-json2code')
 hdrhist = dependency('hdr_histogram')
 rapidjson = dependency('rapidjson')
 avro = dependency('avro')
+base64 = dependency('base64')
 
 xxhash = dependency('libxxhash')
 roaring = dependency('roaring')
