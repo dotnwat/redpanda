@@ -30,3 +30,8 @@ rapidjson = dependency('rapidjson')
 ctre = dependency('ctre')
 hdr_histogram = dependency('hdr_histogram')
 base64 = dependency('base64')
+
+common = declare_dependency(
+  include_directories: include_directories('.'))
+
+subdir('bytes')
