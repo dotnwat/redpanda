@@ -11,3 +11,8 @@ absl = dependency('absl',
 
 seastar = dependency('seastar', include_type: 'system')
 crc32c = dependency('crc32c')
+
+common = declare_dependency(
+  include_directories: include_directories('.'))
+
+subdir('bytes')
