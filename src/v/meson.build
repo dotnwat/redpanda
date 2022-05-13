@@ -42,3 +42,4 @@ common = declare_dependency(
 
 subdir('test_utils')
 subdir('ssx')
+subdir('bytes')
