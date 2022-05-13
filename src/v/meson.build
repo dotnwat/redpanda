@@ -39,3 +39,4 @@ common = declare_dependency(
   include_directories: include_directories('.'))
 
 subdir('test_utils')
+subdir('bytes')
