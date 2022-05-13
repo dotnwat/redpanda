@@ -17,3 +17,8 @@ seastar = dependency('seastar', include_type: 'system')
 seastar_testing = dependency('seastar_testing')
 crc32c = dependency('crc32c')
 rapidjson = dependency('rapidjson')
+
+common = declare_dependency(
+  include_directories: include_directories('.'))
+
+subdir('bytes')
