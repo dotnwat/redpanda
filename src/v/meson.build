@@ -25,3 +25,4 @@ common = declare_dependency(
 subdir('bytes')
 subdir('hashing')
 subdir('finjector')
+subdir('test_utils')
