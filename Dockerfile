@@ -12,9 +12,5 @@ run DEBIAN_FRONTEND=noninteractive apt-get install -qq \
 
 run pip3 install meson
 
-run git clone https://github.com/redpanda-data/crc32c /src/crc32c
-run cd /src/crc32c && cmake -GNinja -DCRC32C_BUILD_TESTS=OFF \
-    -DCRC32C_BUILD_BENCHMARKS=OFF -DCRC32C_USE_GLOG=OFF . && ninja install
-
 workdir /src/redpanda
 cmd ["bash", "-c", "meson builddir && cd builddir && meson compile"]

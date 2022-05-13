@@ -1,6 +1,10 @@
-hashing = library('hashing', ['murmur.cc'],
-  dependencies : [xxhash, gnutls, config],
+libhashing = library('libhashing', ['murmur.cc'],
+  dependencies : [xxhash, gnutls, config, crc32c],
   cpp_args : '-DXXH_PRIVATE_API',
-  link_with : [bytes, model],
   implicit_include_directories : false,
   include_directories: include_dirs)
+
+hashing = declare_dependency(
+  dependencies: [xxhash, gnutls, config, crc32c],
+  include_directories: include_dirs,
+  link_with: libhashing)

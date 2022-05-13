@@ -8,8 +8,8 @@ rpc = library('rpc', [
     'reconnect_transport.cc',
     'connection_cache.cc',
     'simple_protocol.cc'],
-  dependencies : [seastar, zstd, absl, hdrhist, config],
+  dependencies : [seastar, zstd, absl, hdrhist, config, hashing],
   cpp_args : ['-DXXH_PRIVATE_API', '-DZSTD_STATIC_LINKING_ONLY'],
-  link_with : [bytes, net, compression, hashing, utils],
+  link_with : [bytes, net, compression, utils],
   implicit_include_directories : false,
   include_directories: include_dirs)

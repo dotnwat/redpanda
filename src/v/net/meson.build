@@ -7,8 +7,8 @@ net = library('net', [
     'server.cc',
     'probes.cc',
     'tls.cc'],
-  dependencies : [seastar, absl, hdrhist, config],
+  dependencies : [seastar, absl, hdrhist, config, hashing],
   cpp_args : '-DXXH_PRIVATE_API',
-  link_with : [bytes, hashing],
+  link_with : [bytes],
   implicit_include_directories : false,
   include_directories: include_dirs)

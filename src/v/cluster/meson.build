@@ -77,7 +77,8 @@ libcluster = library('cluster', [
     'feature_table.cc',
     'drain_manager.cc',
     service_hdrs],
-  dependencies : [seastar, config, xxhash, hdrhist, roaring, absl, boost],
+  dependencies : [seastar, config, xxhash, hdrhist, roaring, absl, boost,
+    hashing],
   cpp_args : '-DXXH_PRIVATE_API',
   link_with : [bytes, model, http, rpc],
   implicit_include_directories : false,
@@ -85,6 +86,6 @@ libcluster = library('cluster', [
 
 cluster = declare_dependency(
   sources: service_hdrs,
-  dependencies : [seastar, config],
+  dependencies : [seastar, config, hashing],
   link_with: libcluster,
   include_directories: include_dirs)

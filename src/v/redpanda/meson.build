@@ -19,7 +19,7 @@ executable('redpanda', ['application.cc', 'admin_server.cc', raftgen_service_h,
   'request_auth.cc',
   'main.cc'],
   include_directories: include_dirs,
-  dependencies : [seastar, xxhash, hdrhist, boost, hwloc, numa, config],
+  dependencies : [seastar, xxhash, hdrhist, boost, hwloc, numa, config, hashing],
   link_with : [raft, kafka, cloud_storage, pandaproxy_rest, coproc,
     pandaproxy_schema_registry, finjector, syschecks, archival],
   cpp_args : '-DXXH_PRIVATE_API')

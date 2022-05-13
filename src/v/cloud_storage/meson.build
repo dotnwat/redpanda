@@ -13,8 +13,8 @@ cloud_storage = library('cloud_storage', [
     'remote_segment.cc',
     'remote_partition.cc',
     'remote_segment_index.cc'],
-  dependencies : [seastar, config, xxhash, hdrhist, roaring, absl],
+  dependencies : [seastar, config, xxhash, hdrhist, roaring, absl, hashing],
   cpp_args : '-DXXH_PRIVATE_API',
-  link_with : [bytes, model, hashing, s3, utils, http],
+  link_with : [bytes, model, s3, utils, http],
   implicit_include_directories : false,
   include_directories: include_dirs)

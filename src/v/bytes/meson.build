@@ -11,7 +11,7 @@ t = executable('test_bytes',
   'tests/iobuf_utils_tests.cc',
   'tests/bytes_tests.cc',
   include_directories: include_dirs,
-  dependencies : [seastar, absl, boost, config, numa, hwloc],
+  dependencies : [seastar, absl, boost, config, numa, hwloc, hashing],
   link_with : [seastar_testing_main, bytes]
 )
 

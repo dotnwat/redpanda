@@ -3,7 +3,7 @@ pandaproxy_common = library('pandaproxy_common', [
     'logger.cc',
     'probe.cc',
     'server.cc'],
-  dependencies : [seastar, absl, ctre, hdrhist, config],
+  dependencies : [seastar, absl, ctre, hdrhist, config, kafka_protocol],
   cpp_args : ['-DXXH_PRIVATE_API', '-DZSTD_STATIC_LINKING_ONLY'],
   link_with : [bytes, kafka, utils],
   implicit_include_directories : false,
