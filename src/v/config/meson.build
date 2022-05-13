@@ -1,0 +1,24 @@
+libconfig = library('config',
+  'configuration.cc',
+  'node_config.cc',
+  'base_property.cc',
+  'rjson_serialization.cc',
+  'validators.cc',
+  dependencies : [common, seastar, json, absl, model])
+
+config = declare_dependency(
+  dependencies: [common, seastar, json, absl, model],
+  link_with: libconfig)
+
+t = executable('test_config',
+  'tests/bounded_property_test.cc',
+  'tests/enum_property_test.cc',
+  'tests/retention_property_test.cc',
+  'tests/config_store_test.cc',
+  'tests/socket_address_convert_test.cc',
+  'tests/tls_config_convert_test.cc',
+  'tests/advertised_kafka_api_test.cc',
+  'tests/seed_server_property_test.cc',
+  dependencies: [config, seastar_testing_main])
+
+test('config testing', t)
