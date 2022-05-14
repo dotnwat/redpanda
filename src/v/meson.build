@@ -120,6 +120,7 @@ subdir('features')
 subdir('reflection')
 subdir('syschecks')
 subdir('net')
+subdir('http')
 
 # some tests have circular or forward dependencies if added along with their
 # normal containing directory. a common example are tests that depend on the
