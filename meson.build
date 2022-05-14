@@ -4,4 +4,6 @@ project('redpanda', 'cpp',
     'default_library=static',
   ])
 
+rpcgen = find_program('tools/rpcgen.py')
+
 subdir('src/v')

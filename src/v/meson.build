@@ -45,3 +45,39 @@ subdir('security')
 subdir('compression')
 subdir('utils')
 subdir('syschecks')
+
+json2code = find_program('seastar-json2code')
+avro = dependency('avro')
+
+roaring = dependency('roaring')
+boost = dependency('boost', modules : ['program_options', 'thread',
+'filesystem', 'unit_test_framework'])
+
+cc = meson.get_compiler('cpp')
+protobuf = dependency('protobuf', modules : ['protobuf::libprotobuf',
+'protobuf::libprotoc'])
+
+hwloc = dependency('hwloc')
+numa = cc.find_library('numa', required : true)
+
+add_project_arguments('-Wno-non-virtual-dtor', language: 'cpp')
+
+# newer meson..
+#inc_dep = declare_dependency(
+#  include_directories: include_directories('.'))
+#add_project_dependencies(inc_dep, language: 'cpp')
+
+subdir('net')
+subdir('http')
+subdir('s3')
+subdir('storage')
+subdir('rpc')
+subdir('raft')
+subdir('cluster')
+subdir('cloud_storage')
+subdir('archival')
+subdir('v8_engine')
+subdir('kafka')
+subdir('coproc')
+subdir('pandaproxy')
+subdir('redpanda')
