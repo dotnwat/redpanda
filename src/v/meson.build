@@ -82,6 +82,11 @@ add_project_arguments(
   '-Wno-deprecated-experimental-coroutine',
   language: 'cpp')
 
+version_h = vcs_tag(
+  input: 'version.h.in',
+  output: 'version.h',
+)
+
 add_test_setup('redpanda',
   exe_wrapper: [test_runner, '--meson'],
   is_default: true)
