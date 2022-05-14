@@ -1,0 +1,18 @@
+pandaproxy_schema_registry = library('pandaproxy_schema_registry', [
+    'api.cc',
+    'configuration.cc',
+    'handlers.cc',
+    'error.cc',
+    'service.cc',
+    'seq_writer.cc',
+    'sharded_store.cc',
+    'types.cc',
+    'avro.cc',
+    'protobuf.cc',
+    pp_swags],
+  dependencies : [seastar, xxhash, hdrhist, roaring, absl, protobuf, avro,
+    kafka_client],
+  cpp_args : '-DXXH_PRIVATE_API',
+  link_with : [pandaproxy_common, pandaproxy_parsing, pandaproxy_json],
+  implicit_include_directories : false,
+  include_directories: include_dirs)

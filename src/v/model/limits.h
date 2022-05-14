@@ -19,7 +19,7 @@ template<typename T>
 struct model_limits {};
 
 template<>
-struct model_limits<offset> {
+struct model_limits<model::offset> {
     static constexpr offset max() {
         return offset(std::numeric_limits<typename offset::type>::max());
     }
@@ -28,7 +28,7 @@ struct model_limits<offset> {
     }
 };
 template<>
-struct model_limits<term_id> {
+struct model_limits<model::term_id> {
     static constexpr term_id max() {
         return term_id(std::numeric_limits<typename term_id::type>::max());
     }
