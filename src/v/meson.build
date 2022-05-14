@@ -35,6 +35,11 @@ hdr_histogram = dependency('hdr_histogram')
 base64 = dependency('base64')
 avro = dependency('avro')
 
+version_h = vcs_tag(
+  input: 'version.h.in',
+  output: 'version.h',
+)
+
 common = declare_dependency(
   include_directories: include_directories('.'))
 
