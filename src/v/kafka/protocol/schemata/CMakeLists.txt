@@ -78,7 +78,7 @@ foreach(schema ${schemata})
   add_custom_command(
     OUTPUT ${hdr} ${src}
     COMMAND ${KAFKA_CODEGEN_VENV} ${CMAKE_CURRENT_SOURCE_DIR}/generator.py
-    ARGS ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${schema}
+    ARGS ${CMAKE_CURRENT_SOURCE_DIR}/${schema} ${hdr} ${src}
     DEPENDS ${schema} ${CMAKE_CURRENT_SOURCE_DIR}/generator.py ${KAFKA_CODEGEN_VENV}
     COMMENT "Running kafka request codegen on ${schema}"
     VERBATIM)
