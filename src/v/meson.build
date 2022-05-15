@@ -122,6 +122,7 @@ subdir('kafka/protocol')
 subdir('kafka/client')
 subdir('coproc')
 subdir('kafka')
+subdir('pandaproxy')
 
 # some tests have circular or forward dependencies if added along with their
 # normal containing directory. a common example are tests that depend on the
@@ -134,3 +135,5 @@ subdir('cluster/tests')
 subdir('kafka/client/test')
 subdir('kafka/server/tests')
 subdir('coproc/tests')
+subdir('pandaproxy/rest/test')
+subdir('pandaproxy/schema_registry/test')
