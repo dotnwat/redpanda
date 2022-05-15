@@ -114,3 +114,6 @@ subdir('raft')
 subdir('cloud_storage')
 subdir('archival')
 subdir('cluster')
+subdir('kafka/protocol')
+subdir('kafka/client')
+subdir('kafka') # server
