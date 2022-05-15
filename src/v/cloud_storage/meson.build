@@ -1,0 +1,21 @@
+libcloud_storage = library('cloud_storage',
+  'cache_service.cc',
+  'cache_probe.cc',
+  'topic_manifest.cc',
+  'partition_manifest.cc',
+  'recursive_directory_walker.cc',
+  'remote.cc',
+  'offset_translation_layer.cc',
+  'probe.cc',
+  'partition_probe.cc',
+  'partition_recovery_manager.cc',
+  'types.cc',
+  'remote_segment.cc',
+  'remote_partition.cc',
+  'remote_segment_index.cc',
+  implicit_include_directories: false,
+  dependencies: [seastar, common, config, model])
+
+cloud_storage = declare_dependency(
+  dependencies: [seastar, common, config, model],
+  link_with: libcloud_storage)
