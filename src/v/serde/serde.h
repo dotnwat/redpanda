@@ -144,6 +144,10 @@ inline constexpr auto const is_serde_compatible_v
     || is_fragmented_vector_v<T>;
 
 template<typename T>
+inline constexpr auto const supported
+  = is_serde_compatible_v<T> || (has_serde_read<T> && has_serde_write<T>);
+
+template<typename T>
 void write(iobuf&, T);
 
 template<typename T>
