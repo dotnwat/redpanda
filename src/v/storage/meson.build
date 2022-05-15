@@ -1,0 +1,43 @@
+libstorage = library('storage',
+  'segment_reader.cc',
+  'log_manager.cc',
+  'mem_log_impl.cc',
+  'disk_log_impl.cc',
+  'disk_log_appender.cc',
+  'parser.cc',
+  'log_reader.cc',
+  'log_replayer.cc',
+  'offset_translator_state.cc',
+  'probe.cc',
+  'record_batch_builder.cc',
+  'logger.cc',
+  'segment_appender.cc',
+  'segment_set.cc',
+  'segment.cc',
+  'segment_index.cc',
+  'segment_appender_utils.cc',
+  'batch_cache.cc',
+  'index_state.cc',
+  'lock_manager.cc',
+  'types.cc',
+  'spill_key_index.cc',
+  'compacted_index_chunk_reader.cc',
+  'snapshot.cc',
+  'kvstore.cc',
+  'segment_utils.cc',
+  'compaction_reducers.cc',
+  'parser_utils.cc',
+  'readers_cache.cc',
+  'backlog_controller.cc',
+  'compaction_controller.cc',
+  implicit_include_directories: false,
+  dependencies: [seastar, common, model, config, compression, roaring])
+
+storage = declare_dependency(
+  dependencies: [seastar, common, model, config, compression, roaring],
+  link_with: libstorage)
+
+t = executable('bench_compaction_index',
+  'tests/compaction_idx_bench.cc',
+  dependencies: [storage, seastar_perf_testing])
+benchmark('compaction index', t)
