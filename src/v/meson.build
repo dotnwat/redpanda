@@ -116,6 +116,7 @@ subdir('storage')
 subdir('rpc')
 subdir('raft')
 subdir('cloud_storage')
+subdir('archival')
 
 # some tests have circular or forward dependencies if added along with their
 # normal containing directory. a common example are tests that depend on the
@@ -123,3 +124,4 @@ subdir('cloud_storage')
 # setup these tests here after all dependencies have been introduced above.
 subdir('bytes/tests')
 subdir('security/tests')
+subdir('archival/tests')
