@@ -26,8 +26,6 @@
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/sleep.hh>
 
-#include <boost/system/detail/errc.hpp>
-
 namespace cluster {
 
 namespace {
