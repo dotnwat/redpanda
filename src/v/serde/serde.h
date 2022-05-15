@@ -150,6 +150,10 @@ inline constexpr auto const are_bytes_and_string_different = !(
   std::is_same_v<T, ss::sstring> && std::is_same_v<T, bytes>);
 
 template<typename T>
+inline constexpr auto const supported
+  = is_serde_compatible_v<T> || (has_serde_read<T> && has_serde_write<T>);
+
+template<typename T>
 void write(iobuf&, T);
 
 template<typename T>
