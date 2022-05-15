@@ -1,0 +1,40 @@
+raft_service_h = custom_target(
+  output : 'raftgen_service.h',
+  input : 'raftgen.json',
+  command : [rpc_compiler, '--service_file', '@INPUT@',
+    '--output_file', '@OUTPUT@'])
+
+libraft = library('raft',
+  'consensus.cc',
+  'consensus_utils.cc',
+  'heartbeat_manager.cc',
+  'configuration_bootstrap_state.cc',
+  'logger.cc',
+  'types.cc',
+  'replicate_entries_stm.cc',
+  'vote_stm.cc',
+  'prevote_stm.cc',
+  'recovery_stm.cc',
+  'follower_stats.cc',
+  'replicate_batcher.cc',
+  'rpc_client_protocol.cc',
+  'group_manager.cc',
+  'probe.cc',
+  'offset_monitor.cc',
+  'event_manager.cc',
+  'state_machine.cc',
+  'log_eviction_stm.cc',
+  'configuration_manager.cc',
+  'group_configuration.cc',
+  'append_entries_buffer.cc',
+  'follower_queue.cc',
+  'offset_translator.cc',
+  'recovery_memory_quota.cc',
+  raft_service_h,
+  implicit_include_directories: false,
+  dependencies: [common, model, utils, storage, rpc])
+
+raft = declare_dependency(
+  sources: raft_service_h,
+  dependencies: [common, model, utils, storage, rpc],
+  link_with: libraft)
