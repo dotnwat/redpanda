@@ -98,4 +98,5 @@ subdir('cluster')
 subdir('archival')
 subdir('kafka/protocol')
 subdir('kafka/client')
+subdir('coproc')
 subdir('kafka') # server
