@@ -132,6 +132,7 @@ subdir('archival')
 subdir('cluster')
 subdir('kafka/protocol')
 subdir('kafka/client')
+subdir('coproc')
 subdir('kafka')
 
 # some tests have circular or forward dependencies if added along with their
@@ -145,3 +146,4 @@ subdir('archival/tests')
 subdir('cluster/tests')
 subdir('kafka/client/test')
 subdir('kafka/server/tests')
+subdir('coproc/tests')
