@@ -120,6 +120,9 @@ subdir('raft')
 subdir('cloud_storage')
 subdir('archival')
 subdir('cluster')
+subdir('kafka/protocol')
+subdir('kafka/client')
+subdir('kafka')
 
 # some tests have circular or forward dependencies if added along with their
 # normal containing directory. a common example are tests that depend on the
@@ -130,3 +133,5 @@ subdir('security/tests')
 subdir('cloud_storage/tests')
 subdir('archival/tests')
 subdir('cluster/tests')
+subdir('kafka/client/test')
+subdir('kafka/server/tests')
