@@ -101,3 +101,4 @@ subdir('kafka/client')
 subdir('coproc')
 subdir('kafka') # server
 subdir('pandaproxy')
+subdir('redpanda')
