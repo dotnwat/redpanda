@@ -69,3 +69,17 @@ subdir('kafka')
 subdir('coproc')
 subdir('pandaproxy')
 #subdir('redpanda')
+
+roaring = dependency('roaring')
+
+cc = meson.get_compiler('cpp')
+
+hwloc = dependency('hwloc')
+numa = cc.find_library('numa', required : true)
+
+add_project_arguments('-Wno-non-virtual-dtor', language: 'cpp')
+
+# newer meson..
+#inc_dep = declare_dependency(
+#  include_directories: include_directories('.'))
+#add_project_dependencies(inc_dep, language: 'cpp')
