@@ -9,14 +9,13 @@ bytes = declare_dependency(
   dependencies: [common, seastar, absl])
 
 bytes_tests = [
-  'tests/iobuf_tests.cc',
-  'tests/iobuf_utils_tests.cc',
-  'tests/bytes_tests.cc']
+  'iobuf_tests',
+  'iobuf_utils_tests',
+  'bytes_tests']
 
 foreach ttest : bytes_tests
-  name = ttest.underscorify()
-  t = executable(name,
-    ttest,
+  t = executable(f'test_@ttest@',
+    f'tests/@ttest@.cc',
     dependencies: [seastar_testing_main, bytes])
-  test(name, t)
+  test(ttest, t)
 endforeach
