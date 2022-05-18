@@ -19,7 +19,7 @@
 #include "seastarx.h"
 #include "storage/directories.h"
 #include "storage/disk_log_impl.h"
-#include "storage/tests/utils/random_batch.h"
+#include "model/tests/random_batch.h"
 #include "test_utils/async.h"
 
 #include <seastar/core/circular_buffer.hh>
@@ -75,7 +75,7 @@ static segment_layout write_random_batches(
     segment_layout layout{
       .base_offset = seg->offsets().base_offset,
     };
-    auto batches = storage::test::make_random_batches(
+    auto batches = model::test::make_random_batches(
       seg->offsets().base_offset, num_batches);
 
     vlog(fixt_log.debug, "Generated {} random batches", batches.size());
