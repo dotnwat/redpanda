@@ -23,7 +23,7 @@
 #include "storage/log.h"
 #include "storage/log_manager.h"
 #include "storage/record_batch_builder.h"
-#include "storage/tests/utils/random_batch.h"
+#include "model/tests/random_batch.h"
 #include "test_utils/randoms.h"
 #include "utils/copy_range.h"
 // testing
@@ -182,7 +182,7 @@ FIXTURE_TEST(sharing_one_reader, foreign_entry_fixture) {
 
 FIXTURE_TEST(sharing_correcteness_test, foreign_entry_fixture) {
     auto copies = 5;
-    auto batches = storage::test::make_random_batches(
+    auto batches = model::test::make_random_batches(
       model::offset(0), 50, true);
     auto rdr = model::make_memory_record_batch_reader(std::move(batches));
     auto refs = raft::details::share_n(std::move(rdr), 2).get0();
