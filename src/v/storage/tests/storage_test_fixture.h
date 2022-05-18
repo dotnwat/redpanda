@@ -20,7 +20,7 @@
 #include "seastarx.h"
 #include "storage/kvstore.h"
 #include "storage/log_manager.h"
-#include "storage/tests/utils/random_batch.h"
+#include "model/tests/random_batch.h"
 #include "test_utils/fixture.h"
 #include "units.h"
 
@@ -37,7 +37,7 @@ inline ss::logger tlog{"test_log"};
 
 struct random_batches_generator {
     ss::circular_buffer<model::record_batch> operator()() {
-        return storage::test::make_random_batches(
+        return model::test::make_random_batches(
           model::offset(0), random_generators::get_int(1, 10));
     }
 };

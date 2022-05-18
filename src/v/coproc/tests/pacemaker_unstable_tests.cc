@@ -17,7 +17,6 @@
 #include "coproc/types.h"
 #include "model/fundamental.h"
 #include "model/record_batch_reader.h"
-#include "storage/tests/utils/random_batch.h"
 
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test_log.hpp>

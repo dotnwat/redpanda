@@ -10,7 +10,7 @@
 #include "model/timeout_clock.h"
 #include "random/generators.h"
 #include "ssx/future-util.h"
-#include "storage/tests/utils/random_batch.h"
+#include "model/tests/random_batch.h"
 #include "test_utils/async.h"
 #include "test_utils/fixture.h"
 
@@ -314,7 +314,7 @@ public:
         bool stop = false;
         foreign_batches_t ret;
         auto single_retry = [count, ntp](cluster::partition_manager& pm) {
-            auto batches = storage::test::make_random_batches(
+            auto batches = model::test::make_random_batches(
               model::offset(0), count);
             auto rdr = model::make_memory_record_batch_reader(
               std::move(batches));

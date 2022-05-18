@@ -18,7 +18,7 @@
 #include "ssx/sformat.h"
 #include "storage/api.h"
 #include "storage/disk_log_impl.h"
-#include "storage/tests/utils/random_batch.h"
+#include "model/tests/random_batch.h"
 #include "units.h"
 #include "vassert.h"
 
