@@ -71,3 +71,5 @@ subdir('kafka')
 subdir('coproc')
 subdir('pandaproxy')
 subdir('redpanda')
+
+subdir('cluster/tests')
