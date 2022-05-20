@@ -45,6 +45,13 @@ version_h = vcs_tag(
 common = declare_dependency(
   include_directories: include_directories('.'))
 
+add_project_arguments(
+  '-Wno-deprecated-experimental-coroutine',
+  '-Wno-unused-lambda-capture',
+  '-Wno-unused-function',
+  '-Wno-unused-variable',
+  language: 'cpp')
+
 subdir('test_utils')
 subdir('ssx')
 subdir('bytes')
@@ -74,3 +81,18 @@ subdir('kafka')
 subdir('coproc')
 subdir('pandaproxy')
 subdir('redpanda')
+
+subdir('cluster/tests')
+subdir('cloud_storage/tests')
+subdir('archival/tests')
+subdir('kafka/client/test')
+subdir('kafka/server/tests')
+subdir('coproc/tests')
+subdir('pandaproxy/rest/test')
+subdir('pandaproxy/schema_registry/test')
+subdir('security/tests')
+
+t = executable('test_outcome',
+  'outcome_tests.cc',
+  dependencies: [boost])
+test('outcome', t)
