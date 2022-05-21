@@ -471,8 +471,16 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
           rpc::client_opts(rpc::no_timeout),
           rpc::transport_version::invalid);
         return f.then([&](auto ret) {
-            BOOST_REQUIRE(ret.has_error());
-            BOOST_REQUIRE_EQUAL(ret.error(), rpc::errc::version_not_supported);
+            BOOST_REQUIRE(ret.has_value()); // low-level rpc succeeded
+
+            BOOST_REQUIRE(ret.value().ctx.has_error()); // payload failed
+            BOOST_REQUIRE_EQUAL(
+              ret.value().ctx.error(), rpc::errc::version_not_supported);
+
+            // returned version is server's max supported
+            BOOST_REQUIRE_EQUAL(
+              static_cast<uint8_t>(ret.value().version),
+              static_cast<uint8_t>(rpc::transport_version::v0));
         });
     };
 

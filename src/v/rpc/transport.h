@@ -62,7 +62,7 @@ public:
       send_typed(Input, uint32_t, rpc::client_opts);
 
     template<typename Input, typename Output>
-    ss::future<result<client_context<Output>>> send_typed_versioned(
+    ss::future<result<result_context<Output>>> send_typed_versioned(
       Input, uint32_t, rpc::client_opts, transport_version);
 
     void reset_state() final;
@@ -162,18 +162,25 @@ ss::future<result<rpc::client_context<T>>> parse_result(
 template<typename Input, typename Output>
 inline ss::future<result<client_context<Output>>>
 transport::send_typed(Input r, uint32_t method_id, rpc::client_opts opts) {
+    using ret_t = result<client_context<Output>>;
     return send_typed_versioned<Input, Output>(
-      std::move(r), method_id, std::move(opts), transport_version::v0);
+             std::move(r), method_id, std::move(opts), transport_version::v0)
+      .then([](result<result_context<Output>> r) {
+          if (!r) {
+              return ss::make_ready_future<ret_t>(r.error());
+          }
+          return ss::make_ready_future<ret_t>(std::move(r.value().ctx));
+      });
 }
 
 template<typename Input, typename Output>
-inline ss::future<result<client_context<Output>>>
+inline ss::future<result<result_context<Output>>>
 transport::send_typed_versioned(
   Input r,
   uint32_t method_id,
   rpc::client_opts opts,
   transport_version version) {
-    using ret_t = result<client_context<Output>>;
+    using ret_t = result<result_context<Output>>;
     _probe.request();
 
     auto b = std::make_unique<rpc::netbuf>();
@@ -194,7 +201,11 @@ transport::send_typed_versioned(
           if (!sctx) {
               return ss::make_ready_future<ret_t>(sctx.error());
           }
-          return internal::parse_result<Output>(_in, std::move(sctx.value()));
+          const auto version = sctx.value()->get_header().version;
+          return internal::parse_result<Output>(_in, std::move(sctx.value()))
+            .then([version](result<client_context<Output>> r) {
+                return ret_t(result_context<Output>{version, std::move(r)});
+            });
       });
 }
 
