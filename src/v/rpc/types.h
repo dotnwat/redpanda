@@ -73,6 +73,7 @@ enum class status : uint32_t {
 
 enum class transport_version : uint8_t {
     v0 = 0,
+    invalid = std::numeric_limits<uint8_t>::max(),
 };
 
 /// \brief core struct for communications. sent with _each_ payload
@@ -191,6 +192,7 @@ public:
     void set_compression(rpc::compression_type c);
     void set_service_method_id(uint32_t);
     void set_min_compression_bytes(size_t);
+    void set_version(transport_version v) { _hdr.version = v; }
     iobuf& buffer();
 
 private:

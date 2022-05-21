@@ -61,6 +61,10 @@ public:
     ss::future<result<client_context<Output>>>
       send_typed(Input, uint32_t, rpc::client_opts);
 
+    template<typename Input, typename Output>
+    ss::future<result<client_context<Output>>> send_typed_versioned(
+      Input, uint32_t, rpc::client_opts, transport_version);
+
     void reset_state() final;
 
 private:
@@ -158,6 +162,17 @@ ss::future<result<rpc::client_context<T>>> parse_result(
 template<typename Input, typename Output>
 inline ss::future<result<client_context<Output>>>
 transport::send_typed(Input r, uint32_t method_id, rpc::client_opts opts) {
+    return send_typed_versioned<Input, Output>(
+      std::move(r), method_id, std::move(opts), transport_version::v0);
+}
+
+template<typename Input, typename Output>
+inline ss::future<result<client_context<Output>>>
+transport::send_typed_versioned(
+  Input r,
+  uint32_t method_id,
+  rpc::client_opts opts,
+  transport_version version) {
     using ret_t = result<client_context<Output>>;
     _probe.request();
 
@@ -166,6 +181,7 @@ transport::send_typed(Input r, uint32_t method_id, rpc::client_opts opts) {
     b->set_min_compression_bytes(opts.min_compression_bytes);
     auto raw_b = b.get();
     raw_b->set_service_method_id(method_id);
+    raw_b->set_version(version);
 
     auto& target_buffer = raw_b->buffer();
     auto seq = ++_seq;
