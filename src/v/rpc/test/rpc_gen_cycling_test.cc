@@ -454,3 +454,56 @@ FIXTURE_TEST(corrupted_data_at_server, rpc_integration_fixture) {
         BOOST_REQUIRE_EQUAL(echo_resp_new.value().data.str, "testing...");
     }
 }
+
+FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
+    configure_server();
+    register_services();
+    start_server();
+
+    rpc::transport t(client_config());
+    t.connect(model::no_timeout).get();
+    auto client = echo::echo_client_protocol(t);
+
+    const auto check_unsupported = [&] {
+        auto f = t.send_typed_versioned<echo::echo_req, echo::echo_resp>(
+          echo::echo_req{.str = "testing..."},
+          960598415,
+          rpc::client_opts(rpc::no_timeout),
+          rpc::transport_version::invalid);
+        return f.then([&](auto ret) {
+            BOOST_REQUIRE(ret.has_error());
+            BOOST_REQUIRE_EQUAL(ret.error(), rpc::errc::version_not_supported);
+        });
+    };
+
+    const auto check_supported = [&] {
+        auto f = client.echo(
+          echo::echo_req{.str = "testing..."},
+          rpc::client_opts(rpc::no_timeout));
+        return f.then([&](auto ret) {
+            BOOST_REQUIRE(ret.has_value());
+            BOOST_REQUIRE_EQUAL(ret.value().data.str, "testing...");
+        });
+    };
+
+    // choose a random order for the requests
+    std::vector<std::function<ss::future<>()>> request_factory;
+    for (int i = 0; i < 200; i++) {
+        request_factory.emplace_back(check_unsupported);
+        request_factory.emplace_back(check_supported);
+    }
+    std::shuffle(
+      request_factory.begin(),
+      request_factory.end(),
+      random_generators::internal::gen);
+
+    // dispatch the requests
+    std::vector<ss::future<>> requests;
+    for (const auto& factory : request_factory) {
+        requests.emplace_back(factory());
+    }
+
+    ss::when_all_succeed(requests.begin(), requests.end()).get();
+
+    t.stop().get();
+}
