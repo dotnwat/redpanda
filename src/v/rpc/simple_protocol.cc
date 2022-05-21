@@ -103,6 +103,16 @@ simple_protocol::dispatch_method_once(header h, net::server::resources rs) {
       = ssx::spawn_with_gate_then(
           rs.conn_gate(),
           [this, method_id, rs, ctx]() mutable {
+              if (ctx->get_header().version > transport_version::v0) {
+                  netbuf reply_buf;
+                  reply_buf.set_status(rpc::status::version_not_supported);
+                  return ctx->res.conn->input()
+                    .skip(ctx->get_header().payload_size)
+                    .then([ctx, reply_buf = std::move(reply_buf)]() mutable {
+                        return send_reply(ctx, std::move(reply_buf))
+                          .then([ctx]() mutable { ctx->signal_body_parse(); });
+                    });
+              }
               auto it = std::find_if(
                 _services.begin(),
                 _services.end(),
