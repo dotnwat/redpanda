@@ -113,8 +113,12 @@ simple_protocol::dispatch_method_once(header h, net::server::resources rs) {
                   rs.probe().method_not_found();
                   netbuf reply_buf;
                   reply_buf.set_status(rpc::status::method_not_found);
-                  return send_reply(ctx, std::move(reply_buf))
-                    .then([ctx]() mutable { ctx->signal_body_parse(); });
+                  return ctx->res.conn->input()
+                    .skip(ctx->get_header().payload_size)
+                    .then([ctx, reply_buf = std::move(reply_buf)]() mutable {
+                        return send_reply(ctx, std::move(reply_buf))
+                          .then([ctx]() mutable { ctx->signal_body_parse(); });
+                    });
               }
 
               method* m = it->get()->method_from_id(method_id);
