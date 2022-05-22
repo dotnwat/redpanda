@@ -6,10 +6,10 @@ libmodel = library('model',
   'adl_serde.cc',
   'validation.cc',
   implicit_include_directories: false,
-  dependencies: [seastar, common, hashing])
+  dependencies: [seastar, common, hashing, serde])
 
 model = declare_dependency(
-  dependencies: [seastar, common, hashing],
+  dependencies: [seastar, common, hashing, serde],
   link_with: libmodel)
 
 libmodel_test_utils = library('model_test_utils',

@@ -1,10 +1,10 @@
 libjson = library('json',
   'json.cc',
-  dependencies: [common, seastar, rapidjson],
+  dependencies: [common, seastar, rapidjson, model],
   implicit_include_directories : false)
 
 json = declare_dependency(
-  dependencies: [common, seastar, rapidjson],
+  dependencies: [common, seastar, rapidjson, model],
   link_with: libjson)
 
 t = executable('test_json',
