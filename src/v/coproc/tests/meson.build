@@ -25,9 +25,3 @@ t = executable('test_coproc_fixture',
   dependencies: [seastar_testing_main, coproc, redpanda_app],
   link_with: f)
 test('coproc fixture', t)
-
-t = executable('test_coproc_unstable_fixture',
-  'pacemaker_unstable_tests.cc',
-  dependencies: [seastar_testing_main, coproc, redpanda_app],
-  link_with: f)
-test('coproc unstable fixture', t)
