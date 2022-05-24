@@ -365,7 +365,7 @@ FIXTURE_TEST(test_rm_stm_passes_immediate_retry, mux_state_machine_fixture) {
     wait_for_meta_initialized();
 
     auto count = 5;
-    auto rdr1 = random_batch_reader(storage::test::record_batch_spec{
+    auto rdr1 = random_batch_reader(model::test::record_batch_spec{
       .offset = model::offset(0),
       .allow_compression = true,
       .count = count,
@@ -379,7 +379,7 @@ FIXTURE_TEST(test_rm_stm_passes_immediate_retry, mux_state_machine_fixture) {
     // replicate caches only metadata so as long as batches have the same
     // pid and seq numbers the duplicated request should yield the same
     // offsets
-    auto rdr2 = random_batch_reader(storage::test::record_batch_spec{
+    auto rdr2 = random_batch_reader(model::test::record_batch_spec{
       .offset = model::offset(0),
       .allow_compression = true,
       .count = count,
