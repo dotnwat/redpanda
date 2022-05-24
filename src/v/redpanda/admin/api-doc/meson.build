@@ -9,7 +9,8 @@ admin_api_swags = [
   'partition',
   'hbadger',
   'transaction',
-  'debug']
+  'debug',
+  'cluster']
 
 admin_api_h = []
 foreach swag : admin_api_swags

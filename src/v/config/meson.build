@@ -4,10 +4,10 @@ libconfig = library('config',
   'base_property.cc',
   'rjson_serialization.cc',
   'validators.cc',
-  dependencies : [common, seastar, json, absl, model])
+  dependencies : [common, seastar, json, absl, model, security])
 
 config = declare_dependency(
-  dependencies: [common, seastar, json, absl, model],
+  dependencies: [common, seastar, json, absl, model, security],
   link_with: libconfig)
 
 t = executable('test_config',

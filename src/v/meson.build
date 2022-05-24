@@ -45,17 +45,22 @@ version_h = vcs_tag(
 common = declare_dependency(
   include_directories: include_directories('.'))
 
+add_project_arguments(
+  '-Wno-deprecated-experimental-coroutine',
+  language: 'cpp')
+
 subdir('test_utils')
 subdir('bytes')
 subdir('hashing')
+subdir('serde')
 subdir('finjector')
 subdir('random')
-subdir('json')
 subdir('compression')
 subdir('model')
-subdir('config')
+subdir('json')
 subdir('utils')
 subdir('security')
+subdir('config')
 subdir('syschecks')
 subdir('net')
 subdir('http')
