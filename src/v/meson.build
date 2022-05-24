@@ -47,6 +47,9 @@ common = declare_dependency(
 
 add_project_arguments(
   '-Wno-deprecated-experimental-coroutine',
+  '-Wno-unused-lambda-capture',
+  '-Wno-unused-function',
+  '-Wno-unused-variable',
   language: 'cpp')
 
 subdir('test_utils')
