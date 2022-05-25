@@ -74,12 +74,15 @@ struct service::execution_helper {
                     auto input = input_f.get0();
                     return f(std::move(input), ctx);
                 })
-                .then([method_id](Output out) mutable {
+                .then([method_id, &ctx](Output out) mutable {
                     auto b = std::make_unique<netbuf>();
                     auto raw_b = b.get();
                     raw_b->set_service_method_id(method_id);
-                    return reflection::async_adl<Output>{}
-                      .to(raw_b->buffer(), std::move(out))
+                    const auto version = ctx.get_header().version;
+                    raw_b->set_version(version);
+                    return encode_with_version(
+                             raw_b->buffer(), std::move(out), version)
+                      .discard_result()
                       .then([b = std::move(b)] { return std::move(*b); });
                 });
           });

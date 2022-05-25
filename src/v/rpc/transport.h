@@ -101,6 +101,14 @@ private:
     requests_queue_t _requests_queue;
     sequence_t _seq;
     sequence_t _last_seq;
+
+    /*
+     * version level used when dispatching requests. this value may change
+     * during the lifetime of the transport. for example the version may be
+     * upgraded if it is discovered that a server supports a newer version.
+     */
+    transport_version _version = transport_version::v1;
+
     friend std::ostream& operator<<(std::ostream&, const transport&);
 };
 
@@ -164,7 +172,7 @@ inline ss::future<result<client_context<Output>>>
 transport::send_typed(Input r, uint32_t method_id, rpc::client_opts opts) {
     using ret_t = result<client_context<Output>>;
     return send_typed_versioned<Input, Output>(
-             std::move(r), method_id, std::move(opts), transport_version::v0)
+             std::move(r), method_id, std::move(opts), _version)
       .then([](result<result_context<Output>> res) {
           if (!res) {
               return ss::make_ready_future<ret_t>(res.error());
@@ -173,6 +181,12 @@ transport::send_typed(Input r, uint32_t method_id, rpc::client_opts opts) {
       });
 }
 
+/*
+ * todo: log a message about upgrading from v1 to v2 without going through
+ * normal version upgrade path. could be an early message on a connection type
+ * situation. but will be useful for debgugging missing barrier because
+ * theconnection will likely be dropped.
+ */
 template<typename Input, typename Output>
 inline ss::future<result<result_context<Output>>>
 transport::send_typed_versioned(
@@ -181,6 +195,7 @@ transport::send_typed_versioned(
   rpc::client_opts opts,
   transport_version version) {
     using ret_t = result<result_context<Output>>;
+    using ctx_t = result<std::unique_ptr<streaming_context>>;
     _probe.request();
 
     auto b = std::make_unique<rpc::netbuf>();
@@ -192,19 +207,62 @@ transport::send_typed_versioned(
 
     auto& target_buffer = raw_b->buffer();
     auto seq = ++_seq;
-    return reflection::async_adl<Input>{}
-      .to(target_buffer, std::move(r))
-      .then([this, b = std::move(b), seq, opts = std::move(opts)]() mutable {
-          return do_send(seq, std::move(*b.get()), std::move(opts));
+
+    return encode_with_version(target_buffer, std::move(r), version)
+      .then([this, version, b = std::move(b), seq, opts = std::move(opts)](
+              transport_version effective_version) mutable {
+          vassert(
+            version != transport_version::v0
+              || effective_version == transport_version::v0,
+            "Request type {} cannot be encoded at version {} (effective {}).",
+            typeid(Input).name(),
+            version,
+            effective_version);
+          b->set_version(effective_version);
+          return do_send(seq, std::move(*b.get()), std::move(opts))
+            .then([effective_version](ctx_t ctx) {
+                return std::make_tuple(std::move(ctx), effective_version);
+            });
       })
-      .then([this](result<std::unique_ptr<streaming_context>> sctx) mutable {
+      .then_unpack([this](ctx_t sctx, transport_version req_ver) {
           if (!sctx) {
               return ss::make_ready_future<ret_t>(sctx.error());
           }
-          const auto version = sctx.value()->get_header().version;
+
+          const auto& rep_hdr = sctx.value()->get_header();
+          const auto rep_ver = rep_hdr.version;
+
+          /*
+           * the reply version should always be the same as the request version,
+           * otherwise this is non-compliant behavior. the exception to this
+           * rule is a v0 reply to a v1 request (ie talking to old v0 server).
+           */
+          if (
+            rep_ver != req_ver
+            && (req_ver != transport_version::v1 || rep_ver != transport_version::v0)) {
+              return ss::make_ready_future<ret_t>(errc::service_error);
+          }
+
+          /*
+           * upgrade transport to v2 if v{1,2} reply received. the upgrade is
+           * always supressed if the transport is at v0. this only occurs in
+           * testing scenarios when a client is configured to behave as a v0
+           * client which always operates at v0.
+           *
+           * if the reply contains an error then skip the upgrade. errors will
+           * be handled further in internal::parse_result.
+           */
+          if (_version == transport_version::v1) {
+              if (static_cast<status>(rep_hdr.meta) == status::success) {
+                  if (rep_ver >= transport_version::v1) {
+                      _version = transport_version::v2;
+                  }
+              }
+          }
+
           return internal::parse_result<Output>(_in, std::move(sctx.value()))
-            .then([version](result<client_context<Output>> r) {
-                return ret_t(result_context<Output>{version, std::move(r)});
+            .then([rep_ver](result<client_context<Output>> r) {
+                return ret_t(result_context<Output>{rep_ver, std::move(r)});
             });
       });
 }
