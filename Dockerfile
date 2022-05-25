@@ -1,4 +1,4 @@
-from ubuntu:impish
+from ubuntu:jammy
 
 run apt-get update
 
@@ -8,7 +8,7 @@ run DEBIAN_FRONTEND=noninteractive apt-get install -qq \
     pkg-config libfmt-dev liblz4-dev libgnutls28-dev libc-ares-dev \
     libyaml-cpp-dev ragel clang libabsl-dev libsnappy-dev libxxhash-dev \
     libzstd-dev git python3-jsonschema xfslibs-dev valgrind systemtap-sdt-dev \
-    libsctp-dev ccache python3-jinja2 libroaring-dev
+    libsctp-dev ccache python3-jinja2 libroaring-dev cmake
 
 run pip3 install meson
 
