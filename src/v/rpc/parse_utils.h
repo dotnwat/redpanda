@@ -18,6 +18,7 @@
 #include "rpc/logger.h"
 #include "rpc/types.h"
 #include "seastarx.h"
+#include "serde/serde.h"
 #include "vlog.h"
 
 #include <seastar/core/do_with.hh>
@@ -81,6 +82,32 @@ inline void validate_payload_and_header(const iobuf& io, const header& h) {
           h.payload_checksum));
     }
 }
+
+/*
+ * the transition from adl to serde encoding in rpc requires a period of time
+ * where both encodings are supported for all message types. however, we do not
+ * want to extend this requirement to brand new messages / services. we enlist
+ * the help of the type system to enforce these rules, but it means we need a
+ * way to opt-out of adl support on a case-by-case basis for new message types.
+ *
+ * the `rpc_adl_exempt` type trait helper can be used to opt-out a type T from
+ * adl support. a type is marked exempt by defining the type T::rpc_adl_exempt.
+ * the typedef may be defined as any type such as std::{void_t, true_type}.
+ *
+ * Example:
+ *
+ *     struct exempt_msg {
+ *         using rpc_adl_exempt = std::true_type;
+ *         ...
+ *     };
+ */
+template<typename, typename = void>
+struct has_rpc_adl_exempt : std::false_type {};
+template<typename T>
+struct has_rpc_adl_exempt<T, std::void_t<typename T::rpc_adl_exempt>>
+  : std::true_type {};
+template<typename T>
+inline constexpr auto const is_rpc_adl_exempt = has_rpc_adl_exempt<T>::value;
 
 template<typename T>
 ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
