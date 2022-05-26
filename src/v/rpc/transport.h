@@ -189,6 +189,7 @@ transport::send_typed_versioned(
   rpc::client_opts opts,
   transport_version version) {
     using ret_t = result<result_context<Output>>;
+    using ctx_t = result<std::unique_ptr<streaming_context>>;
     _probe.request();
 
     auto b = std::make_unique<rpc::netbuf>();
@@ -200,15 +201,44 @@ transport::send_typed_versioned(
 
     auto& target_buffer = raw_b->buffer();
     auto seq = ++_seq;
-    return reflection::async_adl<Input>{}
-      .to(target_buffer, std::move(r))
-      .then([this, b = std::move(b), seq, opts = std::move(opts)]() mutable {
-          return do_send(seq, std::move(*b.get()), std::move(opts));
+    return encode_with_version(target_buffer, std::move(r), version)
+      .then([this, version, b = std::move(b), seq, opts = std::move(opts)](
+              transport_version effective_version) mutable {
+          /*
+           * enforce the rule that a transport configured as v0 behaves like
+           * a v0 client transport and sends v0 messages.
+           */
+          vassert(
+            version != transport_version::v0
+              || effective_version == transport_version::v0,
+            "Request type {} cannot be encoded at version {} (effective {}).",
+            typeid(Input).name(),
+            version,
+            effective_version);
+          b->set_version(effective_version);
+          return do_send(seq, std::move(*b.get()), std::move(opts))
+            .then([effective_version](ctx_t ctx) {
+                return std::make_tuple(std::move(ctx), effective_version);
+            });
       })
-      .then([this](result<std::unique_ptr<streaming_context>> sctx) mutable {
+      .then_unpack([this](ctx_t sctx, transport_version req_ver) {
           if (!sctx) {
               return ss::make_ready_future<ret_t>(sctx.error());
           }
+          const auto& rep_hdr = sctx.value()->get_header();
+          const auto rep_ver = rep_hdr.version;
+
+          /*
+           * the reply version should always be the same as the request version,
+           * otherwise this is non-compliant behavior. the exception to this
+           * rule is a v0 reply to a v1 request (ie talking to old v0 server).
+           */
+          if (
+            rep_ver != req_ver
+            && (req_ver != transport_version::v1 || rep_ver != transport_version::v0)) {
+              return ss::make_ready_future<ret_t>(errc::service_error);
+          }
+
           const auto version = sctx.value()->get_header().version;
           return internal::parse_result<Output>(_in, std::move(sctx.value()))
             .then([version](result<client_context<Output>> r) {
