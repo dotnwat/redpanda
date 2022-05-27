@@ -157,6 +157,48 @@ encode_with_version(iobuf& out, T msg, transport_version version) {
     }
 }
 
+/*
+ * Decode a client request at the given transport version.
+ */
+template<typename T>
+ss::future<T>
+decode_with_version(iobuf_parser& parser, transport_version version) {
+    if constexpr (serde::supported<T>) {
+        if constexpr (is_rpc_adl_exempt<T>) {
+            if (version < transport_version::v2) {
+                return ss::make_exception_future<T>(
+                  std::runtime_error(fmt::format(
+                    "Unexpected serde-only message {} at {} < v2",
+                    typeid(T).name(),
+                    version)));
+            }
+            return serde::read_async<T>(parser);
+        } else {
+            if (version < transport_version::v2) {
+                return reflection::async_adl<T>{}.from(parser);
+            } else {
+                return serde::read_async<T>(parser);
+            }
+        }
+    } else {
+        /*
+         * TODO: remove this else block as soon as all types are supported by
+         * serde. this exception is present so that work on the protocol can
+         * proceed in parallel with conversion of message types to use serde.
+         *
+         * Tracked here as part of v22.2.x release requirements:
+         * https://github.com/redpanda-data/redpanda/issues/4934
+         */
+        if (version != transport_version::v0) {
+            return ss::make_exception_future<T>(std::runtime_error(fmt::format(
+              "Unexpected adl-only message {} at {} != v0",
+              typeid(T).name(),
+              version)));
+        }
+        return reflection::async_adl<T>{}.from(parser);
+    }
+}
+
 template<typename T>
 ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
     return read_iobuf_exactly(in, h.payload_size).then([h](iobuf io) {
@@ -179,8 +221,8 @@ ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
 
         auto p = std::make_unique<iobuf_parser>(std::move(io));
         auto raw = p.get();
-        return reflection::async_adl<T>{}.from(*raw).finally(
-          [p = std::move(p)] {});
+        return decode_with_version<T>(*raw, h.version)
+          .finally([p = std::move(p)] {});
     });
 }
 
