@@ -221,6 +221,33 @@ struct default_message_encoder {
     }
 };
 
+/*
+ * service specialization mixin to create a v0 compliant service. a v0 service
+ * encodes and decodes using adl, ignores versions on requests, and sends
+ * replies with v0 in the header.
+ *
+ * example:
+ *   using echo_service_v0 = echo_service_base<service_parse_helper_v0>;
+ */
+struct v0_message_encoder {
+    template<typename T>
+    static ss::future<T> decode(iobuf_parser& parser, transport_version) {
+        return reflection::async_adl<T>{}.from(parser);
+    }
+
+    static transport_version version(const header&) {
+        return transport_version::v0;
+    }
+
+    template<typename T>
+    static ss::future<transport_version>
+    encode(iobuf& out, T msg, transport_version) {
+        return reflection::async_adl<T>{}.to(out, std::move(msg)).then([] {
+            return transport_version::v0;
+        });
+    }
+};
+
 template<typename T, typename Encoder>
 ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
     return read_iobuf_exactly(in, h.payload_size).then([h](iobuf io) {
