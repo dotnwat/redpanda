@@ -53,7 +53,8 @@ RPC_TEMPLATE = """
 
 namespace {{namespace}} {
 
-class {{service_name}}_service : public rpc::service {
+template<typename Encoder>
+class {{service_name}}_service_base : public rpc::service {
 public:
     class failure_probes;
 
@@ -61,21 +62,21 @@ public:
     inline static constexpr uint32_t {{method.name}}_method_id = {{method.id}};
     {%- endfor %}
 
-    {{service_name}}_service(ss::scheduling_group sc, ss::smp_service_group ssg)
+    {{service_name}}_service_base(ss::scheduling_group sc, ss::smp_service_group ssg)
        : _sc(sc), _ssg(ssg) {}
 
-    {{service_name}}_service({{service_name}}_service&& o) noexcept
+    {{service_name}}_service_base({{service_name}}_service_base&& o) noexcept
       : _sc(std::move(o._sc)), _ssg(std::move(o._ssg)), _methods(std::move(o._methods)) {}
 
-    {{service_name}}_service& operator=({{service_name}}_service&& o) noexcept {
+    {{service_name}}_service_base& operator=({{service_name}}_service_base&& o) noexcept {
        if(this != &o){
-          this->~{{service_name}}_service();
-          new (this) {{service_name}}_service(std::move(o));
+          this->~{{service_name}}_service_base();
+          new (this) {{service_name}}_service_base(std::move(o));
        }
        return *this;
     }
 
-    virtual ~{{service_name}}_service() noexcept = default;
+    virtual ~{{service_name}}_service_base() noexcept = default;
 
     void setup_metrics() final {
         namespace sm = ss::metrics;
@@ -118,7 +119,8 @@ public:
     virtual ss::future<rpc::netbuf>
     raw_{{method.name}}(ss::input_stream<char>& in, rpc::streaming_context& ctx) {
       return execution_helper<{{method.input_type}},
-                              {{method.output_type}}>::exec(in, ctx, {{method.id}},
+                              {{method.output_type}},
+                              Encoder>::exec(in, ctx, {{method.id}},
       [this](
           {{method.input_type}}&& t, rpc::streaming_context& ctx) -> ss::future<{{method.output_type}}> {
           return {{method.name}}(std::move(t), ctx);
@@ -160,7 +162,8 @@ private:
     rpc::transport& _transport;
 };
 
-class {{service_name}}_service::failure_probes final : public finjector::probe {
+template<typename Encoder>
+class {{service_name}}_service_base<Encoder>::failure_probes final : public finjector::probe {
 public:
     using type = uint32_t;
 
@@ -214,6 +217,8 @@ private:
 
     fast_prng _prng;
 };
+
+using {{service_name}}_service = {{service_name}}_service_base<rpc::default_message_encoder>;
 
 } // namespace
 """
