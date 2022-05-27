@@ -109,6 +109,54 @@ struct has_rpc_adl_exempt<T, std::void_t<typename T::rpc_adl_exempt>>
 template<typename T>
 inline constexpr auto const is_rpc_adl_exempt = has_rpc_adl_exempt<T>::value;
 
+/*
+ * Encode a client request for the given transport version.
+ *
+ * Unless the message type T is explicitly exempt from adl<> support, type T
+ * must be supported by both adl<> and serde encoding frameworks. When the type
+ * is not exempt from adl<> support, serde is used when the version >= v2.
+ *
+ * The returned version indicates what level of encoding is used. This is always
+ * equal to the input version, except for serde-only messags which return v2.
+ * Callers are expected to further validate the runtime implications of this.
+ */
+template<typename T>
+ss::future<transport_version>
+encode_with_version(iobuf& out, T msg, transport_version version) {
+    if constexpr (serde::supported<T>) {
+        if constexpr (is_rpc_adl_exempt<T>) {
+            return ss::do_with(std::move(msg), [&out](const T& msg) {
+                return serde::write_async(out, msg).then(
+                  [] { return transport_version::v2; });
+            });
+        } else {
+            if (version < transport_version::v2) {
+                return reflection::async_adl<T>{}
+                  .to(out, std::move(msg))
+                  .then([version] { return version; });
+            } else {
+                return ss::do_with(
+                  std::move(msg), [&out, version](const T& msg) {
+                      return serde::write_async(out, msg).then(
+                        [version] { return version; });
+                  });
+            }
+        }
+    } else {
+        /*
+         * TODO: remove this else block as soon as all types are supported by
+         * serde. this exception is present so that work on the protocol can
+         * proceed in parallel with conversion of message types to use serde.
+         *
+         * Tracked here as part of v22.2.x release requirements:
+         * https://github.com/redpanda-data/redpanda/issues/4934
+         */
+        return reflection::async_adl<T>{}.to(out, std::move(msg)).then([] {
+            return transport_version::v0;
+        });
+    }
+}
+
 template<typename T>
 ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
     return read_iobuf_exactly(in, h.payload_size).then([h](iobuf io) {
