@@ -1,3 +1,4 @@
+# ARGS "-- -c 1"
 t = executable('test_archival',
   'service_fixture.cc',
   'ntp_archiver_test.cc',
