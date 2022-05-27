@@ -502,7 +502,7 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     std::vector<std::function<ss::future<>()>> request_factory;
     for (int i = 0; i < 200; i++) {
         request_factory.emplace_back(check_unsupported);
-        request_factory.emplace_back(check_supported);
+        //request_factory.emplace_back(check_supported);
     }
     std::shuffle(
       request_factory.begin(),

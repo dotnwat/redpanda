@@ -236,6 +236,12 @@ transport::send_typed_versioned(
           if (
             rep_ver != req_ver
             && (req_ver != transport_version::v1 || rep_ver != transport_version::v0)) {
+              vlog(
+                rpclog.debug,
+                "Protocol violation: request version {} incompatible with "
+                "reply version {}",
+                req_ver,
+                rep_ver);
               return ss::make_ready_future<ret_t>(errc::service_error);
           }
 
