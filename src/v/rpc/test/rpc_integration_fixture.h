@@ -89,6 +89,12 @@ struct echo_impl final : echo::echo_service {
         }
     }
 
+    ss::future<echo::echo_resp_adl_serde>
+    echo_adl_serde(echo::echo_req_adl_serde&& req, rpc::streaming_context&) final {
+        return ss::make_ready_future<echo::echo_resp_adl_serde>(
+          echo::echo_resp_adl_serde{.str = req.str});
+    }
+
     uint64_t cnt = 0;
 };
 

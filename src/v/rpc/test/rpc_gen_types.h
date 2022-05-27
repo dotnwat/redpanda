@@ -11,7 +11,10 @@
 
 #pragma once
 
+#include "reflection/adl.h"
 #include "seastarx.h"
+#include "serde/envelope.h"
+#include "serde/serde.h"
 
 #include <seastar/core/sstring.hh>
 
@@ -58,4 +61,37 @@ struct throw_resp {
     ss::sstring reply;
 };
 
+struct echo_req_adl_serde : serde::envelope<echo_req_adl_serde, serde::version<1>> {
+    ss::sstring str;
+};
+
+struct echo_resp_adl_serde : serde::envelope<echo_resp_adl_serde, serde::version<1>> {
+    ss::sstring str;
+};
+
 } // namespace echo
+
+namespace reflection {
+template<>
+struct adl<echo::echo_req_adl_serde> {
+    void to(iobuf& out, echo::echo_req_adl_serde&& r) {
+        reflection::serialize(out, r.str);
+    }
+    echo::echo_req_adl_serde from(iobuf_parser& in) {
+        return echo::echo_req_adl_serde{
+          .str = adl<ss::sstring>{}.from(in),
+        };
+    }
+};
+template<>
+struct adl<echo::echo_resp_adl_serde> {
+    void to(iobuf& out, echo::echo_resp_adl_serde&& r) {
+        reflection::serialize(out, r.str);
+    }
+    echo::echo_resp_adl_serde from(iobuf_parser& in) {
+        return echo::echo_resp_adl_serde{
+          .str = adl<ss::sstring>{}.from(in),
+        };
+    }
+};
+} // namespace reflection
