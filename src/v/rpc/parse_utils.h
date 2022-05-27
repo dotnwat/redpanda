@@ -199,7 +199,29 @@ decode_with_version(iobuf_parser& parser, transport_version version) {
     }
 }
 
-template<typename T>
+/*
+ * type used to factor out version-specific functionality from request handling
+ * in services. this is used so that tests can specialize behavior.
+ *
+ * this is the default mixin that is used by the code generator.
+ */
+struct default_message_encoder {
+    template<typename T>
+    static ss::future<T>
+    decode(iobuf_parser& parser, transport_version version) {
+        return decode_with_version<T>(parser, version);
+    }
+
+    static transport_version version(const header& h) { return h.version; }
+
+    template<typename T>
+    static ss::future<transport_version>
+    encode(iobuf& out, T msg, transport_version version) {
+        return encode_with_version(out, std::move(msg), version);
+    }
+};
+
+template<typename T, typename Encoder>
 ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
     return read_iobuf_exactly(in, h.payload_size).then([h](iobuf io) {
         validate_payload_and_header(io, h);
@@ -221,7 +243,7 @@ ss::future<T> parse_type(ss::input_stream<char>& in, const header& h) {
 
         auto p = std::make_unique<iobuf_parser>(std::move(io));
         auto raw = p.get();
-        return decode_with_version<T>(*raw, h.version)
+        return Encoder::template decode<T>(*raw, h.version)
           .finally([p = std::move(p)] {});
     });
 }
