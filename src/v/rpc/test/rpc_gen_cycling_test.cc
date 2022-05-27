@@ -490,7 +490,8 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
           rpc::client_opts(rpc::no_timeout));
         return f.then([&](auto ret) {
             BOOST_REQUIRE(ret.has_value());
-            BOOST_REQUIRE_EQUAL(ret.value().data.str, "testing...");
+            BOOST_REQUIRE_EQUAL(
+              ret.value().data.str, "testing..._to_as_from_as_to_as_from_as");
         });
     };
 
