@@ -66,3 +66,4 @@ add_project_arguments(
   language: 'cpp')
 
 subdir('test_utils')
+subdir('ssx')
