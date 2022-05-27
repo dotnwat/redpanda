@@ -47,8 +47,8 @@ storage_test_utils = declare_dependency(
   dependencies: [storage],
   link_with: libstorage_test_utils)
 
+# ARGS "-- -c 1"
 t = executable('test_storage',
-  # run as single core
   'tests/log_segment_appender_test.cc',
   'tests/segment_size_jitter_test.cc',
   'tests/log_segment_reader_test.cc',
@@ -66,23 +66,34 @@ t = executable('test_storage',
   'tests/timequery_test.cc',
   'tests/kvstore_test.cc',
   'tests/backlog_controller_test.cc',
-  # single-core but separate binary
-  'tests/log_replayer_test.cc',
-  # multi-core
-  'tests/batch_cache_test.cc',
-  'tests/record_batch_builder_test.cc',
-  'tests/snapshot_test.cc',
   dependencies: [storage, seastar_testing_main, model_test_utils,
     storage_test_utils])
-test('storage', t)
+test('storage basic', t)
+
+# Putting this first, last, or in the middle of the other single thread tests
+# results in:
+# runtime error: member access within null pointer of type
+# 'shared_ptr_no_esft<storage::segment>'
+# ARGS "-- -c 1"
+t = executable('test_log_replayer_single_thread',
+  'tests/log_replayer_test.cc',
+  dependencies: [storage, seastar_testing_main, model_test_utils,
+    storage_test_utils])
+test('storage log replayer', t)
 
 t = executable('test_segment_index_state',
   'tests/index_state_test.cc',
   dependencies: [storage, boost])
 test('segment index state', t)
 
-# this test is only run on release builds because non-release builds use the
-# default allocator which doesn't support reclaim
+t = executable('test_storage_threaded',
+  'tests/batch_cache_test.cc',
+  'tests/record_batch_builder_test.cc',
+  'tests/snapshot_test.cc',
+  dependencies: [storage, seastar_testing_main, model_test_utils,
+    storage_test_utils])
+test('storage threaded', t)
+
 #rp_test(
 #  UNIT_TEST
 #  BINARY_NAME batch_cache_reclaim_test
@@ -95,14 +106,18 @@ test('segment index state', t)
 t = executable('test_batch_reclaim',
   'tests/batch_cache_reclaim_test.cc',
   dependencies: [storage, boost, seastar_testing_main])
-test('batch cache reclaim', t)
+# this test is only run on release builds because non-release builds use the
+# default allocator which doesn't support reclaim
+# test('batch cache reclaim', t)
 
 t = executable('bench_compaction_index',
   'tests/compaction_idx_bench.cc',
   dependencies: [storage, seastar_perf_testing])
 benchmark('compaction index', t)
 
+# ARGS "-- -c 1"
 t = executable('test_storage_opfuzz',
   'opfuzz/opfuzz.cc',
   'opfuzz/opfuzz_test.cc',
   dependencies: [storage, seastar_testing_main, model_test_utils])
+test('storage opfuzz', t)
