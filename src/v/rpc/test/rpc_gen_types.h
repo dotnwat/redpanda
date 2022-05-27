@@ -11,7 +11,10 @@
 
 #pragma once
 
+#include "reflection/adl.h"
 #include "seastarx.h"
+#include "serde/envelope.h"
+#include "serde/serde.h"
 
 #include <seastar/core/sstring.hh>
 
@@ -33,11 +36,11 @@ struct mount_tamalpais {
 } // namespace cycling
 
 namespace echo {
-struct echo_req {
+struct echo_req : serde::envelope<echo_req, serde::version<1>> {
     ss::sstring str;
 };
 
-struct echo_resp {
+struct echo_resp : serde::envelope<echo_resp, serde::version<1>> {
     ss::sstring str;
 };
 
@@ -59,3 +62,28 @@ struct throw_resp {
 };
 
 } // namespace echo
+
+namespace reflection {
+template<>
+struct adl<echo::echo_req> {
+    void to(iobuf& out, echo::echo_req&& r) {
+        reflection::serialize(out, r.str);
+    }
+    echo::echo_req from(iobuf_parser& in) {
+        return echo::echo_req{
+          .str = adl<ss::sstring>{}.from(in),
+        };
+    }
+};
+template<>
+struct adl<echo::echo_resp> {
+    void to(iobuf& out, echo::echo_resp&& r) {
+        reflection::serialize(out, r.str);
+    }
+    echo::echo_resp from(iobuf_parser& in) {
+        return echo::echo_resp{
+          .str = adl<ss::sstring>{}.from(in),
+        };
+    }
+};
+} // namespace reflection
