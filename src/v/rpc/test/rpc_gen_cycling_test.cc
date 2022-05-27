@@ -320,6 +320,7 @@ FIXTURE_TEST(missing_method_test, rpc_integration_fixture) {
 
     rpc::transport t(client_config());
     t.connect(model::no_timeout).get();
+    auto stop = ss::defer([&t] { t.stop().get(); });
     auto client = echo::echo_client_protocol(t);
 
     const auto check_missing = [&] {
@@ -365,8 +366,6 @@ FIXTURE_TEST(missing_method_test, rpc_integration_fixture) {
     }
 
     ss::when_all_succeed(requests.begin(), requests.end()).get();
-
-    t.stop().get();
 }
 
 FIXTURE_TEST(corrupted_header_at_client_test, rpc_integration_fixture) {
@@ -462,6 +461,7 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
 
     rpc::transport t(client_config());
     t.connect(model::no_timeout).get();
+    auto stop = ss::defer([&t] { t.stop().get(); });
     auto client = echo::echo_client_protocol(t);
 
     const auto check_unsupported = [&] {
@@ -516,6 +516,4 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     }
 
     ss::when_all_succeed(requests.begin(), requests.end()).get();
-
-    t.stop().get();
 }
