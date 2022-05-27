@@ -1,3 +1,4 @@
+# ARGS "-- -c 1"
 t = executable('test_cloud_storage',
   'directory_walker_test.cc',
   'partition_manifest_test.cc',
