@@ -14,11 +14,13 @@ net = declare_dependency(
   dependencies: [seastar, common, config, hashing, utils],
   link_with: libnet)
 
+# ARGS "-- -c 1"
 t = executable('test_net_conn_rate',
   'tests/connection_rate_test.cc',
   dependencies: [net, seastar_testing_main])
 test('test conn rate', t)
 
+# ARGS "-- -c 8"
 t = executable('test_conn_quota',
   'tests/conn_quota_test.cc',
   dependencies: [net, seastar_testing_main])
