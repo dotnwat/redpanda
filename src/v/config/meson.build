@@ -10,7 +10,7 @@ config = declare_dependency(
   dependencies: [common, seastar, json, absl, model, security],
   link_with: libconfig)
 
-t = executable('test_config',
+t = executable('test_configuration',
   'tests/bounded_property_test.cc',
   'tests/enum_property_test.cc',
   'tests/retention_property_test.cc',
@@ -20,5 +20,4 @@ t = executable('test_config',
   'tests/advertised_kafka_api_test.cc',
   'tests/seed_server_property_test.cc',
   dependencies: [config, seastar_testing_main])
-
 test('config testing', t)
