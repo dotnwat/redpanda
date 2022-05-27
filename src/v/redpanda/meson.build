@@ -17,3 +17,11 @@ redpanda_app = declare_dependency(
 executable('redpanda',
   'main.cc',
   dependencies: [common, redpanda_app])
+
+#if(CMAKE_BUILD_TYPE MATCHES Release)
+#  include(CheckIPOSupported)
+#  check_ipo_supported(RESULT ltosupported OUTPUT error)
+#  if(ltosupported)
+#    set_property(TARGET redpanda PROPERTY INTERPROCEDURAL_OPTIMIZATION ON)
+#  endif()
+#endif()
