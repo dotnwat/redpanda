@@ -55,7 +55,7 @@ SEASTAR_THREAD_TEST_CASE(async_transform_move_test) {
                                           input_copy.begin(),
                                           input_copy.end(),
                                           [](ss::sstring s) {
-                                              return std::move(s);
+                                              return s;
                                           })
                                           .get0();
     BOOST_TEST(
