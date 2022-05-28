@@ -544,6 +544,17 @@ FIXTURE_TEST(nc_ns_client_upgraded, rpc_integration_fixture) {
 
     BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
 
+    {
+        const auto payload = random_generators::gen_alphanum_string(100);
+        auto f = client.echo_adl_serde(
+          echo::echo_req_adl_serde{.str = payload},
+          rpc::client_opts(rpc::no_timeout));
+        auto ret = f.get();
+        BOOST_REQUIRE(ret.has_value());
+        BOOST_REQUIRE_EQUAL(
+          ret.value().data.str, payload + "_to_aas_from_aas_to_aas_from_aas");
+    }
+
     for (int i = 0; i < 10; i++) {
         const auto payload = random_generators::gen_alphanum_string(100);
         auto f = client.echo_adl_serde(
@@ -551,7 +562,8 @@ FIXTURE_TEST(nc_ns_client_upgraded, rpc_integration_fixture) {
           rpc::client_opts(rpc::no_timeout));
         auto ret = f.get();
         BOOST_REQUIRE(ret.has_value());
-        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+        BOOST_REQUIRE_EQUAL(
+          ret.value().data.str, payload + "_to_sas_from_sas_to_sas_from_sas");
 
         // upgraded and remains at v2
         BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v2);
@@ -585,11 +597,13 @@ FIXTURE_TEST(nc_ns_adl_only_no_client_upgrade, rpc_integration_fixture) {
 
     for (int i = 0; i < 10; i++) {
         const auto payload = random_generators::gen_alphanum_string(100);
-        auto f = client.echo(
-          echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
+        auto f = client.echo_adl_only(
+          echo::echo_req_adl_only{.str = payload},
+          rpc::client_opts(rpc::no_timeout));
         auto ret = f.get();
         BOOST_REQUIRE(ret.has_value());
-        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+        BOOST_REQUIRE_EQUAL(
+          ret.value().data.str, payload + "_to_aao_from_aao_to_aao_from_aao");
 
         // no upgrade
         BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
@@ -622,38 +636,8 @@ FIXTURE_TEST(nc_os_no_client_upgrade, rpc_integration_fixture) {
           rpc::client_opts(rpc::no_timeout));
         auto ret = f.get();
         BOOST_REQUIRE(ret.has_value());
-        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
-
-        // client stays at v1 without upgrade to v2
-        BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
-    }
-}
-
-/*
- * old client, new server
- */
-FIXTURE_TEST(oc_ns_no_client_upgrade, rpc_integration_fixture) {
-    return;
-    configure_server();
-    register_services();
-    start_server();
-
-    rpc::transport t(client_config());
-    t.set_version(rpc::transport_version::v0);
-    t.connect(model::no_timeout).get();
-    auto stop = ss::defer([&t] { t.stop().get(); });
-    auto client = echo::echo_client_protocol(t);
-
-    // client initially at v1
-    BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
-
-    for (int i = 0; i < 10; i++) {
-        const auto payload = random_generators::gen_alphanum_string(100);
-        auto f = client.echo(
-          echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
-        auto ret = f.get();
-        BOOST_REQUIRE(ret.has_value());
-        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+        BOOST_REQUIRE_EQUAL(
+          ret.value().data.str, payload + "_to_aas_from_aas_to_aas_from_aas");
 
         // client stays at v1 without upgrade to v2
         BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
