@@ -533,7 +533,7 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
  * sends adl+serde message at (serde,v2)
  * sends adl+serde message at (serde,v2)
  */
-FIXTURE_TEST(echo_rt_v2_normal, rpc_integration_fixture) {
+FIXTURE_TEST(nc_ns_client_upgraded, rpc_integration_fixture) {
     configure_server();
     register_services();
     start_server();
@@ -545,20 +545,77 @@ FIXTURE_TEST(echo_rt_v2_normal, rpc_integration_fixture) {
 
     BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
 
-    const auto payload = random_generators::gen_alphanum_string(100);
-    auto f = client.echo(
-      echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
-    auto ret = f.get();
-    BOOST_REQUIRE(ret.has_value());
-    BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+    for (int i = 0; i < 10; i++) {
+        const auto payload = random_generators::gen_alphanum_string(100);
+        auto f = client.echo(
+          echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
+        auto ret = f.get();
+        BOOST_REQUIRE(ret.has_value());
+        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
 
-    BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v2);
+        // upgraded and remains at v2
+        BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v2);
+    }
+}
 
-    f = client.echo(
-      echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
-    ret = f.get();
-    BOOST_REQUIRE(ret.has_value());
-    BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+/*
+ * new client, old server
+ * client has initial transport version v1
+ * [sends adl+serde message at (adl,v1)] * N
+ * client transport verison is not upgraded
+ */
+FIXTURE_TEST(nc_os_no_client_upgrade, rpc_integration_fixture) {
+    configure_server();
+    register_services_v0();
+    start_server();
 
-    BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v2);
+    rpc::transport t(client_config());
+    t.connect(model::no_timeout).get();
+    auto stop = ss::defer([&t] { t.stop().get(); });
+    auto client = echo::echo_client_protocol(t);
+
+    // client initially at v1
+    BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
+
+    for (int i = 0; i < 10; i++) {
+        const auto payload = random_generators::gen_alphanum_string(100);
+        auto f = client.echo(
+          echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
+        auto ret = f.get();
+        BOOST_REQUIRE(ret.has_value());
+        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+
+        // client stays at v1 without upgrade to v2
+        BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
+    }
+}
+
+/*
+ * old client, new server
+ */
+FIXTURE_TEST(oc_ns_no_client_upgrade, rpc_integration_fixture) {
+    configure_server();
+    register_services();
+    start_server();
+
+    rpc::transport t(client_config());
+    t.set_version(rpc::transport_version::v0);
+    t.connect(model::no_timeout).get();
+    auto stop = ss::defer([&t] { t.stop().get(); });
+    auto client = echo::echo_client_protocol(t);
+
+    // client initially at v1
+    BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
+
+    for (int i = 0; i < 10; i++) {
+        const auto payload = random_generators::gen_alphanum_string(100);
+        auto f = client.echo(
+          echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
+        auto ret = f.get();
+        BOOST_REQUIRE(ret.has_value());
+        BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+
+        // client stays at v1 without upgrade to v2
+        BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
+    }
 }
