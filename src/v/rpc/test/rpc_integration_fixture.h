@@ -13,6 +13,7 @@
 #include "config/tls_config.h"
 #include "net/dns.h"
 #include "net/server.h"
+#include "rpc/parse_utils.h"
 #include "rpc/service.h"
 #include "rpc/simple_protocol.h"
 #include "rpc/test/cycling_service.h"
@@ -29,9 +30,10 @@
 #include <seastar/net/tls.hh>
 
 // Test services
-struct movistar final : cycling::team_movistar_service {
+template<typename Encoder>
+struct movistar final : cycling::team_movistar_service_base<Encoder> {
     movistar(ss::scheduling_group& sc, ss::smp_service_group& ssg)
-      : cycling::team_movistar_service(sc, ssg) {}
+      : cycling::team_movistar_service_base<Encoder>(sc, ssg) {}
     ss::future<cycling::mount_tamalpais>
     ibis_hakka(cycling::san_francisco&&, rpc::streaming_context&) final {
         return ss::make_ready_future<cycling::mount_tamalpais>(
@@ -44,9 +46,10 @@ struct movistar final : cycling::team_movistar_service {
     }
 };
 
-struct echo_impl final : echo::echo_service {
+template<typename Encoder>
+struct echo_impl final : echo::echo_service_base<Encoder> {
     echo_impl(ss::scheduling_group& sc, ss::smp_service_group& ssg)
-      : echo::echo_service(sc, ssg) {}
+      : echo::echo_service_base<Encoder>(sc, ssg) {}
     ss::future<echo::echo_resp>
     echo(echo::echo_req&& req, rpc::streaming_context&) final {
         return ss::make_ready_future<echo::echo_resp>(
@@ -266,8 +269,13 @@ public:
       : rpc_simple_integration_fixture(redpanda_rpc_port) {}
 
     void register_services() {
-        register_service<movistar>();
-        register_service<echo_impl>();
+        register_service<movistar<rpc::default_message_encoder>>();
+        register_service<echo_impl<rpc::default_message_encoder>>();
+    }
+
+    void register_services_v0() {
+        register_service<movistar<rpc::v0_message_encoder>>();
+        register_service<echo_impl<rpc::v0_message_encoder>>();
     }
 
     static constexpr uint16_t redpanda_rpc_port = 32147;
