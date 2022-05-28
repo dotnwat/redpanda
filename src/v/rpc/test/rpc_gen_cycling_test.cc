@@ -518,3 +518,20 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
 
     ss::when_all_succeed(requests.begin(), requests.end()).get();
 }
+
+FIXTURE_TEST(echo_round_trip_v0, rpc_integration_fixture) {
+    configure_server();
+    register_services_v0();
+    start_server();
+
+    auto client = rpc::client<echo::echo_client_protocol>(client_config());
+    client.connect(model::no_timeout).get();
+    auto cleanup = ss::defer([&client] { client.stop().get(); });
+
+    const auto payload = random_generators::gen_alphanum_string(100);
+    auto f = client.echo(
+      echo::echo_req{.str = payload}, rpc::client_opts(rpc::no_timeout));
+    auto ret = f.get();
+    BOOST_REQUIRE(ret.has_value());
+    BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
+}
