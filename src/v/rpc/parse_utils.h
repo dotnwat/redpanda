@@ -235,7 +235,7 @@ struct v0_message_encoder {
         return reflection::async_adl<T>{}.from(parser);
     }
 
-    static transport_version request_version(const header&) {
+    static transport_version version(const header&) {
         return transport_version::v0;
     }
 
