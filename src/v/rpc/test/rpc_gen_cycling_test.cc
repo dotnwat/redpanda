@@ -10,6 +10,7 @@
 #include "model/timeout_clock.h"
 #include "random/generators.h"
 #include "rpc/exceptions.h"
+#include "rpc/test/echo_service.h"
 #include "rpc/test/rpc_gen_types.h"
 #include "rpc/test/rpc_integration_fixture.h"
 #include "rpc/types.h"
@@ -465,9 +466,11 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     auto client = echo::echo_client_protocol(t);
 
     const auto check_unsupported = [&] {
-        auto f = t.send_typed_versioned<echo::echo_req, echo::echo_resp>(
-          echo::echo_req{.str = "testing..."},
-          960598415,
+        auto f = t.send_typed_versioned<
+          echo::echo_req_adl_serde,
+          echo::echo_resp_adl_serde>(
+          echo::echo_req_adl_serde{.str = "testing..."},
+          3924383674,
           rpc::client_opts(rpc::no_timeout),
           rpc::transport_version::unsupported);
         return f.then([&](auto ret) {
@@ -485,8 +488,8 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     };
 
     const auto check_supported = [&] {
-        auto f = client.echo(
-          echo::echo_req{.str = "testing..."},
+        auto f = client.echo_adl_serde(
+          echo::echo_req_adl_serde{.str = "testing..."},
           rpc::client_opts(rpc::no_timeout));
         return f.then([&](auto ret) {
             BOOST_REQUIRE(ret.has_value());
