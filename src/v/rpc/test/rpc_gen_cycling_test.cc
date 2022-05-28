@@ -530,8 +530,7 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
  * client has initial transport version v1
  * sends adl+serde message at (adl,v1)
  * client has transport upgraded to v2
- * sends adl+serde message at (serde,v2)
- * sends adl+serde message at (serde,v2)
+ * client transport remains at v2
  */
 FIXTURE_TEST(nc_ns_client_upgraded, rpc_integration_fixture) {
     configure_server();
@@ -561,11 +560,16 @@ FIXTURE_TEST(nc_ns_client_upgraded, rpc_integration_fixture) {
 
 /*
  * new client, new server
- * client has initial transport version v1
- * sends adl+serde message at (adl,v1)
- * client has transport upgraded to v2
- * sends adl+serde message at (serde,v2)
- * sends adl+serde message at (serde,v2)
+ * client sends adl-only message (adl,v1)
+ * client remains pinned at v1
+ *
+ * client will not be upgraded. adl-only messages are always set at v0 and the
+ * server will always respond with v0 messages. upgrade doesn't happen because
+ * client only upgrades in response to a v1 or v2 message.
+ *
+ * this case is for the interim development period where we are allowing types
+ * with only adl support until all types have serde support added.
+ *
  */
 FIXTURE_TEST(nc_ns_adl_only_no_client_upgrade, rpc_integration_fixture) {
     configure_server();
@@ -587,9 +591,7 @@ FIXTURE_TEST(nc_ns_adl_only_no_client_upgrade, rpc_integration_fixture) {
         BOOST_REQUIRE(ret.has_value());
         BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
 
-        // client not upgraded. an adl-only message is always sent at v0. a
-        // server will respond to a v0 message with a v0 reply, and a client
-        // will only upgrade the version in response to a v1 or v2 reply.
+        // no upgrade
         BOOST_REQUIRE_EQUAL(t.version(), rpc::transport_version::v1);
     }
 }
@@ -616,7 +618,8 @@ FIXTURE_TEST(nc_os_no_client_upgrade, rpc_integration_fixture) {
     for (int i = 0; i < 10; i++) {
         const auto payload = random_generators::gen_alphanum_string(100);
         auto f = client.echo_adl_serde(
-          echo::echo_req_adl_serde{.str = payload}, rpc::client_opts(rpc::no_timeout));
+          echo::echo_req_adl_serde{.str = payload},
+          rpc::client_opts(rpc::no_timeout));
         auto ret = f.get();
         BOOST_REQUIRE(ret.has_value());
         BOOST_REQUIRE_EQUAL(ret.value().data.str, payload);
