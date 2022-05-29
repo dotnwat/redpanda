@@ -562,9 +562,11 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     auto client = echo::echo_client_protocol(t);
 
     const auto check_unsupported = [&] {
-        auto f = t.send_typed_versioned<echo::echo_req, echo::echo_resp>(
-          echo::echo_req{.str = "testing..."},
-          960598415,
+        auto f = t.send_typed_versioned<
+          echo::echo_req_adl_serde,
+          echo::echo_resp_adl_serde>(
+          echo::echo_req_adl_serde{.str = "testing..."},
+          3924383674,
           rpc::client_opts(rpc::no_timeout),
           rpc::transport_version::unsupported);
         return f.then([&](auto ret) {
@@ -582,12 +584,17 @@ FIXTURE_TEST(version_not_supported, rpc_integration_fixture) {
     };
 
     const auto check_supported = [&] {
-        auto f = client.echo(
-          echo::echo_req{.str = "testing..."},
+        auto f = client.echo_adl_serde(
+          echo::echo_req_adl_serde{.str = "testing..."},
           rpc::client_opts(rpc::no_timeout));
         return f.then([&](auto ret) {
             BOOST_REQUIRE(ret.has_value());
-            BOOST_REQUIRE_EQUAL(ret.value().data.str, "testing...");
+            // could be either one. depends on timing of transport upgrade
+            BOOST_REQUIRE(
+              ret.value().data.str
+                == "testing..._to_aas_from_aas_to_aas_from_aas"
+              || ret.value().data.str
+                   == "testing..._to_sas_from_sas_to_sas_from_sas");
         });
     };
 
