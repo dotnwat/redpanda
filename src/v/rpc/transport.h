@@ -37,6 +37,8 @@
 #include <optional>
 #include <utility>
 
+class rpc_integration_fixture_oc_ns_no_client_upgrade;
+
 namespace rpc {
 struct client_context_impl;
 
@@ -110,6 +112,9 @@ private:
      * upgraded if it is discovered that a server supports a newer version.
      */
     transport_version _version{transport_version::v1};
+
+    friend class ::rpc_integration_fixture_oc_ns_no_client_upgrade;
+    void set_version(transport_version v) { _version = v; }
 
     friend std::ostream& operator<<(std::ostream&, const transport&);
 };
