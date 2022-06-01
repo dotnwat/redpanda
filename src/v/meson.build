@@ -53,3 +53,4 @@ add_project_arguments(
 subdir('test_utils')
 subdir('ssx')
 subdir('bytes')
+subdir('hashing')
