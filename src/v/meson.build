@@ -85,6 +85,7 @@ add_project_arguments(
 subdir('test_utils')
 subdir('bytes')
 subdir('random')
+subdir('hashing')
 
 # some tests have circular or forward dependencies if added along with their
 # normal containing directory. a common example are tests that depend on the
