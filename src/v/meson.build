@@ -101,3 +101,16 @@ subdir('kafka') # server
 subdir('pandaproxy')
 subdir('redpanda')
 subdir('rp_util')
+
+# some tests have circular or forward dependencies if added along with their
+# normal containing directory. a common example are tests that depend on the
+# application fixture that isn't added until the end with subdir('redpanda').
+subdir('cluster/tests')
+subdir('cloud_storage/tests')
+subdir('archival/tests')
+subdir('kafka/client/test')
+subdir('kafka/server/tests')
+subdir('coproc/tests')
+subdir('pandaproxy/rest/test')
+subdir('pandaproxy/schema_registry/test')
+subdir('security/tests')
