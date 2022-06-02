@@ -91,3 +91,5 @@ add_project_arguments(
 add_test_setup('redpanda',
   exe_wrapper: [test_runner, '--meson'],
   is_default: true)
+
+subdir('test_utils')
