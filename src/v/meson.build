@@ -64,3 +64,5 @@ add_project_arguments(
   '-Wno-unused-function',
   '-Wno-unused-variable',
   language: 'cpp')
+
+subdir('test_utils')
