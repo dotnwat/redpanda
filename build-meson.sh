@@ -2,6 +2,12 @@
 set -e
 set -x
 
+# pip install --user jsonschema meson
+#
+# dnf install -y boost-devel cryptopp-devel lz4-devel gnutls-devel c-ares-devel
+# yaml-cpp-devel lksctp-tools-devel valgrind-devel xxhash-devel abseil-cpp-devel
+# libzstd-devel snappy-devel protobuf-devel re2-devel libcxx-devel
+
 CCACHE_DIR=$HOME/redpanda-meson-ccache
 CC="ccache clang"
 CXX="ccache clang++"
