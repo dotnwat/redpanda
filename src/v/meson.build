@@ -121,3 +121,4 @@ subdir('kafka') # server
 subdir('pandaproxy')
 subdir('redpanda')
 subdir('compat')
+subdir('rp_util')
