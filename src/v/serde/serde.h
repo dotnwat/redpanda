@@ -152,6 +152,7 @@ inline constexpr auto const is_serde_compatible_v
     || reflection::is_ss_bool_v<T>
     || reflection::is_std_optional_v<T>
     || std::is_same_v<T, std::chrono::milliseconds>
+    || std::is_same_v<T, std::chrono::nanoseconds>
     || std::is_same_v<T, iobuf>
     || std::is_same_v<T, ss::sstring>
     || std::is_same_v<T, bytes>
@@ -260,6 +261,8 @@ void write(iobuf& out, T t) {
         return write(out, static_cast<typename Type::type>(t));
     } else if constexpr (reflection::is_ss_bool_v<Type>) {
         write(out, static_cast<int8_t>(bool(t)));
+    } else if constexpr (std::is_same_v<Type, std::chrono::nanoseconds>) {
+        write<int64_t>(out, t.count());
     } else if constexpr (std::is_same_v<Type, std::chrono::milliseconds>) {
         write<int64_t>(out, t.count());
     } else if constexpr (std::is_same_v<Type, iobuf>) {
@@ -495,6 +498,9 @@ void read_nested(iobuf_parser& in, T& t, std::size_t const bytes_left_limit) {
         t = Type{read_nested<typename Type::type>(in, bytes_left_limit)};
     } else if constexpr (reflection::is_ss_bool_v<Type>) {
         t = Type{read_nested<int8_t>(in, bytes_left_limit) != 0};
+    } else if constexpr (std::is_same_v<Type, std::chrono::nanoseconds>) {
+        t = std::chrono::nanoseconds{
+          read_nested<int64_t>(in, bytes_left_limit)};
     } else if constexpr (std::is_same_v<Type, std::chrono::milliseconds>) {
         t = std::chrono::milliseconds{
           read_nested<int64_t>(in, bytes_left_limit)};
