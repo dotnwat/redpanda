@@ -544,10 +544,13 @@ void adl_roundtrip_test(const T original) {
 }
 
 template<typename T>
-void roundtrip_test(const T original) {
+void do_roundtrip_test(const T original, int line) {
+    std::cout << "TEST: " << line << std::endl;
     serde_roundtrip_test(original);
     adl_roundtrip_test(original);
 }
+
+#define roundtrip_test(P) do_roundtrip_test((P), __LINE__)
 
 template<typename T>
 cluster::property_update<T> random_property_update(T value) {
@@ -866,6 +869,21 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
         tests::random_named_int<model::term_id>(),
         tests::random_named_int<model::node_id>()),
     }));
+
+    {
+        cluster::allocate_id_request xx(model::timeout_clock::duration(20034234));
+        std::cout << "X: " << xx.timeout.count() << std::endl;
+        auto serde_in = xx;
+        std::cout << "A: " << serde_in.timeout.count() << std::endl;
+        auto serde_in_casted
+          = std::chrono::duration_cast<std::chrono::milliseconds>(
+            serde_in.timeout);
+        std::cout << "a: " << serde_in_casted.count() << std::endl;
+        auto serde_out = serde::to_iobuf(std::move(serde_in));
+        auto from_serde = serde::from_iobuf<cluster::allocate_id_request>(
+          std::move(serde_out));
+        std::cout << "B: " << from_serde.timeout.count() << std::endl;
+    }
 
     roundtrip_test(
       cluster::allocate_id_request(model::timeout_clock::duration(234234)));

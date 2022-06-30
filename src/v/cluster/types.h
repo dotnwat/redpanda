@@ -64,13 +64,13 @@ struct allocate_id_request
     auto serde_read(iobuf_parser& in, const serde::header& h) {
         using serde::read_nested;
         timeout = std::chrono::duration_cast<model::timeout_clock::duration>(
-          read_nested<std::chrono::milliseconds>(in, h._bytes_left_limit));
+          read_nested<std::chrono::nanoseconds>(in, h._bytes_left_limit));
     }
 
     auto serde_write(iobuf& out) {
         using serde::write;
         write(
-          out, std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
+          out, std::chrono::duration_cast<std::chrono::nanoseconds>(timeout));
     }
 };
 
