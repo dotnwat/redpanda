@@ -117,11 +117,11 @@ SEASTAR_THREAD_TEST_CASE(partition_assignment_rt_test) {
 SEASTAR_THREAD_TEST_CASE(create_topics_request) {
     // clang-format off
     cluster::create_topics_request req{
-      .topics = {cluster::topic_configuration(
+      {cluster::topic_configuration(
                    model::ns("default"), model::topic("tp-1"), 12, 3),
                  cluster::topic_configuration(
                    model::ns("default"), model::topic("tp-2"), 6, 5)},
-      .timeout = std::chrono::seconds(1)};
+      std::chrono::seconds(1)};
     // clang-format on
     auto res = serialize_roundtrip_rpc(std::move(req));
     BOOST_CHECK(res.timeout == std::chrono::seconds(1));

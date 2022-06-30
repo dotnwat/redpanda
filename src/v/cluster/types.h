@@ -1401,9 +1401,36 @@ struct topic_result : serde::envelope<topic_result, serde::version<0>> {
     auto serde_fields() { return std::tie(tp_ns, ec); }
 };
 
-struct create_topics_request {
+struct create_topics_request
+  : serde::envelope<create_topics_request, serde::version<0>> {
     std::vector<topic_configuration> topics;
     model::timeout_clock::duration timeout;
+
+    create_topics_request() noexcept = default;
+    create_topics_request(
+      std::vector<topic_configuration> topics,
+      model::timeout_clock::duration timeout)
+      : topics(std::move(topics))
+      , timeout(timeout) {}
+
+    friend bool
+    operator==(const create_topics_request&, const create_topics_request&)
+      = default;
+
+    auto serde_read(iobuf_parser& in, const serde::header& h) {
+        using serde::read_nested;
+        topics = read_nested<std::vector<topic_configuration>>(
+          in, h._bytes_left_limit);
+        timeout = std::chrono::duration_cast<model::timeout_clock::duration>(
+          read_nested<std::chrono::milliseconds>(in, h._bytes_left_limit));
+    }
+
+    auto serde_write(iobuf& out) {
+        using serde::write;
+        write(out, topics);
+        write(
+          out, std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
+    }
 };
 
 struct create_topics_reply {
