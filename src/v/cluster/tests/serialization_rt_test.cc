@@ -956,6 +956,21 @@ model::partition_metadata random_partition_metadata() {
     return data;
 }
 
+raft::append_entries_reply random_append_entries_reply() {
+    return {
+      .target_node_id = raft::
+        vnode{tests::random_named_int<model::node_id>(), tests::random_named_int<model::revision_id>()},
+      .node_id = raft::
+        vnode{tests::random_named_int<model::node_id>(), tests::random_named_int<model::revision_id>()},
+      .group = tests::random_named_int<raft::group_id>(),
+      .term = tests::random_named_int<model::term_id>(),
+      .last_flushed_log_index = tests::random_named_int<model::offset>(),
+      .last_dirty_log_index = tests::random_named_int<model::offset>(),
+      .last_term_base_offset = tests::random_named_int<model::offset>(),
+      .result = raft::append_entries_reply::status::group_unavailable,
+    };
+}
+
 SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
     roundtrip_test(cluster::ntp_leader(
       model::random_ntp(),
@@ -2072,6 +2087,10 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
         }
         // adl encoding is async_adl based only
         serde_roundtrip_test(data);
+    }
+    {
+        auto data = random_append_entries_reply();
+        roundtrip_test(data);
     }
 }
 
