@@ -241,7 +241,8 @@ struct append_entries_request {
     }
 };
 
-struct append_entries_reply {
+struct append_entries_reply
+  : serde::envelope<append_entries_reply, serde::version<0>> {
     enum class status : uint8_t {
         success,
         failure,
@@ -268,6 +269,22 @@ struct append_entries_reply {
 
     friend std::ostream&
     operator<<(std::ostream& o, const append_entries_reply& r);
+
+    friend bool
+    operator==(const append_entries_reply&, const append_entries_reply&)
+      = default;
+
+    auto serde_fields() {
+        return std::tie(
+          target_node_id,
+          node_id,
+          group,
+          term,
+          last_flushed_log_index,
+          last_dirty_log_index,
+          last_term_base_offset,
+          result);
+    }
 };
 
 struct heartbeat_metadata
