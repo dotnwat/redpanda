@@ -2064,6 +2064,17 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
         };
         roundtrip_test(data);
     }
+    {
+        raft::protocol_metadata data{
+          .group = tests::random_named_int<raft::group_id>(),
+          .commit_index = tests::random_named_int<model::offset>(),
+          .term = tests::random_named_int<model::term_id>(),
+          .prev_log_index = tests::random_named_int<model::offset>(),
+          .prev_log_term = tests::random_named_int<model::term_id>(),
+          .last_visible_index = tests::random_named_int<model::offset>(),
+        };
+        roundtrip_test(data);
+    }
 }
 
 SEASTAR_THREAD_TEST_CASE(cluster_property_kv_exchangable_with_pair) {
