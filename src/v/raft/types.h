@@ -270,10 +270,16 @@ struct append_entries_reply {
     operator<<(std::ostream& o, const append_entries_reply& r);
 };
 
-struct heartbeat_metadata {
+struct heartbeat_metadata
+  : serde::envelope<heartbeat_metadata, serde::version<0>> {
     protocol_metadata meta;
     vnode node_id;
     vnode target_node_id;
+
+    friend bool operator==(const heartbeat_metadata&, const heartbeat_metadata&)
+      = default;
+
+    auto serde_fields() { return std::tie(meta, node_id, target_node_id); }
 };
 
 /// \brief this is our _biggest_ modification to how raft works

@@ -956,6 +956,24 @@ model::partition_metadata random_partition_metadata() {
     return data;
 }
 
+raft::heartbeat_metadata random_heartbeat_metadata() {
+    raft::heartbeat_metadata data{
+            .meta = {
+                .group = tests::random_named_int<raft::group_id>(),
+                .commit_index = tests::random_named_int<model::offset>(),
+                .term = tests::random_named_int<model::term_id>(),
+                .prev_log_index = tests::random_named_int<model::offset>(),
+                .prev_log_term = tests::random_named_int<model::term_id>(),
+                .last_visible_index = tests::random_named_int<model::offset>(),
+            },
+          .node_id = raft::
+            vnode{tests::random_named_int<model::node_id>(), tests::random_named_int<model::revision_id>()},
+          .target_node_id = raft::
+            vnode{tests::random_named_int<model::node_id>(), tests::random_named_int<model::revision_id>()},
+        };
+    return data;
+}
+
 SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
     roundtrip_test(cluster::ntp_leader(
       model::random_ntp(),
@@ -2074,6 +2092,11 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
           .last_visible_index = tests::random_named_int<model::offset>(),
         };
         roundtrip_test(data);
+    }
+    {
+        auto data = random_heartbeat_metadata();
+        // not adl encoded directly
+        serde_roundtrip_test(data);
     }
 }
 
