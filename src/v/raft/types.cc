@@ -157,6 +157,17 @@ std::ostream& operator<<(std::ostream& o, const install_snapshot_reply& r) {
     return o;
 }
 
+ss::future<> heartbeat_request::serde_async_write(iobuf& out) const {
+    auto r = *this;
+    return reflection::async_adl<heartbeat_request>{}.to(out, std::move(r));
+}
+
+ss::future<>
+heartbeat_request::serde_async_read(iobuf_parser& in, serde::header const&) {
+    return reflection::async_adl<heartbeat_request>{}.from(in).then(
+      [this](heartbeat_request r) { *this = std::move(r); });
+}
+
 } // namespace raft
 
 namespace reflection {
