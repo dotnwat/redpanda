@@ -2098,6 +2098,14 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
         // not adl encoded directly
         serde_roundtrip_test(data);
     }
+    {
+        raft::heartbeat_request data;
+        for (auto i = 0, mi = random_generators::get_int(10); i < mi; ++i) {
+            data.heartbeats.push_back(random_heartbeat_metadata());
+        }
+        // adl encoding is async_adl based only
+        serde_roundtrip_test(data);
+    }
 }
 
 SEASTAR_THREAD_TEST_CASE(cluster_property_kv_exchangable_with_pair) {

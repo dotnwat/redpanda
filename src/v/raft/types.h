@@ -288,10 +288,16 @@ struct heartbeat_metadata
 /// at a time, as well as the receiving side will trigger the
 /// individual raft responses one at a time - for example to start replaying the
 /// log at some offset
-struct heartbeat_request {
+struct heartbeat_request
+  : serde::envelope<heartbeat_request, serde::version<0>> {
     std::vector<heartbeat_metadata> heartbeats;
     friend std::ostream&
     operator<<(std::ostream& o, const heartbeat_request& r);
+
+    friend bool operator==(const heartbeat_request&, const heartbeat_request&)
+      = default;
+
+    auto serde_fields() { return std::tie(heartbeats); }
 };
 struct heartbeat_reply {
     std::vector<append_entries_reply> meta;
