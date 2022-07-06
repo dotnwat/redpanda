@@ -161,7 +161,9 @@ static heartbeat_requests requests_for_range(
             requests.push_back(std::move(hb));
         }
         reqs.emplace_back(
-          p.first, heartbeat_request{std::move(requests)}, std::move(meta_map));
+          p.first,
+          heartbeat_request{.heartbeats = std::move(requests)},
+          std::move(meta_map));
     }
 
     return heartbeat_requests{

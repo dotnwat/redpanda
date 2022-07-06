@@ -54,6 +54,9 @@ struct protocol_metadata {
 
     friend std::ostream&
     operator<<(std::ostream& o, const protocol_metadata& m);
+
+    friend bool operator==(const protocol_metadata&, const protocol_metadata&)
+      = default;
 };
 
 // The sequence used to track the order of follower append entries request
@@ -277,6 +280,9 @@ struct heartbeat_metadata {
     protocol_metadata meta;
     vnode node_id;
     vnode target_node_id;
+
+    friend bool operator==(const heartbeat_metadata&, const heartbeat_metadata&)
+      = default;
 };
 
 /// \brief this is our _biggest_ modification to how raft works

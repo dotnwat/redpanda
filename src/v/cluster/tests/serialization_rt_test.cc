@@ -551,6 +551,38 @@ void roundtrip_test(const T original) {
 }
 
 template<typename T>
+ss::future<> async_serde_roundtrip_test(const T original) {
+    return ss::async([original] {
+        auto serde_in = original;
+        iobuf serde_out;
+        serde::write_async(serde_out, serde_in).get();
+        auto in = iobuf_parser{std::move(serde_out)};
+        auto from_serde = serde::read_async<T>(in).get();
+        BOOST_REQUIRE(original == from_serde);
+    });
+}
+
+template<typename T>
+ss::future<> async_adl_roundtrip_test(const T original) {
+    return ss::async([original] {
+        auto adl_in = original;
+        iobuf adl_out;
+        reflection::async_adl<T>{}.to(adl_out, std::move(adl_in)).get();
+        auto in = iobuf_parser{std::move(adl_out)};
+        auto from_adl = reflection::async_adl<T>{}.from(in).get();
+        BOOST_REQUIRE(original == from_adl);
+    });
+}
+
+template<typename T>
+ss::future<> async_roundtrip_test(const T original) {
+    return ss::async([original] {
+        async_serde_roundtrip_test(original).get();
+        async_adl_roundtrip_test(original).get();
+    });
+}
+
+template<typename T>
 cluster::property_update<T> random_property_update(T value) {
     return {
       value,
@@ -2085,8 +2117,7 @@ SEASTAR_THREAD_TEST_CASE(serde_reflection_roundtrip) {
             // TODO
             // data.heartbeats.push_back(random_heartbeat_metadata());
         }
-        // adl encoding is async_adl based only
-        serde_roundtrip_test(data);
+        async_roundtrip_test(data).get();
     }
     {
         auto data = random_append_entries_reply();
