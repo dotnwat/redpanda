@@ -54,6 +54,9 @@ struct protocol_metadata {
 
     friend std::ostream&
     operator<<(std::ostream& o, const protocol_metadata& m);
+
+    friend bool operator==(const protocol_metadata&, const protocol_metadata&)
+      = default;
 };
 
 // The sequence used to track the order of follower append entries request
@@ -260,6 +263,9 @@ struct heartbeat_metadata {
     protocol_metadata meta;
     vnode node_id;
     vnode target_node_id;
+
+    friend bool operator==(const heartbeat_metadata&, const heartbeat_metadata&)
+      = default;
 };
 
 /// \brief this is our _biggest_ modification to how raft works
@@ -268,10 +274,22 @@ struct heartbeat_metadata {
 /// at a time, as well as the receiving side will trigger the
 /// individual raft responses one at a time - for example to start replaying the
 /// log at some offset
-struct heartbeat_request {
+struct heartbeat_request
+  : serde::envelope<heartbeat_request, serde::version<0>> {
     std::vector<heartbeat_metadata> heartbeats;
+
+    heartbeat_request() noexcept = default;
+    explicit heartbeat_request(std::vector<heartbeat_metadata> heartbeats)
+      : heartbeats(std::move(heartbeats)) {}
+
     friend std::ostream&
     operator<<(std::ostream& o, const heartbeat_request& r);
+
+    friend bool operator==(const heartbeat_request&, const heartbeat_request&)
+      = default;
+
+    void serde_write(iobuf& out);
+    void serde_read(iobuf_parser&, const serde::header&);
 };
 struct heartbeat_reply {
     std::vector<append_entries_reply> meta;
