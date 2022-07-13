@@ -547,6 +547,50 @@ void heartbeat_reply::serde_read(iobuf_parser& src, const serde::header& hdr) {
     }
 }
 
+ss::future<> append_entries_request::serde_async_write(iobuf& dst) {
+    iobuf out;
+
+    auto mem_batches = co_await model::consume_reader_to_memory(
+      std::move(batches()), model::no_timeout);
+    reflection::adl<uint32_t>{}.to(out, mem_batches.size());
+    for (auto& batch : mem_batches) {
+        reflection::serialize(out, std::move(batch));
+    }
+    reflection::serialize(out, target_node_id, meta, node_id, flush);
+
+    using serde::write;
+    write(dst, std::move(out));
+}
+
+ss::future<> append_entries_request::serde_async_read(
+  iobuf_parser& src, const serde::header& hdr) {
+    using serde::read_nested;
+    auto tmp = read_nested<iobuf>(src, hdr._bytes_left_limit);
+    iobuf_parser in(std::move(tmp));
+
+    auto batchCount = reflection::adl<uint32_t>{}.from(in);
+    auto batches = ss::circular_buffer<model::record_batch>{};
+    batches.reserve(batchCount);
+    for (uint32_t i = 0; i < batchCount; ++i) {
+        batches.push_back(reflection::adl<model::record_batch>{}.from(in));
+    }
+    auto reader = model::make_memory_record_batch_reader(std::move(batches));
+    auto target_node = reflection::adl<raft::vnode>{}.from(in);
+    auto meta = reflection::adl<raft::protocol_metadata>{}.from(in);
+    auto n = reflection::adl<raft::vnode>{}.from(in);
+    auto flush
+      = reflection::adl<raft::append_entries_request::flush_after_append>{}
+          .from(in);
+
+    this->node_id = n;
+    this->target_node_id = target_node;
+    this->meta = meta;
+    this->flush = flush;
+    this->_batches = std::move(reader);
+
+    return ss::now();
+}
+
 } // namespace raft
 
 namespace reflection {
