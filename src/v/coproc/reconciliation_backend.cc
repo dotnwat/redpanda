@@ -368,7 +368,8 @@ reconciliation_backend::create_non_replicable_partition(
         }
         // Non-replicated topics are not integrated with shadow indexing yet,
         // so the initial_revision_id is set to invalid value.
-        auto ntp_cfg = tt_md->second.get_configuration().make_ntp_config(
+        auto ntp_cfg = make_ntp_config(
+          tt_md->second.get_configuration(),
           _data_directory,
           ntp.tp.partition,
           rev,

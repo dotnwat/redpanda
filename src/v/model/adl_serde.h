@@ -205,4 +205,23 @@ adl<model::record_batch_header>::parse_from(Parser& in) {
       .record_count = record_count,
       .ctx = model::record_batch_header::context(term_id, ss::this_shard_id())};
 }
+
+template<>
+struct adl<cluster::topic_configuration> {
+    void to(iobuf&, cluster::topic_configuration&&);
+    cluster::topic_configuration from(iobuf_parser&);
+};
+
+template<>
+struct adl<cluster::remote_topic_properties> {
+    void to(iobuf&, cluster::remote_topic_properties&&);
+    cluster::remote_topic_properties from(iobuf_parser&);
+};
+
+template<>
+struct adl<cluster::topic_properties> {
+    void to(iobuf&, cluster::topic_properties&&);
+    cluster::topic_properties from(iobuf_parser&);
+};
+
 } // namespace reflection

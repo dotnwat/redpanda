@@ -39,7 +39,11 @@ struct offset_fetch_request final {
         data.decode(reader, version);
     }
 
-    friend std::ostream& operator<<(std::ostream&, const offset_fetch_request&);
+    friend std::ostream&
+    operator<<(std::ostream& os, const offset_fetch_request& r) {
+        os << r.data;
+        return os;
+    }
 };
 
 struct offset_fetch_response final {
@@ -87,7 +91,10 @@ struct offset_fetch_response final {
     }
 
     friend std::ostream&
-    operator<<(std::ostream&, const offset_fetch_response&);
+    operator<<(std::ostream& os, const offset_fetch_response& r) {
+        os << r.data;
+        return os;
+    }
 };
 
 } // namespace kafka

@@ -244,3 +244,5 @@ vbuild/
 .classpath
 .factorypath
 .settings/
+
+/subprojects

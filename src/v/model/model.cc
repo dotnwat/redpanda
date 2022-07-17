@@ -410,3 +410,66 @@ std::ostream& operator<<(std::ostream& o, const shadow_indexing_mode& si) {
 }
 
 } // namespace model
+
+namespace cluster {
+bool topic_properties::is_compacted() const {
+    if (!cleanup_policy_bitflags) {
+        return false;
+    }
+    return (cleanup_policy_bitflags.value()
+            & model::cleanup_policy_bitflags::compaction)
+           == model::cleanup_policy_bitflags::compaction;
+}
+
+bool topic_properties::has_overrides() const {
+    return cleanup_policy_bitflags || compaction_strategy || segment_size
+           || retention_bytes.has_value() || retention_bytes.is_disabled()
+           || retention_duration.has_value() || retention_duration.is_disabled()
+           || recovery.has_value() || shadow_indexing.has_value()
+           || read_replica.has_value();
+}
+
+topic_configuration::topic_configuration(
+  model::ns n, model::topic t, int32_t count, int16_t rf)
+  : tp_ns(std::move(n), std::move(t))
+  , partition_count(count)
+  , replication_factor(rf) {}
+
+std::ostream& operator<<(std::ostream& o, const topic_configuration& cfg) {
+    fmt::print(
+      o,
+      "{{ topic: {}, partition_count: {}, replication_factor: {}, "
+      "properties: "
+      "{}}}",
+      cfg.tp_ns,
+      cfg.partition_count,
+      cfg.replication_factor,
+      cfg.properties);
+
+    return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const topic_properties& properties) {
+    fmt::print(
+      o,
+      "{{ compression: {}, cleanup_policy_bitflags: {}, "
+      "compaction_strategy: "
+      "{}, retention_bytes: {}, retention_duration_ms: {}, segment_size: "
+      "{}, "
+      "timestamp_type: {}, recovery_enabled: {}, shadow_indexing: {}, "
+      "read_replica: {}, read_replica_bucket: {} }}",
+      properties.compression,
+      properties.cleanup_policy_bitflags,
+      properties.compaction_strategy,
+      properties.retention_bytes,
+      properties.retention_duration,
+      properties.segment_size,
+      properties.timestamp_type,
+      properties.recovery,
+      properties.shadow_indexing,
+      properties.read_replica,
+      properties.read_replica_bucket);
+
+    return o;
+}
+} // namespace cluster

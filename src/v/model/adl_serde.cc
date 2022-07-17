@@ -303,4 +303,150 @@ void adl<model::producer_identity>::to(
   iobuf& out, model::producer_identity&& p) {
     reflection::serialize(out, p.id, p.epoch);
 }
+
+void adl<cluster::remote_topic_properties>::to(
+  iobuf& out, cluster::remote_topic_properties&& p) {
+    reflection::serialize(out, p.remote_revision, p.remote_partition_count);
+}
+
+cluster::remote_topic_properties
+adl<cluster::remote_topic_properties>::from(iobuf_parser& parser) {
+    auto remote_revision = reflection::adl<model::initial_revision_id>{}.from(
+      parser);
+    auto remote_partition_count = reflection::adl<int32_t>{}.from(parser);
+
+    return {remote_revision, remote_partition_count};
+}
+
+void adl<cluster::topic_properties>::to(
+  iobuf& out, cluster::topic_properties&& p) {
+    reflection::serialize(
+      out,
+      p.compression,
+      p.cleanup_policy_bitflags,
+      p.compaction_strategy,
+      p.timestamp_type,
+      p.segment_size,
+      p.retention_bytes,
+      p.retention_duration,
+      p.recovery,
+      p.shadow_indexing,
+      p.read_replica,
+      p.read_replica_bucket,
+      p.remote_topic_properties);
+}
+
+cluster::topic_properties
+adl<cluster::topic_properties>::from(iobuf_parser& parser) {
+    auto compression
+      = reflection::adl<std::optional<model::compression>>{}.from(parser);
+    auto cleanup_policy_bitflags
+      = reflection::adl<std::optional<model::cleanup_policy_bitflags>>{}.from(
+        parser);
+    auto compaction_strategy
+      = reflection::adl<std::optional<model::compaction_strategy>>{}.from(
+        parser);
+    auto timestamp_type
+      = reflection::adl<std::optional<model::timestamp_type>>{}.from(parser);
+    auto segment_size = reflection::adl<std::optional<size_t>>{}.from(parser);
+    auto retention_bytes = reflection::adl<tristate<size_t>>{}.from(parser);
+    auto retention_duration
+      = reflection::adl<tristate<std::chrono::milliseconds>>{}.from(parser);
+    auto recovery = reflection::adl<std::optional<bool>>{}.from(parser);
+    auto shadow_indexing
+      = reflection::adl<std::optional<model::shadow_indexing_mode>>{}.from(
+        parser);
+    auto read_replica = reflection::adl<std::optional<bool>>{}.from(parser);
+    auto read_replica_bucket
+      = reflection::adl<std::optional<ss::sstring>>{}.from(parser);
+    auto remote_topic_properties
+      = reflection::adl<std::optional<cluster::remote_topic_properties>>{}.from(
+        parser);
+
+    return {
+      compression,
+      cleanup_policy_bitflags,
+      compaction_strategy,
+      timestamp_type,
+      segment_size,
+      retention_bytes,
+      retention_duration,
+      recovery,
+      shadow_indexing,
+      read_replica,
+      read_replica_bucket,
+      remote_topic_properties};
+}
+
+// note: adl serialization doesn't support read replica fields since serde
+// should be used for new versions.
+void adl<cluster::topic_configuration>::to(
+  iobuf& out, cluster::topic_configuration&& t) {
+    int32_t version = -1;
+    reflection::serialize(
+      out,
+      version,
+      t.tp_ns,
+      t.partition_count,
+      t.replication_factor,
+      t.properties.compression,
+      t.properties.cleanup_policy_bitflags,
+      t.properties.compaction_strategy,
+      t.properties.timestamp_type,
+      t.properties.segment_size,
+      t.properties.retention_bytes,
+      t.properties.retention_duration,
+      t.properties.recovery,
+      t.properties.shadow_indexing);
+}
+
+// note: adl deserialization doesn't support read replica fields since serde
+// should be used for new versions.
+cluster::topic_configuration
+adl<cluster::topic_configuration>::from(iobuf_parser& in) {
+    // NOTE: The first field of the topic_configuration is a
+    // model::ns which has length prefix which is always
+    // positive.
+    // We're using negative length value to encode version. So if
+    // the first int32_t value is positive then we're dealing with
+    // the old format. The negative value means that the new format
+    // was used.
+    auto version = adl<int32_t>{}.from(in.peek(4));
+    if (version < 0) {
+        // Consume version from stream
+        in.skip(4);
+        vassert(
+          -1 == version,
+          "topic_configuration version {} is not supported",
+          version);
+    } else {
+        version = 0;
+    }
+    auto ns = model::ns(adl<ss::sstring>{}.from(in));
+    auto topic = model::topic(adl<ss::sstring>{}.from(in));
+    auto partition_count = adl<int32_t>{}.from(in);
+    auto rf = adl<int16_t>{}.from(in);
+
+    auto cfg = cluster::topic_configuration(
+      std::move(ns), std::move(topic), partition_count, rf);
+
+    cfg.properties.compression = adl<std::optional<model::compression>>{}.from(
+      in);
+    cfg.properties.cleanup_policy_bitflags
+      = adl<std::optional<model::cleanup_policy_bitflags>>{}.from(in);
+    cfg.properties.compaction_strategy
+      = adl<std::optional<model::compaction_strategy>>{}.from(in);
+    cfg.properties.timestamp_type
+      = adl<std::optional<model::timestamp_type>>{}.from(in);
+    cfg.properties.segment_size = adl<std::optional<size_t>>{}.from(in);
+    cfg.properties.retention_bytes = adl<tristate<size_t>>{}.from(in);
+    cfg.properties.retention_duration
+      = adl<tristate<std::chrono::milliseconds>>{}.from(in);
+    if (version < 0) {
+        cfg.properties.recovery = adl<std::optional<bool>>{}.from(in);
+        cfg.properties.shadow_indexing
+          = adl<std::optional<model::shadow_indexing_mode>>{}.from(in);
+    }
+    return cfg;
+}
 } // namespace reflection

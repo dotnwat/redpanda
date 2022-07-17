@@ -9,6 +9,9 @@
 
 #include "kafka/protocol/errors.h"
 
+#include "kafka/protocol/request_reader.h"
+#include "kafka/types.h"
+
 #include <iostream>
 
 namespace kafka {
@@ -209,6 +212,83 @@ const error_category kafka_error_category{};
 
 std::error_code make_error_code(kafka::error_code ec) {
     return {static_cast<int>(ec), kafka_error_category};
+}
+
+std::ostream& operator<<(std::ostream& os, config_resource_type t) {
+    switch (t) {
+    case config_resource_type::topic:
+        return os << "{topic}";
+    case config_resource_type::broker:
+        [[fallthrough]];
+    case config_resource_type::broker_logger:
+        break;
+    }
+    return os << "{unknown type}";
+}
+
+std::ostream& operator<<(std::ostream& os, describe_configs_source s) {
+    switch (s) {
+    case describe_configs_source::topic:
+        return os << "{topic}";
+    case describe_configs_source::static_broker_config:
+        return os << "{static_broker_config}";
+    case describe_configs_source::default_config:
+        return os << "{default_config}";
+    }
+    return os << "{unknown type}";
+}
+
+ss::future<std::pair<std::optional<tagged_fields>, size_t>>
+parse_tags(ss::input_stream<char>& src) {
+    size_t total_bytes_read = 0;
+    auto read_unsigned_vint =
+      [](size_t& total_bytes_read, ss::input_stream<char>& src) {
+          return unsigned_vint::stream_deserialize(src).then(
+            [&total_bytes_read](std::pair<uint32_t, size_t> pair) {
+                auto& [n, bytes_read] = pair;
+                total_bytes_read += bytes_read;
+                return n;
+            });
+      };
+
+    auto num_tags = co_await read_unsigned_vint(total_bytes_read, src);
+    if (num_tags == 0) {
+        /// In the likely event that no tags are parsed as headers, return
+        /// nullopt instead of an empty vector to reduce the memory overhead
+        /// (that will never be used) per request
+        co_return std::make_pair(std::nullopt, total_bytes_read);
+    }
+
+    tagged_fields tags;
+    while (num_tags-- > 0) {
+        auto tag_id = co_await read_unsigned_vint(total_bytes_read, src);
+        auto next_len = co_await read_unsigned_vint(total_bytes_read, src);
+        auto buf = co_await src.read_exactly(next_len);
+        iobuf data;
+        data.append(std::move(buf));
+        total_bytes_read += next_len;
+        tags.emplace_back(tag_id, std::move(data));
+    }
+    co_return std::make_pair(std::move(tags), total_bytes_read);
+}
+
+size_t parse_size_buffer(ss::temporary_buffer<char> buf) {
+    iobuf data;
+    data.append(std::move(buf));
+    request_reader reader(std::move(data));
+    auto size = reader.read_int32();
+    if (size < 0) {
+        throw std::runtime_error("kafka::parse_size_buffer is negative");
+    }
+    return size_t(size);
+}
+
+ss::future<std::optional<size_t>> parse_size(ss::input_stream<char>& src) {
+    auto buf = co_await src.read_exactly(sizeof(int32_t));
+    if (!buf) {
+        co_return std::nullopt;
+    }
+    co_return parse_size_buffer(std::move(buf));
 }
 
 } // namespace kafka

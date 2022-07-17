@@ -1,10 +1,10 @@
 libpandaproxy_json = library('pandaproxy_json',
   'error.cc',
   implicit_include_directories: false,
-  dependencies: [common, json, model, kafka_protocol, pandaproxy_common])
+  dependencies: [common, json, model, kafka_protocol])
 
 pandaproxy_json = declare_dependency(
-  dependencies: [common, json, model, kafka_protocol, pandaproxy_common],
+  dependencies: [common, json, model, kafka_protocol],
   link_with: libpandaproxy_json)
 
 t = executable('test_pp_json_requests',

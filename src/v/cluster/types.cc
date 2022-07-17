@@ -42,50 +42,33 @@ kafka_stages::kafka_stages(raft::errc ec)
   , replicate_finished(
       ss::make_ready_future<result<kafka_result>>(make_error_code(ec))){};
 
-bool topic_properties::is_compacted() const {
-    if (!cleanup_policy_bitflags) {
-        return false;
-    }
-    return (cleanup_policy_bitflags.value()
-            & model::cleanup_policy_bitflags::compaction)
-           == model::cleanup_policy_bitflags::compaction;
-}
-
-bool topic_properties::has_overrides() const {
-    return cleanup_policy_bitflags || compaction_strategy || segment_size
-           || retention_bytes.has_value() || retention_bytes.is_disabled()
-           || retention_duration.has_value() || retention_duration.is_disabled()
-           || recovery.has_value() || shadow_indexing.has_value()
-           || read_replica.has_value();
-}
-
 storage::ntp_config::default_overrides
-topic_properties::get_ntp_cfg_overrides() const {
+get_ntp_cfg_overrides(const topic_properties& props) {
     storage::ntp_config::default_overrides ret;
-    ret.cleanup_policy_bitflags = cleanup_policy_bitflags;
-    ret.compaction_strategy = compaction_strategy;
-    ret.retention_bytes = retention_bytes;
-    ret.retention_time = retention_duration;
-    ret.segment_size = segment_size;
-    ret.shadow_indexing_mode = shadow_indexing
-                                 ? *shadow_indexing
+    ret.cleanup_policy_bitflags = props.cleanup_policy_bitflags;
+    ret.compaction_strategy = props.compaction_strategy;
+    ret.retention_bytes = props.retention_bytes;
+    ret.retention_time = props.retention_duration;
+    ret.segment_size = props.segment_size;
+    ret.shadow_indexing_mode = props.shadow_indexing
+                                 ? props.shadow_indexing.value()
                                  : model::shadow_indexing_mode::disabled;
-    ret.read_replica = read_replica;
+    ret.read_replica = props.read_replica;
     return ret;
 }
 
-topic_configuration::topic_configuration(
-  model::ns n, model::topic t, int32_t count, int16_t rf)
-  : tp_ns(std::move(n), std::move(t))
-  , partition_count(count)
-  , replication_factor(rf) {}
-
-storage::ntp_config topic_configuration::make_ntp_config(
+storage::ntp_config make_ntp_config(
+  const topic_configuration& topic_cfg,
   const ss::sstring& work_dir,
   model::partition_id p_id,
   model::revision_id rev,
-  model::initial_revision_id init_rev) const {
-    auto has_overrides = properties.has_overrides() || is_internal();
+  model::initial_revision_id init_rev) {
+    auto& properties = topic_cfg.properties;
+    const auto is_internal = topic_cfg.tp_ns.ns
+                               == model::kafka_internal_namespace
+                             || topic_cfg.tp_ns
+                                  == model::kafka_consumer_offsets_nt;
+    auto has_overrides = properties.has_overrides() || is_internal;
     std::unique_ptr<storage::ntp_config::default_overrides> overrides = nullptr;
 
     if (has_overrides) {
@@ -98,7 +81,7 @@ storage::ntp_config topic_configuration::make_ntp_config(
             .retention_time = properties.retention_duration,
             // we disable cache for internal topics as they are read only once
             // during bootstrap.
-            .cache_enabled = storage::with_cache(!is_internal()),
+            .cache_enabled = storage::with_cache(!is_internal),
             .recovery_enabled = storage::topic_recovery_enabled(
               properties.recovery ? *properties.recovery : false),
             .shadow_indexing_mode = properties.shadow_indexing
@@ -107,7 +90,7 @@ storage::ntp_config topic_configuration::make_ntp_config(
             .read_replica = properties.read_replica});
     }
     return {
-      model::ntp(tp_ns.ns, tp_ns.tp, p_id),
+      model::ntp(topic_cfg.tp_ns.ns, topic_cfg.tp_ns.tp, p_id),
       work_dir,
       std::move(overrides),
       rev,
@@ -166,44 +149,6 @@ create_partitions_configuration::create_partitions_configuration(
   model::topic_namespace tp_ns, int32_t cnt)
   : tp_ns(std::move(tp_ns))
   , new_total_partition_count(cnt) {}
-
-std::ostream& operator<<(std::ostream& o, const topic_configuration& cfg) {
-    fmt::print(
-      o,
-      "{{ topic: {}, partition_count: {}, replication_factor: {}, "
-      "properties: "
-      "{}}}",
-      cfg.tp_ns,
-      cfg.partition_count,
-      cfg.replication_factor,
-      cfg.properties);
-
-    return o;
-}
-
-std::ostream& operator<<(std::ostream& o, const topic_properties& properties) {
-    fmt::print(
-      o,
-      "{{ compression: {}, cleanup_policy_bitflags: {}, "
-      "compaction_strategy: "
-      "{}, retention_bytes: {}, retention_duration_ms: {}, segment_size: "
-      "{}, "
-      "timestamp_type: {}, recovery_enabled: {}, shadow_indexing: {}, "
-      "read_replica: {}, read_replica_bucket: {} }}",
-      properties.compression,
-      properties.cleanup_policy_bitflags,
-      properties.compaction_strategy,
-      properties.retention_bytes,
-      properties.retention_duration,
-      properties.segment_size,
-      properties.timestamp_type,
-      properties.recovery,
-      properties.shadow_indexing,
-      properties.read_replica,
-      properties.read_replica_bucket);
-
-    return o;
-}
 
 std::ostream& operator<<(std::ostream& o, const topic_result& r) {
     fmt::print(o, "topic: {}, result: {}", r.tp_ns, r.ec);
@@ -474,78 +419,6 @@ std::ostream& operator<<(
 } // namespace cluster
 
 namespace reflection {
-
-// note: adl serialization doesn't support read replica fields since serde
-// should be used for new versions.
-void adl<cluster::topic_configuration>::to(
-  iobuf& out, cluster::topic_configuration&& t) {
-    int32_t version = -1;
-    reflection::serialize(
-      out,
-      version,
-      t.tp_ns,
-      t.partition_count,
-      t.replication_factor,
-      t.properties.compression,
-      t.properties.cleanup_policy_bitflags,
-      t.properties.compaction_strategy,
-      t.properties.timestamp_type,
-      t.properties.segment_size,
-      t.properties.retention_bytes,
-      t.properties.retention_duration,
-      t.properties.recovery,
-      t.properties.shadow_indexing);
-}
-
-// note: adl deserialization doesn't support read replica fields since serde
-// should be used for new versions.
-cluster::topic_configuration
-adl<cluster::topic_configuration>::from(iobuf_parser& in) {
-    // NOTE: The first field of the topic_configuration is a
-    // model::ns which has length prefix which is always
-    // positive.
-    // We're using negative length value to encode version. So if
-    // the first int32_t value is positive then we're dealing with
-    // the old format. The negative value means that the new format
-    // was used.
-    auto version = adl<int32_t>{}.from(in.peek(4));
-    if (version < 0) {
-        // Consume version from stream
-        in.skip(4);
-        vassert(
-          -1 == version,
-          "topic_configuration version {} is not supported",
-          version);
-    } else {
-        version = 0;
-    }
-    auto ns = model::ns(adl<ss::sstring>{}.from(in));
-    auto topic = model::topic(adl<ss::sstring>{}.from(in));
-    auto partition_count = adl<int32_t>{}.from(in);
-    auto rf = adl<int16_t>{}.from(in);
-
-    auto cfg = cluster::topic_configuration(
-      std::move(ns), std::move(topic), partition_count, rf);
-
-    cfg.properties.compression = adl<std::optional<model::compression>>{}.from(
-      in);
-    cfg.properties.cleanup_policy_bitflags
-      = adl<std::optional<model::cleanup_policy_bitflags>>{}.from(in);
-    cfg.properties.compaction_strategy
-      = adl<std::optional<model::compaction_strategy>>{}.from(in);
-    cfg.properties.timestamp_type
-      = adl<std::optional<model::timestamp_type>>{}.from(in);
-    cfg.properties.segment_size = adl<std::optional<size_t>>{}.from(in);
-    cfg.properties.retention_bytes = adl<tristate<size_t>>{}.from(in);
-    cfg.properties.retention_duration
-      = adl<tristate<std::chrono::milliseconds>>{}.from(in);
-    if (version < 0) {
-        cfg.properties.recovery = adl<std::optional<bool>>{}.from(in);
-        cfg.properties.shadow_indexing
-          = adl<std::optional<model::shadow_indexing_mode>>{}.from(in);
-    }
-    return cfg;
-}
 
 void adl<cluster::join_request>::to(iobuf& out, cluster::join_request&& r) {
     adl<model::broker>().to(out, std::move(r.node));
@@ -1453,80 +1326,6 @@ adl<cluster::partition_assignment>::from(iobuf_parser& parser) {
       parser);
 
     return {group, id, std::move(replicas)};
-}
-
-void adl<cluster::remote_topic_properties>::to(
-  iobuf& out, cluster::remote_topic_properties&& p) {
-    reflection::serialize(out, p.remote_revision, p.remote_partition_count);
-}
-
-cluster::remote_topic_properties
-adl<cluster::remote_topic_properties>::from(iobuf_parser& parser) {
-    auto remote_revision = reflection::adl<model::initial_revision_id>{}.from(
-      parser);
-    auto remote_partition_count = reflection::adl<int32_t>{}.from(parser);
-
-    return {remote_revision, remote_partition_count};
-}
-
-void adl<cluster::topic_properties>::to(
-  iobuf& out, cluster::topic_properties&& p) {
-    reflection::serialize(
-      out,
-      p.compression,
-      p.cleanup_policy_bitflags,
-      p.compaction_strategy,
-      p.timestamp_type,
-      p.segment_size,
-      p.retention_bytes,
-      p.retention_duration,
-      p.recovery,
-      p.shadow_indexing,
-      p.read_replica,
-      p.read_replica_bucket,
-      p.remote_topic_properties);
-}
-
-cluster::topic_properties
-adl<cluster::topic_properties>::from(iobuf_parser& parser) {
-    auto compression
-      = reflection::adl<std::optional<model::compression>>{}.from(parser);
-    auto cleanup_policy_bitflags
-      = reflection::adl<std::optional<model::cleanup_policy_bitflags>>{}.from(
-        parser);
-    auto compaction_strategy
-      = reflection::adl<std::optional<model::compaction_strategy>>{}.from(
-        parser);
-    auto timestamp_type
-      = reflection::adl<std::optional<model::timestamp_type>>{}.from(parser);
-    auto segment_size = reflection::adl<std::optional<size_t>>{}.from(parser);
-    auto retention_bytes = reflection::adl<tristate<size_t>>{}.from(parser);
-    auto retention_duration
-      = reflection::adl<tristate<std::chrono::milliseconds>>{}.from(parser);
-    auto recovery = reflection::adl<std::optional<bool>>{}.from(parser);
-    auto shadow_indexing
-      = reflection::adl<std::optional<model::shadow_indexing_mode>>{}.from(
-        parser);
-    auto read_replica = reflection::adl<std::optional<bool>>{}.from(parser);
-    auto read_replica_bucket
-      = reflection::adl<std::optional<ss::sstring>>{}.from(parser);
-    auto remote_topic_properties
-      = reflection::adl<std::optional<cluster::remote_topic_properties>>{}.from(
-        parser);
-
-    return {
-      compression,
-      cleanup_policy_bitflags,
-      compaction_strategy,
-      timestamp_type,
-      segment_size,
-      retention_bytes,
-      retention_duration,
-      recovery,
-      shadow_indexing,
-      read_replica,
-      read_replica_bucket,
-      remote_topic_properties};
 }
 
 void adl<cluster::cluster_property_kv>::to(

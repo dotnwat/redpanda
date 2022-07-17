@@ -1031,102 +1031,8 @@ struct partition_assignment
       = default;
 };
 
-struct remote_topic_properties
-  : serde::envelope<remote_topic_properties, serde::version<0>> {
-    remote_topic_properties() = default;
-    remote_topic_properties(
-      model::initial_revision_id remote_revision,
-      int32_t remote_partition_count)
-      : remote_revision(remote_revision)
-      , remote_partition_count(remote_partition_count) {}
-
-    model::initial_revision_id remote_revision;
-    int32_t remote_partition_count;
-
-    friend std::ostream&
-    operator<<(std::ostream&, const remote_topic_properties&);
-
-    auto serde_fields() {
-        return std::tie(remote_revision, remote_partition_count);
-    }
-
-    friend bool
-    operator==(const remote_topic_properties&, const remote_topic_properties&)
-      = default;
-};
-
-/**
- * Structure holding topic properties overrides, empty values will be replaced
- * with defaults
- */
-struct topic_properties
-  : serde::
-      envelope<topic_properties, serde::version<1>, serde::compat_version<0>> {
-    topic_properties() noexcept = default;
-    topic_properties(
-      std::optional<model::compression> compression,
-      std::optional<model::cleanup_policy_bitflags> cleanup_policy_bitflags,
-      std::optional<model::compaction_strategy> compaction_strategy,
-      std::optional<model::timestamp_type> timestamp_type,
-      std::optional<size_t> segment_size,
-      tristate<size_t> retention_bytes,
-      tristate<std::chrono::milliseconds> retention_duration,
-      std::optional<bool> recovery,
-      std::optional<model::shadow_indexing_mode> shadow_indexing,
-      std::optional<bool> read_replica,
-      std::optional<ss::sstring> read_replica_bucket,
-      std::optional<remote_topic_properties> remote_topic_properties)
-      : compression(compression)
-      , cleanup_policy_bitflags(cleanup_policy_bitflags)
-      , compaction_strategy(compaction_strategy)
-      , timestamp_type(timestamp_type)
-      , segment_size(segment_size)
-      , retention_bytes(retention_bytes)
-      , retention_duration(retention_duration)
-      , recovery(recovery)
-      , shadow_indexing(shadow_indexing)
-      , read_replica(read_replica)
-      , read_replica_bucket(read_replica_bucket)
-      , remote_topic_properties(remote_topic_properties) {}
-
-    std::optional<model::compression> compression;
-    std::optional<model::cleanup_policy_bitflags> cleanup_policy_bitflags;
-    std::optional<model::compaction_strategy> compaction_strategy;
-    std::optional<model::timestamp_type> timestamp_type;
-    std::optional<size_t> segment_size;
-    tristate<size_t> retention_bytes{std::nullopt};
-    tristate<std::chrono::milliseconds> retention_duration{std::nullopt};
-    std::optional<bool> recovery;
-    std::optional<model::shadow_indexing_mode> shadow_indexing;
-    std::optional<bool> read_replica;
-    std::optional<ss::sstring> read_replica_bucket;
-    std::optional<remote_topic_properties> remote_topic_properties;
-
-    bool is_compacted() const;
-    bool has_overrides() const;
-
-    storage::ntp_config::default_overrides get_ntp_cfg_overrides() const;
-
-    friend std::ostream& operator<<(std::ostream&, const topic_properties&);
-    auto serde_fields() {
-        return std::tie(
-          compression,
-          cleanup_policy_bitflags,
-          compaction_strategy,
-          timestamp_type,
-          segment_size,
-          retention_bytes,
-          retention_duration,
-          recovery,
-          shadow_indexing,
-          read_replica,
-          read_replica_bucket,
-          remote_topic_properties);
-    }
-
-    friend bool operator==(const topic_properties&, const topic_properties&)
-      = default;
-};
+storage::ntp_config::default_overrides
+get_ntp_cfg_overrides(const topic_properties& props);
 
 enum incremental_update_operation : int8_t { none, set, remove };
 template<typename T>
@@ -1257,50 +1163,12 @@ struct topic_properties_update
     }
 };
 
-// Structure holding topic configuration, optionals will be replaced by broker
-// defaults
-struct topic_configuration
-  : serde::envelope<topic_configuration, serde::version<0>> {
-    topic_configuration(
-      model::ns ns,
-      model::topic topic,
-      int32_t partition_count,
-      int16_t replication_factor);
-
-    topic_configuration() = default;
-
-    storage::ntp_config make_ntp_config(
-      const ss::sstring&,
-      model::partition_id,
-      model::revision_id,
-      model::initial_revision_id) const;
-
-    bool is_internal() const {
-        return tp_ns.ns == model::kafka_internal_namespace
-               || tp_ns == model::kafka_consumer_offsets_nt;
-    }
-    bool is_read_replica() const {
-        return properties.read_replica && properties.read_replica.value();
-    }
-
-    model::topic_namespace tp_ns;
-    // using signed integer because Kafka protocol defines it as signed int
-    int32_t partition_count;
-    // using signed integer because Kafka protocol defines it as signed int
-    int16_t replication_factor;
-
-    topic_properties properties;
-
-    auto serde_fields() {
-        return std::tie(tp_ns, partition_count, replication_factor, properties);
-    }
-
-    friend std::ostream& operator<<(std::ostream&, const topic_configuration&);
-
-    friend bool
-    operator==(const topic_configuration&, const topic_configuration&)
-      = default;
-};
+storage::ntp_config make_ntp_config(
+  const topic_configuration& topic_cfg,
+  const ss::sstring&,
+  model::partition_id,
+  model::revision_id,
+  model::initial_revision_id);
 
 struct custom_partition_assignment {
     model::partition_id id;
@@ -2308,12 +2176,6 @@ struct adl<model::timeout_clock::duration> {
 };
 
 template<>
-struct adl<cluster::topic_configuration> {
-    void to(iobuf&, cluster::topic_configuration&&);
-    cluster::topic_configuration from(iobuf_parser&);
-};
-
-template<>
 struct adl<cluster::join_request> {
     void to(iobuf&, cluster::join_request&&);
     cluster::join_request from(iobuf);
@@ -2554,18 +2416,6 @@ template<>
 struct adl<cluster::partition_assignment> {
     void to(iobuf&, cluster::partition_assignment&&);
     cluster::partition_assignment from(iobuf_parser&);
-};
-
-template<>
-struct adl<cluster::remote_topic_properties> {
-    void to(iobuf&, cluster::remote_topic_properties&&);
-    cluster::remote_topic_properties from(iobuf_parser&);
-};
-
-template<>
-struct adl<cluster::topic_properties> {
-    void to(iobuf&, cluster::topic_properties&&);
-    cluster::topic_properties from(iobuf_parser&);
 };
 
 template<typename T>

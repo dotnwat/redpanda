@@ -49,6 +49,7 @@ boost = dependency('boost',
     'unit_test_framework'])
 protobuf = dependency('protobuf',
   modules: ['protobuf::libprotobuf', 'protobuf::libprotoc'])
+cryptopp = dependency('libcrypto++', 'cryptopp')
 
 # this enables our flat includes like `#include "bytes/bytes.h"`
 common = declare_dependency(

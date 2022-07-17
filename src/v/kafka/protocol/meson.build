@@ -2,12 +2,16 @@ subdir('schemata')
 
 libkafka_protocol = library('kafka_protocol',
   'errors.cc',
+  'batch_reader.cc',
+  'kafka_batch_adapter.cc',
+  'logger.cc',
+  'flex_versions.cc',
   kafka_protocol_h,
   kafka_protocol_cc,
-  dependencies: [common, bytes, model],
+  dependencies: [common, bytes, model, compression, storage, hashing],
   implicit_include_directories: false)
 
 kafka_protocol = declare_dependency(
   sources: kafka_protocol_h,
-  dependencies: [common, bytes, model],
+  dependencies: [common, bytes, model, compression, storage, hashing],
   link_with: libkafka_protocol)

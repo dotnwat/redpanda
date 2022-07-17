@@ -268,8 +268,7 @@ partition::timequery(storage::timequery_config cfg) {
 }
 
 ss::future<> partition::update_configuration(topic_properties properties) {
-    return _raft->log().update_configuration(
-      properties.get_ntp_cfg_overrides());
+    return _raft->log().update_configuration(get_ntp_cfg_overrides(properties));
 }
 
 std::optional<model::offset>

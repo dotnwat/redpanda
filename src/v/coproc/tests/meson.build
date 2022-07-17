@@ -7,7 +7,7 @@ f = library('coproc_test_fixture',
   'fixtures/coproc_test_fixture.cc',
   'fixtures/coproc_bench_fixture.cc',
   'fixtures/fiber_mock_fixture.cc',
-  dependencies: [common, coproc, model_test_utils])
+  dependencies: [common, coproc, model_test_utils, redpanda_app])
 
 t = executable('test_coproc_fixture',
   'retry_logic_tests.cc',
@@ -22,6 +22,6 @@ t = executable('test_coproc_fixture',
   'event_handler_tests.cc',
   'event_listener_tests.cc',
   'kafka_api_materialized_tests.cc',
-  dependencies: [seastar_testing_main, coproc, redpanda_app],
+  dependencies: [seastar_testing_main, coproc, redpanda_app, model_test_utils],
   link_with: f)
 test('coproc fixture', t)

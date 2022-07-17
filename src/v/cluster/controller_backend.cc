@@ -1412,8 +1412,12 @@ ss::future<std::error_code> controller_backend::create_partition(
         // increases while ntp is being created again
         f = _partition_manager.local()
               .manage(
-                cfg->make_ntp_config(
-                  _data_directory, ntp.tp.partition, rev, initial_rev.value()),
+                make_ntp_config(
+                  cfg.value(),
+                  _data_directory,
+                  ntp.tp.partition,
+                  rev,
+                  initial_rev.value()),
                 group_id,
                 std::move(members))
               .discard_result();

@@ -6,8 +6,8 @@ libsecurity = library('security',
   'mtls.cc',
   'license.cc',
   implicit_include_directories: false,
-  dependencies: [seastar, ctre, common, bytes, utils, model, json])
+  dependencies: [seastar, ctre, common, bytes, utils, model, json, cryptopp])
 
 security = declare_dependency(
-  dependencies: [seastar, ctre, common, bytes, utils, model, json],
+  dependencies: [seastar, ctre, common, bytes, utils, model, json, cryptopp],
   link_with: libsecurity)
