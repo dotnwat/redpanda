@@ -16,5 +16,7 @@ namespace raft {
 class consensus;
 class group_manager;
 class recovery_throttle;
+struct timeout_now_request;
+struct timeout_now_reply;
 
 } // namespace raft
