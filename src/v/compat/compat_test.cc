@@ -17,4 +17,6 @@
 
 SEASTAR_THREAD_TEST_CASE(compat_self_test) {
     temporary_dir corpus("compat_self_test");
+    write_corpus(corpus.get_path()).get();
+    read_corpus(corpus.get_path()).get();
 }

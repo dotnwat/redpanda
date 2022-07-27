@@ -1,8 +1,9 @@
 #include "compat/raft_compat.h"
+#include "json/prettywriter.h"
 #include "seastarx.h"
 #include "utils/base64.h"
+#include "utils/directory_walker.h"
 #include "utils/file_io.h"
-#include "json/prettywriter.h"
 
 #include <seastar/core/thread.hh>
 
@@ -65,15 +66,73 @@ struct corpus_writer {
             iobuf jo;
             jo.append(j.data(), j.size());
             auto jp = dir / fmt::format("{}_{}.json", check::name, i++);
+            std::cout << "Writing: " << jp << std::endl;
             write_fully(jp, std::move(jo)).get();
+        }
+        return ss::now();
+    }
+
+    static ss::future<> verify(json::Document doc) {
+        auto obj = check::from_json(doc["fields"].GetObject());
+        auto binaries = doc["binaries"].GetArray();
+        for (const auto& binary : binaries) {
+            auto o = binary.GetObject();
+            compat_binary b(
+              o["name"].GetString(),
+              bytes_to_iobuf(base64_to_bytes(o["data"].GetString())));
+            auto&& [ta, tb] = compat_copy(std::move(obj));
+            obj = std::move(ta);
+            check::check(std::move(tb), std::move(b));
         }
         return ss::now();
     }
 };
 
+static ss::future<> verify(json::Document doc) {
+    auto name = doc["name"].GetString();
+
+    {
+        using type = corpus_writer<raft::timeout_now_request>;
+        if (type::check::name == name) {
+            return type::verify(std::move(doc));
+        }
+    }
+
+    {
+        using type = corpus_writer<raft::timeout_now_reply>;
+        if (type::check::name == name) {
+            return type::verify(std::move(doc));
+        }
+    }
+
+    vassert(false, "Type {} not found", name);
+    return ss::now();
+}
+
 ss::future<> write_corpus(std::filesystem::path dir) {
     return ss::async([dir] {
         corpus_writer<raft::timeout_now_request>::write(dir).get();
         corpus_writer<raft::timeout_now_reply>::write(dir).get();
+    });
+}
+
+ss::future<> read_corpus(std::filesystem::path dir) {
+    return directory_walker::walk(dir.string(), [dir](ss::directory_entry ent) {
+        if (!ent.type || *ent.type != ss::directory_entry_type::regular) {
+            return ss::now();
+        }
+        if (ent.name.find(".json") == ss::sstring::npos) {
+            std::cout << "Skipping non-json file " << ent.name << std::endl;
+            return ss::now();
+        }
+        std::cout << "Processing " << ent.name << std::endl;
+        return read_fully_to_string(dir / std::string(ent.name))
+          .then([ent](auto js) {
+              json::Document doc;
+              doc.Parse(js);
+              vassert(
+                !doc.HasParseError(), "JSON {} has parse errors", ent.name);
+              return verify(std::move(doc));
+          });
     });
 }
