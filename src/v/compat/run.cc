@@ -1,6 +1,7 @@
 #include "compat/run.h"
 
 #include "compat/check.h"
+#include "compat/raft_compat.h"
 #include "json/prettywriter.h"
 #include "seastarx.h"
 #include "utils/base64.h"
@@ -92,23 +93,19 @@ struct corpus_writer {
 
 static ss::future<> verify(json::Document doc) {
     auto name = doc["name"].GetString();
-    (void)name;
 
     /*
      * Add for each corpus_writer<...> type
-     *
-     * {
-     *     using type = corpus_writer<raft::timeout_now_request>;
-     *     if (type::check::name == name) {
-     *         return type::verify(std::move(doc));
-     *     }
-     * }
-     *
-     * ...
-     *
-     * vassert(false, "Type {} not found", name);
      */
 
+    {
+        using type = corpus_writer<raft::timeout_now_request>;
+        if (type::check::name == name) {
+            return type::verify(std::move(doc));
+        }
+    }
+
+    vassert(false, "Type {} not found", name);
     return ss::now();
 }
 
@@ -117,6 +114,7 @@ ss::future<> write_corpus(std::filesystem::path dir) {
         /*
          * run for each corpus_writer<...>
          */
+        corpus_writer<raft::timeout_now_request>::write(dir).get();
     });
 }
 
