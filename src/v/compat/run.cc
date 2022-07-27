@@ -11,6 +11,7 @@
 #include "compat/run.h"
 
 #include "compat/check.h"
+#include "compat/metadata_dissemination_compat.h"
 #include "compat/raft_compat.h"
 #include "json/document.h"
 #include "json/writer.h"
@@ -149,6 +150,14 @@ static void check(json::Document doc) {
         }
     }
 
+    {
+        using type = corpus_helper<cluster::update_leadership_request>;
+        if (type::checker::name == name) {
+            type::check(std::move(doc));
+            return;
+        }
+    }
+
     vassert(false, "Type {} not found", name);
 }
 
@@ -159,6 +168,7 @@ ss::future<> write_corpus(const std::filesystem::path& dir) {
          */
         corpus_helper<raft::timeout_now_request>::write(dir).get();
         corpus_helper<raft::timeout_now_reply>::write(dir).get();
+        corpus_helper<cluster::update_leadership_request>::write(dir).get();
     });
 }
 
