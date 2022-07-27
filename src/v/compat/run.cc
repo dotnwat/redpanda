@@ -131,6 +131,14 @@ static void check(json::Document doc) {
         }
     }
 
+    {
+        using type = corpus_helper<raft::timeout_now_reply>;
+        if (type::checker::name == name) {
+            type::check(std::move(doc));
+            return;
+        }
+    }
+
     vassert(false, "Type {} not found", name);
 }
 
@@ -140,6 +148,7 @@ ss::future<> write_corpus(const std::filesystem::path& dir) {
          * run for each corpus_helper<...>
          */
         corpus_helper<raft::timeout_now_request>::write(dir).get();
+        corpus_helper<raft::timeout_now_reply>::write(dir).get();
     });
 }
 
