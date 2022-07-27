@@ -1,6 +1,8 @@
 #include "compat/raft_compat.h"
 #include "seastarx.h"
 #include "utils/base64.h"
+#include "utils/file_io.h"
+#include "json/prettywriter.h"
 
 #include <seastar/core/thread.hh>
 
@@ -53,20 +55,25 @@ struct corpus_writer {
         return ss::now();
     }
 
-    static ss::future<> write() {
+    static ss::future<> write(std::filesystem::path dir) {
+        int i = 0;
         for (auto& t : check::create_test_cases()) {
             auto sb = json::StringBuffer{};
             auto w = json::Writer<json::StringBuffer>{sb};
             write_test_case(std::move(t), w).get();
-            std::cout << sb.GetString() << std::endl;
+            std::string j = sb.GetString();
+            iobuf jo;
+            jo.append(j.data(), j.size());
+            auto jp = dir / fmt::format("{}_{}.json", check::name, i++);
+            write_fully(jp, std::move(jo)).get();
         }
         return ss::now();
     }
 };
 
-ss::future<> write_corpus() {
-    return ss::async([] {
-        corpus_writer<raft::timeout_now_request>::write().get();
-        corpus_writer<raft::timeout_now_reply>::write().get();
+ss::future<> write_corpus(std::filesystem::path dir) {
+    return ss::async([dir] {
+        corpus_writer<raft::timeout_now_request>::write(dir).get();
+        corpus_writer<raft::timeout_now_reply>::write(dir).get();
     });
 }

@@ -52,7 +52,7 @@ int main(int ac, char* av[]) {
         seastar::app_template app;
         try {
             return app.run(1, av, []() -> ss::future<int> {
-                co_await write_corpus();
+                co_await write_corpus(".");
                 co_return 0;
             });
         } catch (...) {

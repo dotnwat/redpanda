@@ -30,11 +30,11 @@ public:
     temporary_dir(const std::filesystem::path& root, const char* test_name) {
         auto path = root / fmt::format("{}-XXXX", test_name);
         try {
+            _dir = ss::make_tmp_dir(path.native()).get();
             vlog(
               details::tmpdir_logger.info,
               "Creating temporary directory {}",
-              path.native());
-            _dir = ss::make_tmp_dir(path.native()).get();
+              _dir.get_path().native());
         } catch (...) {
             vlog(
               details::tmpdir_logger.error,

@@ -100,4 +100,4 @@ struct compat_check {
 DECLARE_COMPAT_CHECK(raft::timeout_now_request)
 DECLARE_COMPAT_CHECK(raft::timeout_now_reply)
 
-ss::future<> write_corpus();
+ss::future<> write_corpus(std::filesystem::path);
