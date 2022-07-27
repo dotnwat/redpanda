@@ -9,5 +9,6 @@ v_cc_library(
     v::rphashing
     v::utils
     v::reflection
+    v::raft
     absl::flat_hash_map
     v::compression)
