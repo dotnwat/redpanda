@@ -25,6 +25,33 @@
 
 namespace tests {
 
+/*
+ * Protocol for building random instance generators.
+ */
+template<typename T>
+struct instance_generator {
+    /*
+     * Return a random instance of T.
+     */
+    static T random();
+
+    /*
+     * Return instances of T which may be interesting for testing. Typically
+     * this involves selecting for edge cases like min/max/empty/large values.
+     */
+    static std::vector<T> limits();
+};
+
+template<typename T>
+auto generate_instances(size_t randoms = 1) -> std::vector<T> {
+    using generator = instance_generator<T>;
+    auto res = generator::limits();
+    for (size_t i = 0; i < randoms; i++) {
+        res.push_back(generator::random());
+    }
+    return res;
+}
+
 inline net::unresolved_address random_net_address() {
     return net::unresolved_address(
       random_generators::gen_alphanum_string(
