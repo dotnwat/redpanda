@@ -1,6 +1,7 @@
 #include "compat/run.h"
 
 #include "compat/check.h"
+#include "compat/metadata_dissemination_compat.h"
 #include "compat/raft_compat.h"
 #include "json/prettywriter.h"
 #include "seastarx.h"
@@ -112,6 +113,13 @@ static ss::future<> verify(json::Document doc) {
         }
     }
 
+    {
+        using type = corpus_writer<cluster::update_leadership_request>;
+        if (type::check::name == name) {
+            return type::verify(std::move(doc));
+        }
+    }
+
     vassert(false, "Type {} not found", name);
     return ss::now();
 }
@@ -123,6 +131,7 @@ ss::future<> write_corpus(std::filesystem::path dir) {
          */
         corpus_writer<raft::timeout_now_request>::write(dir).get();
         corpus_writer<raft::timeout_now_reply>::write(dir).get();
+        corpus_writer<cluster::update_leadership_request>::write(dir).get();
     });
 }
 
