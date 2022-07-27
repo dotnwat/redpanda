@@ -11,6 +11,7 @@
 #include "compat/run.h"
 
 #include "compat/check.h"
+#include "compat/raft_compat.h"
 #include "json/document.h"
 #include "json/writer.h"
 #include "seastarx.h"
@@ -127,22 +128,20 @@ static void check(json::Document doc) {
     vassert(doc.HasMember("name"), "doc doesn't have name");
     vassert(doc["name"].IsString(), "name is doc is not a string");
     auto name = doc["name"].GetString();
-    (void)name;
 
     /*
      * Add for each corpus_helper<...> type
-     *
-     * {
-     *     using type = corpus_helper<raft::timeout_now_request>;
-     *     if (type::checker::name == name) {
-     *         return type::check(std::move(doc));
-     *     }
-     * }
-     *
-     * ...
-     *
-     * vassert(false, "Type {} not found", name);
      */
+
+    {
+        using type = corpus_helper<raft::timeout_now_request>;
+        if (type::checker::name == name) {
+            type::check(std::move(doc));
+            return;
+        }
+    }
+
+    vassert(false, "Type {} not found", name);
 }
 
 ss::future<> write_corpus(const std::filesystem::path& dir) {
@@ -150,6 +149,7 @@ ss::future<> write_corpus(const std::filesystem::path& dir) {
         /*
          * run for each corpus_helper<...>
          */
+        corpus_helper<raft::timeout_now_request>::write(dir).get();
     });
 }
 
