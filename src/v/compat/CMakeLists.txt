@@ -5,7 +5,8 @@ v_cc_library(
   DEPS
     Seastar::seastar
     v::json
-    v::utils)
+    v::utils
+    v::raft)
 
 rp_test(
   UNIT_TEST
