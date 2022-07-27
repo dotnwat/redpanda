@@ -105,6 +105,13 @@ static ss::future<> verify(json::Document doc) {
         }
     }
 
+    {
+        using type = corpus_writer<raft::timeout_now_reply>;
+        if (type::check::name == name) {
+            return type::verify(std::move(doc));
+        }
+    }
+
     vassert(false, "Type {} not found", name);
     return ss::now();
 }
@@ -115,6 +122,7 @@ ss::future<> write_corpus(std::filesystem::path dir) {
          * run for each corpus_writer<...>
          */
         corpus_writer<raft::timeout_now_request>::write(dir).get();
+        corpus_writer<raft::timeout_now_reply>::write(dir).get();
     });
 }
 
