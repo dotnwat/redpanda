@@ -30,6 +30,16 @@ inline void read_value(json::Value const& v, uint64_t& target) {
     target = v.GetUint64();
 }
 
+inline void
+read_value(json::Value const& v, std::chrono::milliseconds& target) {
+    target = std::chrono::milliseconds(v.GetUint64());
+}
+
+inline void
+read_value(json::Value const& v, std::chrono::steady_clock::duration& target) {
+    target = std::chrono::steady_clock::duration(v.GetUint64());
+}
+
 inline void read_value(json::Value const& v, uint32_t& target) {
     target = v.GetUint();
 }
@@ -40,6 +50,10 @@ inline void read_value(json::Value const& v, int32_t& target) {
 
 inline void read_value(json::Value const& v, int16_t& target) {
     target = v.GetInt();
+}
+
+inline void read_value(json::Value const& v, uint16_t& target) {
+    target = v.GetUint();
 }
 
 inline void read_value(json::Value const& v, int8_t& target) {
@@ -76,6 +90,11 @@ void read_value(json::Value const& v, std::vector<T>& target) {
 }
 
 template<typename T>
+void read_value(json::Value const& v, ss::bool_class<T>& target) {
+    target = ss::bool_class<T>(v.GetBool());
+}
+
+template<typename T>
 void read_value(json::Value const& v, std::optional<T>& target) {
     if (v.IsNull()) {
         target = std::nullopt;
@@ -109,6 +128,12 @@ inline auto read_member_enum(json::Value const& v, char const* key, Enum)
     std::underlying_type_t<Enum> value;
     read_member(v, key, value);
     return value;
+}
+
+template<typename T>
+inline void rjson_serialize(
+  json::Writer<json::StringBuffer>& w, const ss::bool_class<T>& b) {
+    rjson_serialize(w, bool(b));
 }
 
 inline void

@@ -10,9 +10,13 @@
  */
 #include "compat/run.h"
 
+#include "compat/begin_tx_compat.h"
 #include "compat/check.h"
+#include "compat/init_tm_tx_compat.h"
 #include "compat/metadata_dissemination_compat.h"
+#include "compat/prepare_tx_compat.h"
 #include "compat/raft_compat.h"
+#include "compat/try_abort_compat.h"
 #include "json/document.h"
 #include "json/prettywriter.h"
 #include "json/writer.h"

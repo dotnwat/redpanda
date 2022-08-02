@@ -52,6 +52,9 @@ void rjson_serialize(
   json::Writer<json::StringBuffer>& w, const net::unresolved_address& v);
 
 void rjson_serialize(
+        json::Writer<json::StringBuffer>& w, const std::chrono::steady_clock::duration& v);
+
+void rjson_serialize(
   json::Writer<json::StringBuffer>& w, const std::chrono::milliseconds& v);
 
 void rjson_serialize(
