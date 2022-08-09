@@ -16,7 +16,7 @@ redpanda:
   node_id: {{node_id}}
   rpc_server:
     address: "{{node.account.hostname}}"
-    port: 33145
+    port: {{rpc_port}}
   kafka_api:
     - name: dnslistener
       address: "{{node.account.hostname}}"
@@ -44,7 +44,7 @@ redpanda:
   seed_servers:
     - host:
         address: {{nodes[1].account.hostname}}
-        port: 33145
+        port: {{rpc_port}}
       node_id: 1
 {% endif %}
 {% endif %}

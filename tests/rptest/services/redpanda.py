@@ -414,6 +414,8 @@ class RedpandaService(Service):
     KAFKA_ALTERNATE_PORT = 9093
     ADMIN_ALTERNATE_PORT = 9647
 
+    REDPANDA_RPC_PORT = 33145
+
     CLUSTER_CONFIG_DEFAULTS = {
         'join_retry_timeout_ms': 200,
         'default_topic_partitions': 4,
@@ -769,7 +771,7 @@ class RedpandaService(Service):
                 continue
             _, _, _, src, dst, state = tokens
 
-            if src.endswith(":33145"):
+            if src.endswith(f":{self.REDPANDA_RPC_PORT}"):
                 self.logger.info(
                     f"Port collision on node {node.name}: {src}->{dst} {state}"
                 )
@@ -1316,6 +1318,7 @@ class RedpandaService(Service):
                            nodes=node_info,
                            node_id=self.idx(node),
                            node_ip=node_ip,
+                           rpc_port=self.REDPANDA_RPC_PORT,
                            kafka_alternate_port=self.KAFKA_ALTERNATE_PORT,
                            admin_alternate_port=self.ADMIN_ALTERNATE_PORT,
                            enable_rp=self._enable_rp,
