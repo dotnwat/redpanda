@@ -7,7 +7,7 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "kafka/server/flex_versions.h"
+#include "kafka/protocol/flex_versions.h"
 
 #include "kafka/protocol/types.h"
 #include "kafka/server/handlers/handlers.h"

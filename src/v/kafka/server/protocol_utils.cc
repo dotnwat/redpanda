@@ -11,7 +11,7 @@
 
 #include "bytes/iobuf.h"
 #include "bytes/iobuf_parser.h"
-#include "kafka/server/flex_versions.h"
+#include "kafka/protocol/flex_versions.h"
 
 #include <seastar/core/temporary_buffer.hh>
 
