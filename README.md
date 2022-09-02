@@ -1,3 +1,13 @@
+[nwatkins@fedora kcat]$ ./kcat -L -b localhost:9092 -X
+security.protocol=SASL_PLAINTEXT -X
+sasl.kerberos.keytab=/home/nwatkins/src/krb-testc/client2.keytab -X
+sasl.kerberos.principal=client2/localhost@EXAMPLE.COM -X debug=all
+
+[nwatkins@fedora redpanda]$
+KRB5_KTNAME=/home/nwatkins/src/krb-testc/kafka.keytab sudo -E bin/redpanda
+--redpanda-cfg ../../../conf/redpanda.yaml --logger-log-level kafka=trace
+--logger-log-level security=debug
+
 
 # Redpanda
 [![Documentation](https://img.shields.io/badge/documentation-black)](https://redpanda.com/documentation)

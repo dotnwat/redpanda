@@ -35,6 +35,7 @@ redpanda:
   kafka_api:
   - address: "0.0.0.0"
     port: 9092
+    authentication_method: sasl
 
   admin:
     address: "0.0.0.0"
@@ -43,12 +44,6 @@ redpanda:
   # Skips most of the checks performed at startup (i.e. memory, xfs)
   # not recomended for production use
   developer_mode: true
-
-# Enable Pandaproxy
-pandaproxy: {}
-
-# Enable Schema Registry
-schema_registry: {}
 
 rpk:
   # TLS configuration.

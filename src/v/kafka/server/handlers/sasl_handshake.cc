@@ -15,7 +15,8 @@
 
 static const std::vector<ss::sstring> supported_mechanisms = {
   security::scram_sha256_authenticator::name,
-  security::scram_sha512_authenticator::name};
+  security::scram_sha512_authenticator::name,
+  security::gssapi_authenticator::name};
 
 namespace kafka {
 
@@ -42,6 +43,10 @@ ss::future<response_ptr> sasl_handshake_handler::handle(
         ctx.sasl()->set_mechanism(
           std::make_unique<security::scram_sha512_authenticator::auth>(
             ctx.credentials()));
+
+    } else if (request.data.mechanism == security::gssapi_authenticator::name) {
+        ctx.sasl()->set_mechanism(
+          std::make_unique<security::gssapi_authenticator>(ctx.credentials()));
 
     } else {
         error = error_code::unsupported_sasl_mechanism;

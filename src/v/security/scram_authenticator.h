@@ -75,4 +75,23 @@ struct scram_sha512_authenticator {
     static constexpr const char* name = "SCRAM-SHA-512";
 };
 
+class gssapi_authenticator final : public sasl_mechanism {
+public:
+    static constexpr const char* name = "GSSAPI";
+
+    explicit gssapi_authenticator(credential_store& credentials)
+      : _credentials(credentials) {}
+
+    result<bytes> authenticate(bytes_view) override;
+
+    bool complete() const override { return false; }
+    bool failed() const override { return false; }
+
+    const ss::sstring& principal() const override { return _prin; }
+
+private:
+    [[maybe_unused]] credential_store& _credentials;
+    ss::sstring _prin;
+};
+
 } // namespace security
