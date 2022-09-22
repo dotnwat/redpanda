@@ -16,7 +16,7 @@ jobs:
 
       - uses: ./sparse-checkout 
         with:
-          repository: redpanda-data/vtools
+          repository: dotnwat/vtools
           token: ${{ secrets.ACTIONS_BOT_TOKEN }}
           patterns: actions
           path: ghca 
