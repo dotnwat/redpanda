@@ -16,7 +16,7 @@ jobs:
 
       - uses: ./sparse-checkout 
         with:
-          repository: redpanda-data/vtools
+          repository: dotnwat/vtools
           token: ${{ secrets.ACTIONS_BOT_TOKEN }}
           patterns: actions
           path: ghca 
@@ -25,7 +25,7 @@ jobs:
         uses: ./ghca/actions/buildkite-slash-commands
         with:
           buildkite_token: ${{ secrets.BUILDKITE_TOKEN }}
-          buildkite_org: redpanda
+          buildkite_org: noahs-buildkite-fun
           buildkite_pipeline: redpanda
           command: ${{ github.event.client_payload.slash_command.command }}
 

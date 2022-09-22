@@ -17,6 +17,6 @@ jobs:
             ci-repeat
             test-codecov
           static-args: |
-            org=redpanda-data
+            org=dotnwat
             repo=redpanda
             milestone=auto
