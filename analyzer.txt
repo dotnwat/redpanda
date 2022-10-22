@@ -1,0 +1,7 @@
+* debug build configuration
+* clean up stuff with ninja clean so everything builds
+* clear out old json files find src -name "*.json" | xargs rm
+* using -j1 to avoid noise using CCACHE_DISABLE=1
+* ~/src/ClangBuildAnalyzer/ClangBuildAnalyzer --all vbuild/debug/clang/src cba.dat
+* ~/src/ClangBuildAnalyzer/ClangBuildAnalyzer --analyze cba.dat
+* stash results from build dir find src -name "*.json" -exec tar -rf archive.tar '{}' \;
