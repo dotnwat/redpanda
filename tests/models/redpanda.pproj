@@ -1,0 +1,7 @@
+<Project>
+<ProjectName>redpanda</ProjectName>
+<InputFiles>
+	<PFile>./src/</PFile>
+</InputFiles>
+<OutputDir>./out/</OutputDir>
+</Project>
