@@ -14,7 +14,7 @@ type join_group_request = (
   group_id: int,
   member_id: int,
   group_instance_id: int, // -1 for null
-  protocol_type: int,
+  protocol_type: string,
   protocols: seq[join_group_request_protocol]);
 
 // struct join_group_request_protocol {
@@ -22,7 +22,7 @@ type join_group_request = (
 //     bytes metadata{};
 // };
 type join_group_request_protocol = (
-  protocol_name: int,
+  name: string,
   metadata: int);
 
 //struct join_group_response_data {
@@ -54,10 +54,24 @@ type join_group_response_member = (
 event join_group_request_event: join_group_request;
 event join_group_response_event : join_group_response;
 
-enum group_state { empty, preparing_rebalance }
+enum group_state { empty, preparing_rebalance, dead }
 type group = (
   st: group_state,
+  protocol_type: (isset:bool, value:string),
+  supported_protocols: map[string, int],
+  members: map[int, int],
   initial_join_in_progress: bool);
+
+fun make_group(): group {
+  var sp: map[string, int];
+  var m: map[int, int];
+  return (
+    st = empty,
+    protocol_type = (isset = false, value = ""),
+    supported_protocols = sp,
+    members = m,
+    initial_join_in_progress = false);
+}
 
 machine coordinator {
   var groups: map[int, group];
@@ -69,7 +83,7 @@ machine coordinator {
 
       if (!(req.group_id in groups)) {
         assert req.member_id == -1, "known member cannot join unknown group";
-        groups += (req.group_id, (st = empty, initial_join_in_progress = false));
+        groups += (req.group_id, make_group());
         is_new_group = true;
       }
 
@@ -100,8 +114,42 @@ machine coordinator {
   }
 
   fun join_group_unknown_member(req: join_group_request) {
+      if (in_state(req.group_id, dead)) {
+      } else if (!supports_protocols(req)) {
+      }
   }
 
   fun join_group_known_member(req: join_group_request) {
+  }
+
+  fun in_state(id: int, st: group_state): bool {
+    assert id in groups;
+    return groups[id].st == st;
+  }
+
+  // bool group::supports_protocols(const join_group_request& r) const;
+  fun supports_protocols(req: join_group_request): bool {
+    var group: group;
+    var protocol: join_group_request_protocol;
+
+    if (in_state(req.group_id, empty)) {
+      return req.protocol_type != "" && sizeof(req.protocols) > 0;
+    }
+
+    group = groups[req.group_id];
+    if (!group.protocol_type.isset ||
+         group.protocol_type.value != req.protocol_type) {
+      return false;
+    }
+
+    foreach(protocol in req.protocols) {
+      if (protocol.name in group.supported_protocols) {
+        if (group.supported_protocols[protocol.name] == sizeof(group.members)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 }
