@@ -54,14 +54,54 @@ type join_group_response_member = (
 event join_group_request_event: join_group_request;
 event join_group_response_event : join_group_response;
 
+enum group_state { empty, preparing_rebalance }
+type group = (
+  st: group_state,
+  initial_join_in_progress: bool);
+
 machine coordinator {
+  var groups: map[int, group];
   var ms: seq[join_group_response_member];
 
   start state init {
     on join_group_request_event do (req: join_group_request) {
+      var is_new_group: bool; // false
+
+      if (!(req.group_id in groups)) {
+        assert req.member_id == -1, "known member cannot join unknown group";
+        groups += (req.group_id, (st = empty, initial_join_in_progress = false));
+        is_new_group = true;
+      }
+
+      handle_join_group(req, is_new_group);
+
       print "received join group request";
       send req.client, join_group_response_event, (error_code = 0, generation_id = 0, protocol_name = 0,
       leader = 0, member_id = 0, members = ms);
     }
+  }
+
+  fun handle_join_group(req: join_group_request, is_new_group: bool) {
+      var group: group;
+
+      if (req.member_id == -1) { // unknown member
+          join_group_unknown_member(req);
+      } else {
+          join_group_known_member(req);
+      }
+
+      // since group might have been updated, look for it again. this value
+      // semantics stuff is nice, but it would be useful in this situation. i
+      // wonder if there is another pattern that can be used.
+      group = groups[req.group_id];
+      if (!is_new_group && !group.initial_join_in_progress && group.st == preparing_rebalance) {
+        // todo
+      }
+  }
+
+  fun join_group_unknown_member(req: join_group_request) {
+  }
+
+  fun join_group_known_member(req: join_group_request) {
   }
 }

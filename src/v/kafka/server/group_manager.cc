@@ -503,6 +503,7 @@ ss::future<> group_manager::recover_partition(
 }
 
 group::join_group_stages group_manager::join_group(join_group_request&& r) {
+    // plang: todo
     auto error = validate_group_status(
       r.ntp, r.data.group_id, join_group_api::key);
     if (error != error_code::none) {
@@ -510,6 +511,7 @@ group::join_group_stages group_manager::join_group(join_group_request&& r) {
           make_join_error(r.data.member_id, error));
     }
 
+    // plang: we don't need to represent time
     if (
       r.data.session_timeout_ms < _conf.group_min_session_timeout_ms()
       || r.data.session_timeout_ms > _conf.group_max_session_timeout_ms()) {
@@ -533,6 +535,7 @@ group::join_group_stages group_manager::join_group(join_group_request&& r) {
         // <kafka>only try to create the group if the group is UNKNOWN AND
         // the member id is UNKNOWN, if member is specified but group does
         // not exist we should reject the request.</kafka>
+        // plang: treating this case as an assertion for now
         if (r.data.member_id != unknown_member_id) {
             vlog(
               klog.trace,
@@ -545,6 +548,8 @@ group::join_group_stages group_manager::join_group(join_group_request&& r) {
             return group::join_group_stages(
               make_join_error(r.data.member_id, error_code::unknown_member_id));
         }
+        // plang: for now we are going to assume there is a single partition and
+        // a non-failing coordinator to handle all requests.
         auto it = _partitions.find(r.ntp);
         if (it == _partitions.end()) {
             // the ntp's partition was available because we had to route the
