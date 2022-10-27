@@ -9,8 +9,11 @@
 //     kafka::protocol_type protocol_type{};
 //     std::vector<join_group_request_protocol> protocols{};
 // };
+//
+// version: annotation from client protocol negotation not in the actual request
 type join_group_request = (
   client: client,
+  version: int,
   group_id: int,
   member_id: int,
   group_instance_id: int, // -1 for null
@@ -59,16 +62,19 @@ type group = (
   st: group_state,
   protocol_type: (isset:bool, value:string),
   supported_protocols: map[string, int],
+  pending_members: map[int, int],
   members: map[int, int],
   initial_join_in_progress: bool);
 
 fun make_group(): group {
   var sp: map[string, int];
   var m: map[int, int];
+  var pm: map[int, int];
   return (
     st = empty,
     protocol_type = (isset = false, value = ""),
     supported_protocols = sp,
+    pending_members = pm,
     members = m,
     initial_join_in_progress = false);
 }
@@ -117,6 +123,13 @@ machine coordinator {
       if (in_state(req.group_id, dead)) {
       } else if (!supports_protocols(req)) {
       }
+
+      //auto new_member_id = group::generate_member_id(r);
+      //if (r.data.group_instance_id) {
+      //    return add_new_static_member(std::move(new_member_id), std::move(r));
+      //}
+
+      add_new_dynamic_member(req, "new member id");
   }
 
   fun join_group_known_member(req: join_group_request) {
@@ -125,6 +138,25 @@ machine coordinator {
   fun in_state(id: int, st: group_state): bool {
     assert id in groups;
     return groups[id].st == st;
+  }
+
+  fun add_new_dynamic_member(req: join_group_request, id: string) {
+    if (req.version >= 4) {
+      add_pending_member(req.group_id, 0);
+    } else {
+      //add_member_and_rebalance();
+    }
+  }
+
+  fun add_pending_member(group_id: int, member_id: int) {
+    if (member_id in groups[group_id].pending_members) {
+      return;
+    }
+
+    groups[group_id].pending_members += (member_id, 0);
+    // TODO: now we need to set a timer that when it fires it calls
+    // remove_pending_member(member_id). we also want to be able to cancel the
+    // timer when other execution paths remove entries from pending members.
   }
 
   // bool group::supports_protocols(const join_group_request& r) const;

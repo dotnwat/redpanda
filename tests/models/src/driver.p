@@ -6,7 +6,7 @@ machine client
   start state init {
     entry {
       coord = new coordinator();
-      send coord, join_group_request_event, (client = this, group_id = 0,
+      send coord, join_group_request_event, (client = this, version = 0, group_id = 0,
       member_id = 0, group_instance_id = 0, protocol_type = "a", protocols =
       protos);
       receive {
