@@ -10,12 +10,14 @@
 #include "kafka/server/handlers/sasl_handshake.h"
 
 #include "kafka/protocol/errors.h"
+#include "security/oauth_authenticator.h"
 #include "security/sasl_authentication.h"
 #include "security/scram_authenticator.h"
 
 static const std::vector<ss::sstring> supported_mechanisms = {
   security::scram_sha256_authenticator::name,
-  security::scram_sha512_authenticator::name};
+  security::scram_sha512_authenticator::name,
+  security::oauth_authenticator::name};
 
 namespace kafka {
 
@@ -42,6 +44,11 @@ ss::future<response_ptr> sasl_handshake_handler::handle(
       request.data.mechanism == security::scram_sha512_authenticator::name) {
         ctx.sasl()->set_mechanism(
           std::make_unique<security::scram_sha512_authenticator::auth>(
+            ctx.credentials()));
+
+    } else if (request.data.mechanism == security::oauth_authenticator::name) {
+        ctx.sasl()->set_mechanism(
+          std::make_unique<security::oauth_authenticator::auth>(
             ctx.credentials()));
 
     } else {
