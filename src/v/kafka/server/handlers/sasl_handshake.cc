@@ -48,8 +48,7 @@ ss::future<response_ptr> sasl_handshake_handler::handle(
 
     } else if (request.data.mechanism == security::oauth_authenticator::name) {
         ctx.sasl()->set_mechanism(
-          std::make_unique<security::oauth_authenticator::auth>(
-            ctx.credentials()));
+          std::make_unique<security::oauth_authenticator>());
 
     } else {
         error = error_code::unsupported_sasl_mechanism;
