@@ -1,0 +1,26 @@
+docker run -p 8080:8080 -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:20.0.1 start-dev
+
+keycloak also has an http admin interface which should be useful in ducktape
+tests for creating stuff like realms/clients on demand since the keycloack
+server will be running as a shared resource.
+
+
+https://www.keycloak.org/getting-started/getting-started-docker
+
+1. create a new realm
+2. create a user (also set a password under credentials tab)
+3. create a client (an app). openid connect client type. standard flow. the
+client needed to have "client authentication" and "service accounts roles"
+enabled for librdkafka to work.
+
+start redpanda with enable_sasl enabled
+
+./kcat -L -b localhost:9092 -X security.protocol=sasl_plaintext -X
+sasl.mechanism=OAUTHBEARER -X sasl.oauthbearer.method=oidc -X
+sasl.oauthbearer.client.id=rp-client -X
+sasl.oauthbearer.client.secret=0uuQwQd4HLrZloewjQ6N0KtRMdDDDUVM -X
+sasl.oauthbearer.token.endpoint.url=http://localhost:8080/realms/rp-realm/protocol/openid-connect/token
+
+notes that work for interacting with the admin rest api
+
+https://www.keycloak.org/docs/latest/server_development/
