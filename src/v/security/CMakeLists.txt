@@ -7,6 +7,7 @@ v_cc_library(
     acl.cc
     mtls.cc
     license.cc
+    oauth_authenticator.cc
   DEPS
     v::bytes
     v::utils
