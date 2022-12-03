@@ -11,12 +11,12 @@ name: Lint all codez
 on:
   push:
     branches:
-      - '**'
+      - 'xxxx'
     tags-ignore:
       - '**'
   pull_request:
     branches:
-      - '**'
+      - 'xxxx'
 
 jobs:
   go:

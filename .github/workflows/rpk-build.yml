@@ -13,11 +13,10 @@ on:
     tags:
     - 'v2**'
     branches:
-      - '*'
+      - 'xxxx'
   pull_request:
     branches:
-      - main
-      - dev
+      - xxxx
 
 jobs:
   build:

@@ -11,10 +11,10 @@ name: helm chart test
 on:
   push:
     branches:
-      - dev
+      - xxxx
   pull_request:
     branches:
-      - dev
+      - xxxx
 jobs:
   helm-test:
     runs-on: ubuntu-latest
