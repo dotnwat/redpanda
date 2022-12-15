@@ -66,11 +66,11 @@ public:
 
 private:
     void setup_metrics(const ss::httpd::path_description&);
-    void setup_public_metrics(const ss::httpd::path_description&);
+    void setup_public_metrics(
+      const ss::httpd::path_description&, const ss::sstring&);
 
 private:
     http_status_metric _request_metrics;
-    const ss::sstring& _group_name;
     ss::metrics::metric_groups _metrics;
     ss::metrics::metric_groups _public_metrics;
 };

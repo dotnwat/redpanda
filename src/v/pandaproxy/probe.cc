@@ -22,11 +22,10 @@ namespace pandaproxy {
 probe::probe(
   const ss::httpd::path_description& path_desc, const ss::sstring& group_name)
   : _request_metrics()
-  , _group_name(group_name)
   , _metrics()
   , _public_metrics(ssx::metrics::public_metrics_handle) {
     setup_metrics(path_desc);
-    setup_public_metrics(path_desc);
+    setup_public_metrics(path_desc, group_name);
 }
 
 void probe::setup_metrics(const ss::httpd::path_description& path) {
@@ -58,7 +57,8 @@ void probe::setup_metrics(const ss::httpd::path_description& path) {
          .aggregate(internal_aggregate_labels)});
 }
 
-void probe::setup_public_metrics(const ss::httpd::path_description& path) {
+void probe::setup_public_metrics(
+  const ss::httpd::path_description& path, const ss::sstring& group_name) {
     namespace sm = ss::metrics;
 
     if (config::shard_local_cfg().disable_public_metrics()) {
@@ -75,11 +75,11 @@ void probe::setup_public_metrics(const ss::httpd::path_description& path) {
       sm::shard_label, operation_label};
 
     _public_metrics.add_group(
-      _group_name,
+      group_name,
       {sm::make_histogram(
          "request_latency_seconds",
          sm::description(
-           ssx::sformat("Internal latency of request for {}", _group_name)),
+           ssx::sformat("Internal latency of request for {}", group_name)),
          labels,
          [this] {
              return ssx::metrics::report_default_histogram(
@@ -91,7 +91,7 @@ void probe::setup_public_metrics(const ss::httpd::path_description& path) {
          "request_errors_total",
          [this] { return _request_metrics._5xx_count; },
          sm::description(
-           ssx::sformat("Total number of {} server errors", _group_name)),
+           ssx::sformat("Total number of {} server errors", group_name)),
          {operation_label(path.operations.nickname), status_label("5xx")})
          .aggregate(aggregate_labels),
 
@@ -99,7 +99,7 @@ void probe::setup_public_metrics(const ss::httpd::path_description& path) {
          "request_errors_total",
          [this] { return _request_metrics._4xx_count; },
          sm::description(
-           ssx::sformat("Total number of {} client errors", _group_name)),
+           ssx::sformat("Total number of {} client errors", group_name)),
          {operation_label(path.operations.nickname), status_label("4xx")})
          .aggregate(aggregate_labels),
 
@@ -107,7 +107,7 @@ void probe::setup_public_metrics(const ss::httpd::path_description& path) {
          "request_errors_total",
          [this] { return _request_metrics._3xx_count; },
          sm::description(
-           ssx::sformat("Total number of {} redirection errors", _group_name)),
+           ssx::sformat("Total number of {} redirection errors", group_name)),
          {operation_label(path.operations.nickname), status_label("3xx")})
          .aggregate(aggregate_labels)});
 }
