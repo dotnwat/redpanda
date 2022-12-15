@@ -37,7 +37,7 @@ api::api(
 api::~api() noexcept = default;
 
 ss::future<> api::start() {
-    const auto mitigate_error = [this](std::exception_ptr ex) {
+    const auto mitigate_error = [this](const std::exception_ptr& ex) {
         return _proxy.local().mitigate_error(ex);
     };
 
