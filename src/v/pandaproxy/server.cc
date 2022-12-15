@@ -69,7 +69,7 @@ struct handler_adaptor : ss::httpd::handler_base {
       ss::gate& pending_requests,
       server::context_t& ctx,
       server::function_handler&& handler,
-      ss::httpd::path_description& path_desc,
+      const ss::httpd::path_description& path_desc,
       const ss::sstring& metrics_group_name,
       json::serialization_format exceptional_mime_type)
       : _pending_requests(pending_requests)

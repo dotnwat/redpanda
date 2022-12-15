@@ -60,16 +60,16 @@ public:
 class probe {
 public:
     probe(
-      ss::httpd::path_description& path_desc, const ss::sstring& group_name);
+      const ss::httpd::path_description& path_desc,
+      const ss::sstring& group_name);
     auto auto_measure() { return _request_metrics.auto_measure(); }
 
 private:
-    void setup_metrics();
-    void setup_public_metrics();
+    void setup_metrics(const ss::httpd::path_description&);
+    void setup_public_metrics(const ss::httpd::path_description&);
 
 private:
     http_status_metric _request_metrics;
-    const ss::httpd::path_description& _path;
     const ss::sstring& _group_name;
     ss::metrics::metric_groups _metrics;
     ss::metrics::metric_groups _public_metrics;

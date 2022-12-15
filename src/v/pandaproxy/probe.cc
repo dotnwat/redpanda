@@ -20,17 +20,16 @@
 namespace pandaproxy {
 
 probe::probe(
-  ss::httpd::path_description& path_desc, const ss::sstring& group_name)
+  const ss::httpd::path_description& path_desc, const ss::sstring& group_name)
   : _request_metrics()
-  , _path(path_desc)
   , _group_name(group_name)
   , _metrics()
   , _public_metrics(ssx::metrics::public_metrics_handle) {
-    setup_metrics();
-    setup_public_metrics();
+    setup_metrics(path_desc);
+    setup_public_metrics(path_desc);
 }
 
-void probe::setup_metrics() {
+void probe::setup_metrics(const ss::httpd::path_description& path) {
     namespace sm = ss::metrics;
 
     if (config::shard_local_cfg().disable_metrics()) {
@@ -39,7 +38,7 @@ void probe::setup_metrics() {
 
     auto operation_label = sm::label("operation");
     std::vector<sm::label_instance> labels{
-      operation_label(_path.operations.nickname)};
+      operation_label(path.operations.nickname)};
 
     auto aggregate_labels = std::vector<sm::label>{
       sm::shard_label, operation_label};
@@ -59,7 +58,7 @@ void probe::setup_metrics() {
          .aggregate(internal_aggregate_labels)});
 }
 
-void probe::setup_public_metrics() {
+void probe::setup_public_metrics(const ss::httpd::path_description& path) {
     namespace sm = ss::metrics;
 
     if (config::shard_local_cfg().disable_public_metrics()) {
@@ -70,7 +69,7 @@ void probe::setup_public_metrics() {
     auto status_label = ssx::metrics::make_namespaced_label("status");
 
     std::vector<sm::label_instance> labels{
-      operation_label(_path.operations.nickname)};
+      operation_label(path.operations.nickname)};
 
     auto aggregate_labels = std::vector<sm::label>{
       sm::shard_label, operation_label};
@@ -93,7 +92,7 @@ void probe::setup_public_metrics() {
          [this] { return _request_metrics._5xx_count; },
          sm::description(
            ssx::sformat("Total number of {} server errors", _group_name)),
-         {operation_label(_path.operations.nickname), status_label("5xx")})
+         {operation_label(path.operations.nickname), status_label("5xx")})
          .aggregate(aggregate_labels),
 
        sm::make_counter(
@@ -101,7 +100,7 @@ void probe::setup_public_metrics() {
          [this] { return _request_metrics._4xx_count; },
          sm::description(
            ssx::sformat("Total number of {} client errors", _group_name)),
-         {operation_label(_path.operations.nickname), status_label("4xx")})
+         {operation_label(path.operations.nickname), status_label("4xx")})
          .aggregate(aggregate_labels),
 
        sm::make_counter(
@@ -109,7 +108,7 @@ void probe::setup_public_metrics() {
          [this] { return _request_metrics._3xx_count; },
          sm::description(
            ssx::sformat("Total number of {} redirection errors", _group_name)),
-         {operation_label(_path.operations.nickname), status_label("3xx")})
+         {operation_label(path.operations.nickname), status_label("3xx")})
          .aggregate(aggregate_labels)});
 }
 
