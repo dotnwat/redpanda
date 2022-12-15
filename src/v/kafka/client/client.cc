@@ -51,13 +51,14 @@ client::client(const YAML::Node& cfg, external_mitigate mitigater)
   , _seeds{_config.brokers()}
   , _topic_cache{}
   , _brokers{_config}
+  , _external_mitigate(std::move(mitigater))
   , _wait_or_start_update_metadata{[this](wait_or_start::tag tag) {
       return update_metadata(tag);
   }}
-  , _producer{_config, _topic_cache, _brokers, [this](const std::exception_ptr& ex) {
-      return mitigate_error(ex);
-  }}
-  , _external_mitigate(std::move(mitigater)) {}
+  , _producer{
+      _config, _topic_cache, _brokers, [this](const std::exception_ptr& ex) {
+          return mitigate_error(ex);
+      }} {}
 
 ss::future<> client::do_connect(net::unresolved_address addr) {
     return make_broker(unknown_node_id, addr, _config)

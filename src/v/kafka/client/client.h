@@ -205,6 +205,8 @@ private:
     brokers _brokers;
     /// \brief The node id of the controller.
     model::node_id _controller{unknown_node_id};
+    ss::noncopyable_function<ss::future<>(std::exception_ptr)>
+      _external_mitigate;
     /// \brief Update metadata, or wait for an existing one.
     wait_or_start _wait_or_start_update_metadata;
     /// \brief Batching producer.
@@ -219,9 +221,6 @@ private:
       _consumers;
     /// \brief Wait for retries.
     ss::gate _gate;
-
-    ss::noncopyable_function<ss::future<>(std::exception_ptr)>
-      _external_mitigate;
 };
 
 } // namespace kafka::client
