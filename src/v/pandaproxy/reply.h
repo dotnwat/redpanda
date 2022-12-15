@@ -87,7 +87,7 @@ inline std::unique_ptr<ss::httpd::reply> unprocessable_entity(ss::sstring msg) {
       std::move(msg));
 }
 
-inline std::unique_ptr<ss::httpd::reply> exception_reply(std::exception_ptr e) {
+inline std::unique_ptr<ss::httpd::reply> exception_reply(const std::exception_ptr& e) {
     try {
         std::rethrow_exception(e);
     } catch (const ss::gate_closed_exception& e) {
