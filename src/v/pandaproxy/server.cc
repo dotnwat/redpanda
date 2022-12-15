@@ -122,7 +122,6 @@ server::server(
   json::serialization_format exceptional_mime_type)
   : _server(server_name)
   , _public_metrics_group_name(public_metrics_group_name)
-  , _pending_reqs()
   , _api20(std::move(api20))
   , _has_routes(false)
   , _ctx(ctx)
