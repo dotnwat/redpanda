@@ -51,7 +51,7 @@ auto retry_with_mitigation(
                       });
                 }
                 return fut.then(func).handle_exception(
-                  [&eptr](std::exception_ptr ex) mutable {
+                  [&eptr](const std::exception_ptr& ex) mutable {
                       eptr = ex;
                       return Futurator::make_exception_future(eptr);
                   });
