@@ -29,6 +29,7 @@
 #include "net/unresolved_address.h"
 #include "ssx/semaphore.h"
 #include "utils/retry.h"
+#include "utils/wait_or_start.h"
 
 #include <seastar/core/condition-variable.hh>
 
@@ -37,32 +38,6 @@
 #include <absl/container/node_hash_map.h>
 
 namespace kafka::client {
-
-/// \brief wait or start a function
-///
-/// Start the function and wait for it to finish, or, if an instance of the
-/// function is already running, wait for that one to finish.
-class wait_or_start {
-public:
-    // Prevent accidentally calling the protected func.
-    struct tag {};
-    using func = ss::noncopyable_function<ss::future<>(tag)>;
-
-    explicit wait_or_start(func func)
-      : _func{std::move(func)} {}
-
-    ss::future<> operator()() {
-        if (_lock.try_wait()) {
-            return _func(tag{}).finally(
-              [this]() { _lock.signal(_lock.waiters() + 1); });
-        }
-        return _lock.wait();
-    }
-
-private:
-    func _func;
-    ssx::semaphore _lock{1, "k/client"};
-};
 
 namespace impl {
 

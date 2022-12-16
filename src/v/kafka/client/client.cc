@@ -52,7 +52,7 @@ client::client(const YAML::Node& cfg, external_mitigate mitigater)
   , _topic_cache{}
   , _brokers{_config}
   , _external_mitigate(std::move(mitigater))
-  , _wait_or_start_update_metadata{[this](wait_or_start::tag tag) {
+  , _wait_or_start_update_metadata{"k/client", [this](wait_or_start::tag tag) {
       return update_metadata(tag);
   }}
   , _producer{
