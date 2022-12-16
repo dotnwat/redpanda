@@ -63,7 +63,9 @@ public:
                   _gate.check();
                   return func();
               },
-              [this](std::exception_ptr ex) { return mitigate_error(ex); });
+              [this](const std::exception_ptr& ex) {
+                  return mitigate_error(ex);
+              });
         });
     }
 
