@@ -94,11 +94,10 @@ struct handler_adaptor : ss::httpd::handler_base {
         } else {
             try {
                 /*
-                 * The `rq` that is passed in is a generic server::request_t.
-                 * However, the signature of the handler may have something like
-                 * auth_ctx_server::request_t. The implicit constructor may then
-                 * do additional work such as authentication and filling in
-                 * state like user credentials, etc...
+                 * when rq is moved into the handler it may implicitly construct
+                 * a specialization (e.g. auth_ctx_server::request_t) which does
+                 * additional work such as authentication. this is how the
+                 * server sub-classes receive their customized types.
                  */
                 rp = co_await _handler(std::move(rq), std::move(rp));
             } catch (...) {
