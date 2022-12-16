@@ -218,9 +218,9 @@ ss::future<> server::start(
 }
 
 ss::future<> server::stop() {
-    return _pending_reqs.close()
-      .finally([this]() { return _ctx.as.request_abort(); })
-      .finally([this]() mutable { return _server.stop(); });
+    _ctx.as.request_abort();
+    return _pending_reqs.close().finally(
+      [this]() mutable { return _server.stop(); });
 }
 
 } // namespace pandaproxy
