@@ -39,21 +39,13 @@
 
 namespace kafka::client {
 
-namespace impl {
-
-constexpr auto default_external_mitigate = [](std::exception_ptr ex) {
-    return ss::make_exception_future(ex);
-};
-
-}
-
 class client {
 public:
     using external_mitigate
       = ss::noncopyable_function<ss::future<>(std::exception_ptr)>;
-    explicit client(
-      YAML::Node const& cfg,
-      external_mitigate mitigater = impl::default_external_mitigate);
+
+    explicit client(YAML::Node const& cfg);
+    client(YAML::Node const& cfg, external_mitigate mitigater);
 
     /// \brief Connect to all brokers.
     ss::future<> connect();

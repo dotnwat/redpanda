@@ -44,7 +44,16 @@
 #include <exception>
 #include <system_error>
 
+namespace {
+constexpr auto default_external_mitigate = [](std::exception_ptr ex) {
+    return ss::make_exception_future(ex);
+};
+}
+
 namespace kafka::client {
+
+client::client(const YAML::Node& cfg)
+  : client(cfg, default_external_mitigate) {}
 
 client::client(const YAML::Node& cfg, external_mitigate mitigater)
   : _config{cfg}
