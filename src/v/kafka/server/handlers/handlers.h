@@ -36,6 +36,7 @@
 #include "kafka/server/handlers/list_offsets.h"
 #include "kafka/server/handlers/metadata.h"
 #include "kafka/server/handlers/offset_commit.h"
+#include "kafka/server/handlers/offset_delete.h"
 #include "kafka/server/handlers/offset_fetch.h"
 #include "kafka/server/handlers/offset_for_leader_epoch.h"
 #include "kafka/server/handlers/produce.h"
@@ -86,7 +87,8 @@ using request_types = make_request_types<
   add_offsets_to_txn_handler,
   end_txn_handler,
   create_partitions_handler,
-  offset_for_leader_epoch_handler>;
+  offset_for_leader_epoch_handler,
+  offset_delete_handler>;
 
 template<typename... RequestTypes>
 static constexpr size_t max_api_key(type_list<RequestTypes...>) {
