@@ -31,6 +31,7 @@
 #include "kafka/server/handlers/leave_group.h"
 #include "kafka/server/handlers/list_groups.h"
 #include "kafka/server/handlers/offset_commit.h"
+#include "kafka/server/handlers/offset_delete.h"
 #include "kafka/server/handlers/offset_fetch.h"
 #include "kafka/server/handlers/sasl_authenticate.h"
 #include "kafka/server/handlers/sasl_handshake.h"
@@ -1254,6 +1255,52 @@ offset_commit_handler::handle(request_context ctx, ss::smp_service_group ssg) {
       });
 
     return process_result_stages(std::move(dispatch_f), std::move(f));
+}
+
+template<>
+ss::future<response_ptr>
+offset_delete_handler::handle(request_context ctx, ss::smp_service_group ssg) {
+    offset_delete_request request;
+    request.decode(ctx.reader(), ctx.header().version);
+    log_request(ctx.header(), request);
+
+    if (!ctx.authorized(
+          security::acl_operation::remove, request.data.group_id)) {
+        co_return co_await ctx.respond(
+          offset_delete_response(error_code::group_authorization_failed));
+    }
+
+    absl::btree_map<model::ntp, kafka::error_code> errors;
+    std::vector<model::ntp> tps;
+
+    for (const auto& topic : request.data.topics) {
+        const auto topic_authorized = ctx.authorized(
+          security::acl_operation::read, topic.name);
+
+        for (const auto& part : topic.partitions) {
+            model::ntp ntp(
+              model::kafka_namespace, topic.name, part.partition_index);
+
+            if (!topic_authorized) {
+                errors.emplace(
+                  std::move(ntp), error_code::topic_authorization_failed);
+            } else if (!ctx.metadata_cache().contains(ntp)) {
+                errors.emplace(
+                  std::move(ntp), error_code::unknown_topic_or_partition);
+            } else {
+                tps.push_back(std::move(ntp));
+            }
+        }
+    }
+
+    // ok so maybe we should manipulate the request in place, or at least
+    // replace the topics before sending here because request.ntp is used by the
+    // group router.
+    co_return co_await ctx.respond(
+      co_await ctx.groups().offset_delete(std::move(request)));
+
+    co_return co_await ctx.respond(
+      offset_delete_response(error_code::group_authorization_failed));
 }
 
 } // namespace kafka

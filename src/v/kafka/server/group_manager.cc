@@ -1035,6 +1035,74 @@ group_manager::offset_fetch(offset_fetch_request&& r) {
     return group->handle_offset_fetch(std::move(r)).finally([group] {});
 }
 
+ss::future<offset_delete_response>
+group_manager::offset_delete(offset_delete_request r) {
+    auto error = validate_group_status(
+      r.ntp, r.data.group_id, offset_delete_api::key);
+    if (error != error_code::none) {
+        /*
+         * TODO group error handling and we can return. partition errors is
+         * empty
+         */
+        // If there is a group error, the partition errors is empty
+        //     groupError -> partitionErrors
+        co_return offset_delete_response(error);
+    }
+
+    auto group = get_group(r.data.group_id);
+    if (!group) {
+        /*
+         * TODO group error handling and we can return. partition errors is
+         * empty
+         */
+        // If there is a group error, the partition errors is empty
+        //     groupError -> partitionErrors
+        co_return offset_delete_response(error_code::group_id_not_found);
+    }
+
+    std::vector<model::ntp> to_delete;
+
+    switch (group->state()) {
+    case group_state::dead:
+        // error is group id not found, but still break out for more work
+        // offset_delete_response(error_code::group_id_not_found);
+        break;
+
+    case group_state::empty:
+        // this is the set of partitions from the request that made it through
+        // the initial filter like authorization / metadata cache check
+        // partitionsEligibleForDeletion = partitions
+        //
+        // to_delete = r.data.ntps
+        break;
+
+    case group_state::preparing_rebalance:
+    case group_state::completing_rebalance:
+        [[fallthrough]];
+    case group_state::stable: {
+        if (group->protocol_type() != "consumer") {
+            // group_error = error_code::non_empty_group;
+            break;
+        }
+        // partition r.data.ntps based on group.isSubscribedToTopic(ntp.topic)
+        // to_delete = partitions without subscriber
+        // partition_errors = error_code::group_subcribed_to_topic
+    }
+    }
+
+    if (!to_delete.empty()) {
+        // offsets removed = call the core retention helper with the elegible
+        // requests. the selector is basically the same except it just does the
+        // delete rather than consulting timestamps. txns offsets pending is
+        // also checked.
+        //
+        // these eligible partitions get folded back into the final set of
+        // partition errors with error code NONE
+    }
+
+    co_return offset_delete_response(error_code::none);
+}
+
 std::pair<error_code, std::vector<listed_group>>
 group_manager::list_groups() const {
     auto loading = std::any_of(
