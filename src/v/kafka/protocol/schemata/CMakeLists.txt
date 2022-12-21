@@ -66,6 +66,8 @@ set(schemata
   add_offsets_to_txn_request.json
   add_offsets_to_txn_response.json
   offset_for_leader_epoch_request.json
-  offset_for_leader_epoch_response.json)
+  offset_for_leader_epoch_response.json
+  offset_delete_request.json
+  offset_delete_response.json)
 
 set(schemata ${schemata} PARENT_SCOPE)
