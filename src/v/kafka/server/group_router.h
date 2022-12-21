@@ -19,6 +19,7 @@
 #include "kafka/protocol/leave_group.h"
 #include "kafka/protocol/list_groups.h"
 #include "kafka/protocol/offset_commit.h"
+#include "kafka/protocol/offset_delete.h"
 #include "kafka/protocol/offset_fetch.h"
 #include "kafka/protocol/schemata/delete_groups_response.h"
 #include "kafka/protocol/sync_group.h"
@@ -71,6 +72,9 @@ public:
     offset_fetch(offset_fetch_request&& request);
 
     group::offset_commit_stages offset_commit(offset_commit_request&& request);
+
+    ss::future<offset_delete_response>
+    offset_delete(offset_delete_request&& request);
 
     ss::future<txn_offset_commit_response>
     txn_offset_commit(txn_offset_commit_request&& request);
