@@ -471,6 +471,10 @@ STRUCT_TYPES = [
     "SupportedFeatureKey",
     "FinalizedFeatureKey",
     "DeleteTopicState",
+    "OffsetDeleteRequestTopic",
+    "OffsetDeleteRequestPartition",
+    "OffsetDeleteResponseTopic",
+    "OffsetDeleteResponsePartition",
 ]
 
 # a list of struct types which are ineligible to have default-generated
