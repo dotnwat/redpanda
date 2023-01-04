@@ -88,7 +88,10 @@ group::group(
   enable_group_metrics group_metrics)
   : _id(std::move(id))
   , _state(md.members.empty() ? group_state::empty : group_state::stable)
-  , _state_timestamp(md.state_timestamp)
+  , _state_timestamp(
+      md.state_timestamp == model::timestamp(-1)
+        ? std::optional<model::timestamp>(std::nullopt)
+        : md.state_timestamp)
   , _generation(md.generation)
   , _num_members_joining(0)
   , _protocol_type(md.protocol_type)
@@ -2204,6 +2207,7 @@ group::store_txn_offsets(txn_offset_commit_request r) {
     prepared_tx ptx;
     ptx.tx_seq = tx_seq;
     for (const auto& [tp, offset] : offsets) {
+        // needs expiration timestamp?
         offset_metadata md{
           .log_offset = e.value().last_offset,
           .offset = offset.offset,
@@ -2305,6 +2309,12 @@ group::offset_commit_stages group::store_offsets(offset_commit_request&& r) {
               .metadata = p.committed_metadata.value_or(""),
               .committed_leader_epoch = p.committed_leader_epoch,
             };
+
+            if (r.data.retention_time_ms != -1) {
+                md.expires = std::chrono::system_clock::now()
+                             + std::chrono::milliseconds(
+                               r.data.retention_time_ms);
+            }
 
             offset_commits.emplace_back(std::make_pair(tp, md));
 
@@ -3318,6 +3328,107 @@ void group::update_subscriptions() {
     }
 
     _subscriptions = std::move(subs);
+}
+
+std::vector<model::topic_partition> group::filter_expired_offsets(
+  const std::function<bool(const model::topic&)>& subscribed,
+  const std::function<std::chrono::system_clock::time_point(
+    const std::unique_ptr<offset_metadata_with_probe>&)>& effective_expires) {
+    std::vector<model::topic_partition> offsets;
+
+    for (const auto& offset : _offsets) {
+        if (subscribed(offset.first.topic)) {
+            continue;
+        }
+
+        if (_pending_offset_commits.contains(offset.first)) {
+            continue;
+        }
+
+        const auto now = std::chrono::system_clock::now();
+        const auto expires = offset.second->metadata.expires;
+
+        // TODO offset_retention is a configuration value
+        const auto offset_retention
+          = decltype(expires.value() - expires.value()){};
+
+        if (expires.has_value()) {
+            if (expires.value() > now) {
+                continue;
+            }
+            // fallthrough to save offset
+        } else {
+            if ((now - effective_expires(offset.second)) < offset_retention) {
+                continue;
+            }
+            // fallthrough to save offset
+        }
+
+        offsets.push_back(offset.first);
+    }
+
+    return offsets;
+}
+
+std::vector<model::topic_partition> group::get_expired_offsets() {
+    const auto not_subscribed = [](const auto&) { return false; };
+
+    if (_protocol_type.has_value()) {
+        if (
+          _protocol_type.value() == "consumer" && _subscriptions.has_value()
+          && in_state(group_state::stable)) {
+            return filter_expired_offsets(
+              [this](const auto& topic) {
+                  // _subscriptions.has_value implied by branch condition
+                  return _subscriptions.value().contains(topic);
+              },
+              [](const std::unique_ptr<offset_metadata_with_probe>& md) {
+                  /*
+                   * TODO: this should return the commit timestamp
+                   */
+                  return md->metadata.expires.value();
+              });
+
+        } else if (in_state(group_state::empty)) {
+            return filter_expired_offsets(
+              not_subscribed,
+              [this](const std::unique_ptr<offset_metadata_with_probe>&) {
+                  if (_state_timestamp.has_value()) {
+                      /*
+                       * TODO should return _state_timestamp
+                       */
+                      return std::chrono::system_clock::now();
+                  } else {
+                      /*
+                       * TODO: this should return the commit timestamp from md
+                       */
+                      return std::chrono::system_clock::now();
+                  }
+              });
+        } else {
+            return {};
+        }
+    } else {
+        return filter_expired_offsets(
+          not_subscribed,
+          [](const std::unique_ptr<offset_metadata_with_probe>& md) {
+              /*
+               * TODO: this should return the commit timestamp
+               */
+              return md->metadata.expires.value();
+          });
+    }
+}
+
+/*
+ * TODO locking?
+ */
+std::vector<model::topic_partition> group::delete_expired_offsets() {
+    auto offsets = get_expired_offsets();
+    for (const auto& offset : offsets) {
+        _offsets.erase(offset);
+    }
+    return offsets;
 }
 
 } // namespace kafka
