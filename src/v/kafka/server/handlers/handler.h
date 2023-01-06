@@ -41,12 +41,15 @@ template<
   api_version::type MinSupported,
   api_version::type MaxSupported,
   typename HandleRetType,
-  memory_estimate_fn MemEstimator>
+  memory_estimate_fn MemEstimator,
+  bool is_new_style>
 struct handler_template {
     using api = RequestApi;
+    static constexpr bool new_style = is_new_style;
     static constexpr api_version min_supported = api_version(MinSupported);
     static constexpr api_version max_supported = api_version(MaxSupported);
 
+    // when new_style is true this handler will not be invoked
     static HandleRetType handle(request_context, ss::smp_service_group);
 
     /**
@@ -83,7 +86,21 @@ using single_stage_handler = handler_template<
   MinSupported,
   MaxSupported,
   ss::future<response_ptr>,
-  MemEstimator>;
+  MemEstimator,
+  false>;
+
+template<
+  typename RequestApi,
+  api_version::type MinSupported,
+  api_version::type MaxSupported,
+  memory_estimate_fn MemEstimator = default_estimate_adaptor>
+using single_stage_handler_ng = handler_template<
+  RequestApi,
+  MinSupported,
+  MaxSupported,
+  ss::future<response_ptr>,
+  MemEstimator,
+  true>;
 
 /**
  * A two-stage handler has an initial stage which happens before any other
@@ -102,7 +119,8 @@ using two_phase_handler = handler_template<
   MinSupported,
   MaxSupported,
   process_result_stages,
-  MemEstimator>;
+  MemEstimator,
+  false>;
 
 template<typename T>
 concept KafkaApiHandler = KafkaApi<typename T::api> && requires(

@@ -52,18 +52,12 @@ struct handler_info {
  *
  * @tparam is_two_pass true if the handler is two-pass
  */
-template<bool is_two_pass>
+template<typename H>
 struct handler_base final : public handler_interface {
-    using single_pass_handler
-      = ss::future<response_ptr>(request_context, ss::smp_service_group);
-    using two_pass_handler
-      = process_result_stages(request_context, ss::smp_service_group);
-    using fn_type
-      = std::conditional_t<is_two_pass, two_pass_handler, single_pass_handler>;
+    static constexpr auto is_two_pass = KafkaApiTwoPhaseHandler<H>;
 
-    handler_base(const handler_info& info, fn_type* handle_fn) noexcept
-      : _info(info)
-      , _handle_fn(handle_fn) {}
+    handler_base(const handler_info& info) noexcept
+      : _info(info) {}
 
     api_version min_supported() const override { return _info._min_api; }
     api_version max_supported() const override { return _info._max_api; }
@@ -81,17 +75,30 @@ struct handler_base final : public handler_interface {
      */
     process_result_stages
     handle(request_context&& rc, ss::smp_service_group g) const override {
+        if constexpr (H::new_style) {
+            typename H::api::request_type request;
+            request.decode(rc.reader(), rc.header().version);
+            H::log_request(rc.header(), request);
+            auto f = ss::do_with(
+              std::move(rc),
+              [r = std::move(request)](request_context& ctx) mutable {
+                  return ctx.connection()
+                    ->server()
+                    .handle_request(ctx, std::move(r))
+                    .then([&ctx](auto r) { return ctx.respond(std::move(r)); });
+              });
+            return process_result_stages::single_stage(std::move(f));
+        }
         if constexpr (is_two_pass) {
-            return _handle_fn(std::move(rc), g);
+            return H::handle(std::move(rc), g);
         } else {
             return process_result_stages::single_stage(
-              _handle_fn(std::move(rc), g));
+              H::handle(std::move(rc), g));
         }
     }
 
 private:
     handler_info _info;
-    fn_type* _handle_fn;
 };
 
 /**
@@ -104,14 +111,12 @@ private:
  */
 template<KafkaApiHandlerAny H>
 struct handler_holder {
-    static const inline handler_base<KafkaApiTwoPhaseHandler<H>> instance{
-      handler_info{
-        H::api::key,
-        H::api::name,
-        H::min_supported,
-        H::max_supported,
-        H::memory_estimate},
-      H::handle};
+    static const inline handler_base<H> instance{handler_info{
+      H::api::key,
+      H::api::name,
+      H::min_supported,
+      H::max_supported,
+      H::memory_estimate}};
 };
 
 template<typename... Ts>
