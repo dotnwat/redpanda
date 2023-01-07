@@ -12,7 +12,7 @@
 
 #include "net/unresolved_address.h"
 #include "seastarx.h"
-#include "test_utils/registered_urls.h"
+#include "http/tests/registered_urls.h"
 #include "vassert.h"
 
 #include <seastar/core/sstring.hh>

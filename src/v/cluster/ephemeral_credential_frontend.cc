@@ -10,7 +10,7 @@
 #include "cluster/ephemeral_credential_frontend.h"
 
 #include "cluster/ephemeral_credential_serde.h"
-#include "cluster/ephemeral_credential_service_impl.h"
+#include "cluster/ephemeral_credential_rpc_service.h"
 #include "cluster/logger.h"
 #include "features/feature_table.h"
 #include "random/generators.h"

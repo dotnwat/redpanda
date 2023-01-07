@@ -11,6 +11,8 @@ endif
 # on supported platforms. These are compiled from source for production release
 # builds and for public builds when a system package is not available.
 #
+fmt = subproject('fmt')
+fmt = fmt.get_variable('fmt_dep')
 seastar = dependency('seastar', include_type: 'system')
 seastar_testing = dependency('seastar_testing', include_type: 'system')
 seastar_perf_testing = dependency('seastar_perf_testing', include_type: 'system')
@@ -18,7 +20,8 @@ seastar_json2code = find_program('seastar-json2code')
 crc32c = dependency('crc32c')
 rapidjson = dependency('rapidjson')
 ctre = dependency('ctre')
-hdr_histogram = dependency('hdr_histogram')
+hdr_histogram = dependency('hdr_histogram',
+  default_options: ['build_tests=false'])
 base64 = dependency('base64')
 avro = dependency('avro')
 
@@ -64,6 +67,10 @@ protobuf = dependency('protobuf',
   modules: ['protobuf::libprotobuf', 'protobuf::libprotoc'])
 cryptopp = dependency('libcrypto++', 'cryptopp')
 
+# the re2 pkg-config settings in fc37 contain an erroneous c++11 flag which
+# overrides our request for c++20. but the cmake configuration is clean.
+re2 = dependency('re2', method: 'cmake')
+
 # this enables our flat includes like `#include "bytes/bytes.h"`
 common = declare_dependency(
   include_directories: include_directories('.'))
@@ -81,7 +88,6 @@ version_h = vcs_tag(
 )
 
 subdir('test_utils')
-subdir('ssx')
 subdir('bytes')
 subdir('random')
 subdir('hashing')
@@ -89,23 +95,25 @@ subdir('serde')
 subdir('finjector')
 subdir('compression')
 subdir('model')
-subdir('features')
-subdir('reflection')
 subdir('json')
 subdir('utils')
+subdir('ssx')
 subdir('security')
 subdir('config')
+subdir('features')
+subdir('reflection')
 subdir('syschecks')
 subdir('net')
 subdir('http')
 subdir('cloud_roles')
 subdir('cloud_storage_clients')
+subdir('resource_mgmt')
 subdir('storage')
 subdir('rpc')
 subdir('raft')
 subdir('cloud_storage')
-subdir('cluster')
 subdir('archival')
+subdir('cluster')
 subdir('kafka/protocol')
 subdir('kafka/client')
 subdir('coproc')

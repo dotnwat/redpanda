@@ -11,7 +11,8 @@ admin_api_swags = [
   'transaction',
   'cluster',
   'debug',
-  'shadow_indexing']
+  'shadow_indexing',
+  'redpanda_services_restart']
 
 admin_api_h = []
 foreach swag : admin_api_swags

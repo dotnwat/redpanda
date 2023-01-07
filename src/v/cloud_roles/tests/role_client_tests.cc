@@ -13,7 +13,7 @@
 #include "cloud_roles/gcp_refresh_impl.h"
 #include "cloud_roles/tests/test_definitions.h"
 #include "test_utils/fixture.h"
-#include "test_utils/http_imposter.h"
+#include "http/tests/http_imposter.h"
 
 #include <seastar/core/file.hh>
 #include <seastar/testing/thread_test_case.hh>
