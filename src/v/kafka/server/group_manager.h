@@ -262,6 +262,10 @@ private:
           groups, [](auto group_ptr) { return group_ptr->shutdown(); });
     }
 
+    // TODO: add a new Timer/Thread abstraction
+    ss::timer<> _timer;
+    ss::future<> handle_offset_expiration();
+    ss::future<> delete_expired_offsets(group_ptr);
     ss::sharded<raft::group_manager>& _gm;
     ss::sharded<cluster::partition_manager>& _pm;
     ss::sharded<cluster::topic_table>& _topic_table;
