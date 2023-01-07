@@ -8,7 +8,6 @@ test('schema registry unit', t)
 
 # ARGS "-- -c 1"
 t = executable('test_scheam_reg_single_thread',
-  'one_shot.cc',
   'sharded_store.cc',
   'consume_to_store.cc',
   'compatibility_store.cc',

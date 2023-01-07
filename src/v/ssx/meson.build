@@ -1,3 +1,6 @@
+ssx = declare_dependency(
+  dependencies: [utils])
+
 t = executable('test_ssx',
   'tests/async_transforms.cc',
   'tests/sformat.cc',

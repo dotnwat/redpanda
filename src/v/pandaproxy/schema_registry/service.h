@@ -17,7 +17,7 @@
 #include "pandaproxy/schema_registry/sharded_store.h"
 #include "pandaproxy/server.h"
 #include "pandaproxy/util.h"
-#include "redpanda/request_auth.h"
+#include "cluster/request_auth.h"
 #include "seastarx.h"
 
 #include <seastar/core/future.hh>

@@ -6,6 +6,8 @@ cluster_services = [
   'partition_balancer_rpc',
   'node_status_rpc',
   'cluster_bootstrap',
+  'ephemeral_credential_rpc',
+  'self_test_rpc',
 ]
 
 cluster_services_h = []
@@ -57,8 +59,6 @@ libcluster = library('cluster',
   'tx_helpers.cc',
   'security_manager.cc',
   'security_frontend.cc',
-  'data_policy_manager.cc',
-  'data_policy_frontend.cc',
   'cluster_discovery.cc',
   'controller_api.cc',
   'members_frontend.cc',
@@ -86,16 +86,25 @@ libcluster = library('cluster',
   'partition_balancer_planner.cc',
   'partition_balancer_backend.cc',
   'partition_balancer_rpc_handler.cc',
+  'partition_balancer_state.cc',
   'node_status_backend.cc',
   'node_status_rpc_handler.cc',
   'bootstrap_service.cc',
+  'bootstrap_backend.cc',
   'request_auth.cc',
+  'tm_stm_cache.cc',
+  'ephemeral_credential_frontend.cc',
+  'ephemeral_credential_service.cc',
+  'controller_log_limiter.cc',
+  'self_test_backend.cc',
+  'self_test_frontend.cc',
+  'self_test_rpc_handler.cc',
   cluster_services_h,
   version_h,
   implicit_include_directories: false,
-  dependencies: [config, model, raft, http, v8_engine, cloud_storage, features])
+  dependencies: [config, model, raft, http, cloud_storage, features, archival])
 
 cluster = declare_dependency(
   sources: [cluster_services_h, version_h],
-  dependencies: [config, model, raft, http, v8_engine, cloud_storage, features],
+  dependencies: [config, model, raft, http, cloud_storage, features, archival],
   link_with: libcluster)

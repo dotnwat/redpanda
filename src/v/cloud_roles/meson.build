@@ -28,4 +28,4 @@ executable('test_cloud_roles',
   'tests/categorization_tests.cc',
   'tests/fetch_credentials_tests.cc',
   'tests/credential_tests.cc',
-  dependencies: [seastar_testing_main, cloud_roles])
+  dependencies: [seastar_testing_main, cloud_roles, http_test_utils])

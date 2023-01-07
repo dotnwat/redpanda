@@ -15,6 +15,8 @@ libcloud_storage = library('cloud_storage',
   'remote_partition.cc',
   'remote_segment_index.cc',
   'tx_range_manifest.cc',
+  'materialized_segments.cc',
+  'segment_state.cc',
   implicit_include_directories: false,
   dependencies: [seastar, config, model, s3, storage])
 

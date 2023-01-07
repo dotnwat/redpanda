@@ -1,8 +1,11 @@
 # -DBOOST_ASIO_HAS_STD_INVOKE_RESULT
 libs3 = library('s3',
-  'client.cc',
-  'error.cc',
+  'client_pool.cc',
+  's3_client.cc',
+  's3_error.cc',
   'client_probe.cc',
+  'configuration.cc',
+  'util.cc',
   implicit_include_directories: false,
   dependencies: [seastar, bytes, http, cloud_roles])
 

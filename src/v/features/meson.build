@@ -1,11 +1,14 @@
 libfeatures = library('features',
   'feature_table.cc',
+  'feature_table_snapshot.cc',
+  'feature_migrator.cc',
+  'migrators/cloud_storage_config.cc',
   'logger.cc',
   implicit_include_directories: false,
-  dependencies: [seastar, model])
+  dependencies: [seastar, model, config])
 
 features = declare_dependency(
-  dependencies: [seastar, model],
+  dependencies: [seastar, model, config],
   link_with: libfeatures)
 
 t = executable('test_feature_table',

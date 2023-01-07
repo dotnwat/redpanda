@@ -2,6 +2,7 @@ libpandaproxy_rest = library('pandaproxy_rest',
   'configuration.cc',
   'handlers.cc',
   'proxy.cc',
+  'api.cc',
   pandaproxy_api_h,
   implicit_include_directories: false,
   dependencies: [config, kafka_client, pandaproxy_common])

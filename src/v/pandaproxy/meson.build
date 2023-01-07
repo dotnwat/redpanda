@@ -7,7 +7,7 @@ libpandaproxy_common = library('pandaproxy_common',
   'probe.cc',
   'server.cc',
   'kafka_client_cache.cc',
-  'sharded_client_cache.cc',
+  'config_utils.cc',
   implicit_include_directories: false,
   dependencies: [config, kafka_client, utils, pandaproxy_parsing, pandaproxy_json])
 

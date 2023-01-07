@@ -1,6 +1,6 @@
 [wrap-git]
 url = https://github.com/dotnwat/HdrHistogram_c.git
-revision = meson
+revision = meson-next
 depth = 1
 
 [provide]
