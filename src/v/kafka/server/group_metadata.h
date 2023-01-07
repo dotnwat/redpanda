@@ -147,6 +147,10 @@ struct offset_metadata_value {
     // present only in version 1
     model::timestamp expiry_timestamp{-1};
 
+    // in kafka this is different if expiration is present
+    // if (apiVersion < KAFKA_2_1_IV0 ||
+    // offsetAndMetadata.expireTimestamp.nonEmpty) {
+
     friend std::ostream&
     operator<<(std::ostream&, const offset_metadata_value&);
     friend bool

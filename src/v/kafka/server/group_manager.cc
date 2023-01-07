@@ -97,7 +97,114 @@ ss::future<> group_manager::start() {
             handle_topic_delta(deltas);
         });
 
+    // TODO need abort source for timer
+    // TODO need configurable retention check interval (10 min?)
+    _timer.set_callback([this] {
+        ssx::spawn_with_gate(_gate, [this] {
+            return handle_offset_expiration().finally(
+              [this] { _timer.arm(2s); });
+        });
+    });
+    _timer.arm(2s);
+
     return ss::make_ready_future<>();
+}
+
+/*
+ * TODO go ahead and tombstone stuff
+ * - its entirely possible we race with partition leadership going away or
+ *   partition moving or topic being deleted... if its online, starting up
+ *   etc...  it'd be useful if we could just proceed, log appropriate
+ *   errors, and be done with it. i think this is probably the case.
+ *
+ * TODO given that we hold a shared pointer to the partition, should we
+ * check if there is a leader, or go ahead and be optimistic?
+ */
+
+// kafka
+//
+// We always use CREATE_TIME, like the producer. The conversion to
+// LOG_APPEND_TIME (if necessary) happens automatically.
+//
+// val timestampType = TimestampType.CREATE_TIME
+// val timestamp = time.milliseconds()
+ss::future<> group_manager::delete_expired_offsets(group_ptr group) {
+    auto offsets = group->delete_expired_offsets();
+
+    if (group->in_state(group_state::empty) && !group->has_offsets()) {
+        group->set_state(group_state::dead);
+    }
+
+    cluster::simple_batch_builder builder(
+      model::record_batch_type::raft_data, model::offset(0));
+
+    for (auto& offset : offsets) {
+        group->add_offset_tombstone_record(group->id(), offset, builder);
+    }
+
+    if (group->in_state(group_state::dead)) {
+        auto it = _groups.find(group->id());
+        if (it != _groups.end() && it->second == group) {
+            _groups.erase(it);
+            if (group->generation() > 0) {
+                group->add_group_tombstone_record(group->id(), builder);
+            }
+        }
+    }
+
+    if (builder.empty()) {
+        co_return;
+    }
+
+    auto batch = std::move(builder).build();
+    auto reader = model::make_memory_record_batch_reader(std::move(batch));
+
+    try {
+        auto result = co_await group->partition()->raft()->replicate(
+          group->term(),
+          std::move(reader),
+          raft::replicate_options(raft::consistency_level::leader_ack));
+        if (result) {
+            vlog(klog.trace, "Successfully appended expiration records");
+        } else if (result.error() == raft::errc::shutting_down) {
+            vlog(
+              klog.debug,
+              "Cannot replicate expiration records. shutting down.");
+        } else if (result.error() == raft::errc::not_leader) {
+            vlog(
+              klog.debug, "Cannot replicate expiration records. not leader.");
+        } else {
+            vlog(
+              klog.error,
+              "Cannot replicate expiration records. some error {} {}",
+              result.error().message(),
+              result.error());
+        }
+    } catch (...) {
+        vlog(
+          klog.error,
+          "Exception occurred replicating group {} expired offset records {}",
+          group->id(),
+          std::current_exception());
+    }
+}
+
+ss::future<> group_manager::handle_offset_expiration() {
+    constexpr int max_concurrent_expirations = 10;
+
+    /*
+     * build a light-weight snapshot of the groups to process. the snapshot
+     * allows us to avoid concurrent modifications to _groups container.
+     */
+    fragmented_vector<group_ptr> groups;
+    for (auto& group : _groups) {
+        groups.push_back(group.second);
+    }
+
+    co_await ss::max_concurrent_for_each(
+      groups, max_concurrent_expirations, [this](auto group) {
+          return delete_expired_offsets(group);
+      });
 }
 
 ss::future<> group_manager::stop() {

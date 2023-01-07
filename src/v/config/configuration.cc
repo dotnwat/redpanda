@@ -327,6 +327,12 @@ configuration::configuration()
       "Timeout for new member joins",
       {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
       30'000ms)
+  , group_offset_retention_timeout(
+      *this,
+      "group_offset retention_timeout",
+      "Group offset timeout",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      10min)
   , metadata_dissemination_interval_ms(
       *this,
       "metadata_dissemination_interval_ms",
