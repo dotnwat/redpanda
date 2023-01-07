@@ -41,7 +41,6 @@ group_manager::group_manager(
   ss::sharded<cluster::tx_gateway_frontend>& tx_frontend,
   ss::sharded<features::feature_table>& feature_table,
   group_metadata_serializer_factory serializer_factory,
-  config::configuration& conf,
   enable_group_metrics enable_metrics)
   : _tp_ns(std::move(tp_ns))
   , _gm(gm)
@@ -50,9 +49,10 @@ group_manager::group_manager(
   , _tx_frontend(tx_frontend)
   , _feature_table(feature_table)
   , _serializer_factory(std::move(serializer_factory))
-  , _conf(conf)
+  , _conf(config::shard_local_cfg())
   , _self(cluster::make_self_broker(config::node()))
-  , _enable_group_metrics(enable_metrics) {}
+  , _enable_group_metrics(enable_metrics)
+  , _offset_retention_check(_conf.group_offset_retention_check_period.bind()) {}
 
 ss::future<> group_manager::start() {
     /*
@@ -97,7 +97,136 @@ ss::future<> group_manager::start() {
             handle_topic_delta(deltas);
         });
 
+    _timer.set_callback([this] {
+        ssx::spawn_with_gate(_gate, [this] {
+            return handle_offset_expiration().finally([this] {
+                if (!_gate.is_closed()) {
+                    _timer.arm(_offset_retention_check());
+                }
+            });
+        });
+    });
+    _timer.arm(_offset_retention_check());
+    _offset_retention_check.watch([this] {
+        if (_timer.armed()) {
+            _timer.cancel();
+            _timer.arm(_offset_retention_check());
+        }
+    });
+
     return ss::make_ready_future<>();
+}
+
+ss::future<size_t> group_manager::delete_expired_offsets(group_ptr group) {
+    const auto offsets = group->delete_expired_offsets();
+
+    if (group->in_state(group_state::empty) && !group->has_offsets()) {
+        group->set_state(group_state::dead);
+    }
+
+    cluster::simple_batch_builder builder(
+      model::record_batch_type::raft_data, model::offset(0));
+
+    for (auto& offset : offsets) {
+        vlog(
+          klog.trace,
+          "Preparing tombstone for expired group offset {}:{}",
+          group,
+          offset);
+        group->add_offset_tombstone_record(group->id(), offset, builder);
+    }
+
+    if (group->in_state(group_state::dead)) {
+        auto it = _groups.find(group->id());
+        if (it != _groups.end() && it->second == group) {
+            _groups.erase(it);
+            if (group->generation() > 0) {
+                vlog(
+                  klog.trace,
+                  "Preparing tombstone for dead group following offset "
+                  "expiration {}",
+                  group);
+                group->add_group_tombstone_record(group->id(), builder);
+            }
+        }
+    }
+
+    if (builder.empty()) {
+        co_return 0;
+    }
+
+    auto batch = std::move(builder).build();
+    auto reader = model::make_memory_record_batch_reader(std::move(batch));
+
+    try {
+        auto result = co_await group->partition()->raft()->replicate(
+          group->term(),
+          std::move(reader),
+          raft::replicate_options(raft::consistency_level::leader_ack));
+
+        if (result) {
+            vlog(
+              klog.debug,
+              "Wrote {} tombstone records for group {} expired offsets",
+              offsets.size(),
+              group);
+            co_return offsets.size();
+
+        } else if (result.error() == raft::errc::shutting_down) {
+            vlog(
+              klog.debug,
+              "Cannot replicate tombstone records for group {}: shutting down",
+              group);
+
+        } else if (result.error() == raft::errc::not_leader) {
+            vlog(
+              klog.debug,
+              "Cannot replicate tombstone records for group {}: not leader",
+              group);
+
+        } else {
+            vlog(
+              klog.error,
+              "Cannot replicate tombstone records for group {}: {} {}",
+              group,
+              result.error().message(),
+              result.error());
+        }
+
+    } catch (...) {
+        vlog(
+          klog.error,
+          "Exception occurred replicating tombstones for group {}: {}",
+          group,
+          std::current_exception());
+    }
+
+    co_return 0;
+}
+
+ss::future<> group_manager::handle_offset_expiration() {
+    constexpr int max_concurrent_expirations = 10;
+
+    /*
+     * build a light-weight snapshot of the groups to process. the snapshot
+     * allows us to avoid concurrent modifications to _groups container.
+     */
+    fragmented_vector<group_ptr> groups;
+    for (auto& group : _groups) {
+        groups.push_back(group.second);
+    }
+
+    size_t total = 0;
+    co_await ss::max_concurrent_for_each(
+      groups, max_concurrent_expirations, [this, &total](auto group) {
+          return delete_expired_offsets(group).then(
+            [&total](auto removed) { total += removed; });
+      });
+
+    if (total) {
+        vlog(
+          klog.info, "Removed {} offsets from {} groups", total, groups.size());
+    }
 }
 
 ss::future<> group_manager::stop() {
@@ -122,6 +251,8 @@ ss::future<> group_manager::stop() {
     for (auto& e : _partitions) {
         e.second->as.request_abort();
     }
+
+    _timer.cancel();
 
     return _gate.close().then([this]() {
         /**

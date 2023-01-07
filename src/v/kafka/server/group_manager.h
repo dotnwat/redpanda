@@ -124,7 +124,6 @@ public:
       ss::sharded<cluster::tx_gateway_frontend>& tx_frontend,
       ss::sharded<features::feature_table>&,
       group_metadata_serializer_factory,
-      config::configuration& conf,
       enable_group_metrics group_metrics);
 
     ss::future<> start();
@@ -262,6 +261,10 @@ private:
           groups, [](auto group_ptr) { return group_ptr->shutdown(); });
     }
 
+    // TODO: add a new Timer/Thread abstraction
+    ss::timer<> _timer;
+    ss::future<> handle_offset_expiration();
+    ss::future<size_t> delete_expired_offsets(group_ptr);
     ss::sharded<raft::group_manager>& _gm;
     ss::sharded<cluster::partition_manager>& _pm;
     ss::sharded<cluster::topic_table>& _topic_table;
@@ -276,6 +279,7 @@ private:
 
     model::broker _self;
     enable_group_metrics _enable_group_metrics;
+    config::binding<std::chrono::milliseconds> _offset_retention_check;
 };
 
 } // namespace kafka

@@ -88,7 +88,10 @@ group::group(
   enable_group_metrics group_metrics)
   : _id(std::move(id))
   , _state(md.members.empty() ? group_state::empty : group_state::stable)
-  , _state_timestamp(md.state_timestamp)
+  , _state_timestamp(
+      md.state_timestamp == model::timestamp(-1)
+        ? std::optional<model::timestamp>(std::nullopt)
+        : md.state_timestamp)
   , _generation(md.generation)
   , _num_members_joining(0)
   , _protocol_type(md.protocol_type)
@@ -2204,6 +2207,7 @@ group::store_txn_offsets(txn_offset_commit_request r) {
     prepared_tx ptx;
     ptx.tx_seq = tx_seq;
     for (const auto& [tp, offset] : offsets) {
+        // needs expiration timestamp?
         offset_metadata md{
           .log_offset = e.value().last_offset,
           .offset = offset.offset,
@@ -2305,6 +2309,12 @@ group::offset_commit_stages group::store_offsets(offset_commit_request&& r) {
               .metadata = p.committed_metadata.value_or(""),
               .committed_leader_epoch = p.committed_leader_epoch,
             };
+
+            if (r.data.retention_time_ms != -1) {
+                md.expires = std::chrono::system_clock::now()
+                             + std::chrono::milliseconds(
+                               r.data.retention_time_ms);
+            }
 
             offset_commits.emplace_back(std::make_pair(tp, md));
 
@@ -3313,6 +3323,111 @@ void group::update_subscriptions() {
     }
 
     _subscriptions = std::move(subs);
+}
+
+std::vector<model::topic_partition> group::filter_expired_offsets(
+  const std::function<bool(const model::topic&)>& subscribed,
+  const std::function<std::chrono::system_clock::time_point(
+    const offset_metadata&)>& effective_expires) {
+    std::vector<model::topic_partition> offsets;
+    for (const auto& offset : _offsets) {
+        if (subscribed(offset.first.topic)) {
+            continue;
+        }
+
+        if (_pending_offset_commits.contains(offset.first)) {
+            continue;
+        }
+
+        const auto now = std::chrono::system_clock::now();
+
+        if (offset.second->metadata.expires.has_value()) {
+            const auto& expires = offset.second->metadata.expires.value();
+            if (expires > now) {
+                continue;
+            }
+        } else {
+            const auto retain_for
+              = config::shard_local_cfg().group_offset_retention();
+            const auto expires = effective_expires(offset.second->metadata);
+            if ((now - expires) < retain_for) {
+                continue;
+            }
+        }
+
+        offsets.push_back(offset.first);
+    }
+
+    return offsets;
+}
+
+std::vector<model::topic_partition> group::get_expired_offsets() {
+    const auto not_subscribed = [](const auto&) { return false; };
+
+    if (_protocol_type.has_value()) {
+        if (
+          _protocol_type.value() == "consumer" && _subscriptions.has_value()
+          && in_state(group_state::stable)) {
+            return filter_expired_offsets(
+              [this](const auto& topic) {
+                  return _subscriptions.value().contains(topic);
+              },
+              [](const offset_metadata& md) {
+                  /*
+                   * TODO: this should return the commit timestamp from the
+                   * offset and metadata. ie:
+                   * _.offsetAndMetadata.commitTimestamp
+                   */
+                  return md.expires.value();
+              });
+
+        } else if (in_state(group_state::empty)) {
+            return filter_expired_offsets(
+              not_subscribed, [this](const offset_metadata&) {
+                  if (_state_timestamp.has_value()) {
+                      /*
+                       * TODO should return *** _state_timestamp ***. but it is
+                       * a model::timestamp so we need to fix this / make sure
+                       * it is compatible.
+                       */
+                      return std::chrono::system_clock::now();
+                  } else {
+                      /*
+                       * TODO: this should return the commit timestamp from the
+                       * offset and metadata. ie:
+                       * _.offsetAndMetadata.commitTimestamp
+                       */
+                      return std::chrono::system_clock::now();
+                  }
+              });
+        } else {
+            return {};
+        }
+    } else {
+        return filter_expired_offsets(
+          not_subscribed, [](const offset_metadata& md) {
+              /*
+               * TODO: this should return the commit timestamp from the
+               * offset and metadata. ie:
+               * _.offsetAndMetadata.commitTimestamp
+               */
+              return md.expires.value();
+          });
+    }
+}
+
+std::vector<model::topic_partition> group::delete_expired_offsets() {
+    auto offsets = get_expired_offsets();
+    for (const auto& offset : offsets) {
+        vlog(_ctxlog.debug, "Expiring group offset {}", offset);
+        /*
+         * TODO
+         *  think about locking wrt to concurrent operations that might hold
+         * iterators open, etc...
+         */
+        _offsets.erase(offset);
+    }
+    return offsets;
 }
 
 } // namespace kafka
