@@ -15,7 +15,7 @@
 #include "coproc/partition_manager.h"
 #include "model/metadata.h"
 #include "pandaproxy/schema_registry/fwd.h"
-#include "request_auth.h"
+#include "utils/request_auth.h"
 #include "rpc/connection_cache.h"
 #include "seastarx.h"
 
