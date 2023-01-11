@@ -51,7 +51,8 @@ group_manager::group_manager(
   , _serializer_factory(std::move(serializer_factory))
   , _conf(config::shard_local_cfg())
   , _self(cluster::make_self_broker(config::node()))
-  , _enable_group_metrics(enable_metrics) {}
+  , _enable_group_metrics(enable_metrics)
+  , _offset_retention_check(_conf.group_offset_retention_check_period.bind()) {}
 
 ss::future<> group_manager::start() {
     /*
@@ -97,6 +98,53 @@ ss::future<> group_manager::start() {
         });
 
     return ss::make_ready_future<>();
+}
+
+bool group_manager::offset_retention_enabled() {
+    const auto enabled = [this] {
+        /*
+         * offset retention has been explicitly enabled/disabled
+         */
+        if (config::shard_local_cfg()
+              .group_offset_retention_enabled()
+              .has_value()) {
+            return config::shard_local_cfg()
+              .group_offset_retention_enabled()
+              .value();
+        }
+
+        /*
+         * calculate the default value. if the original version is older than
+         * 23.1 or it is unknown (be conservative during discovery delay) then
+         * behave as if there is infinite retention and disable the feature.
+         * otherwise, enable by default.
+         */
+        if (
+          _feature_table.local().get_original_version()
+          < cluster::cluster_version(9)) {
+            return false;
+        }
+
+        return true;
+    }();
+
+    /*
+     * log change to effective value of offset_retention_enabled flag since its
+     * value cannot easily be determiend by examining the current configuration.
+     */
+    if (_prev_offset_retention_enabled != enabled) {
+        vlog(
+          klog.info,
+          "Group offset retention is now {} (prev {}). Config value {} "
+          "original version {}.",
+          enabled ? "enabled" : "disabled",
+          _prev_offset_retention_enabled,
+          config::shard_local_cfg().group_offset_retention_enabled(),
+          _feature_table.local().get_original_version());
+        _prev_offset_retention_enabled = enabled;
+    }
+
+    return enabled;
 }
 
 ss::future<> group_manager::stop() {

@@ -334,6 +334,26 @@ configuration::configuration()
       "Timeout for new member joins",
       {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
       30'000ms)
+  , group_offset_retention(
+      *this,
+      "group_offset_retention",
+      "Consumer group offset retention time",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      24h * 7)
+  , group_offset_retention_check_period(
+      *this,
+      "group_offset_retention_check_period",
+      "How often the system should check for expired group offsets",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      10min)
+  , group_offset_retention_enabled(
+      *this,
+      "group_offset_retention_enabled",
+      "Group offset retention is enabled by default in versions of Redpanda >= "
+      "23.1. To enable offset retention after upgrading from an older version "
+      "set this option to true.",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      std::nullopt)
   , metadata_dissemination_interval_ms(
       *this,
       "metadata_dissemination_interval_ms",
