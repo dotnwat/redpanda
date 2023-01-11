@@ -273,20 +273,12 @@ ss::future<> server::apply(ss::lw_shared_ptr<net::connection> conn) {
     }
 }
 
-template<>
-ss::future<response_ptr> heartbeat_handler::handle(
-  request_context ctx, [[maybe_unused]] ss::smp_service_group g) {
-    heartbeat_request request;
-    request.decode(ctx.reader(), ctx.header().version);
-    log_request(ctx.header(), request);
-
+ss::future<heartbeat_response>
+server::handle_request(request_context& ctx, heartbeat_request request) {
     if (!ctx.authorized(security::acl_operation::read, request.data.group_id)) {
-        co_return co_await ctx.respond(
-          heartbeat_response(error_code::group_authorization_failed));
+        co_return error_code::group_authorization_failed;
     }
-
-    auto resp = co_await ctx.groups().heartbeat(std::move(request));
-    co_return co_await ctx.respond(resp);
+    co_return co_await group_router().heartbeat(std::move(request));
 }
 
 template<>

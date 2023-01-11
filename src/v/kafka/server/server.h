@@ -16,6 +16,7 @@
 #include "coproc/fwd.h"
 #include "features/feature_table.h"
 #include "kafka/latency_probe.h"
+#include "kafka/protocol/heartbeat.h"
 #include "kafka/server/fetch_metadata_cache.hh"
 #include "kafka/server/fwd.h"
 #include "kafka/server/queue_depth_monitor.h"
@@ -132,6 +133,10 @@ public:
     }
 
     latency_probe& latency_probe() { return _probe; }
+
+public:
+    ss::future<heartbeat_response>
+    handle_request(request_context&, heartbeat_request);
 
 private:
     ss::smp_service_group _smp_group;

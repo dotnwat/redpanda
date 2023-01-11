@@ -14,6 +14,6 @@
 
 namespace kafka {
 
-using heartbeat_handler = single_stage_handler<heartbeat_api, 0, 4>;
+using heartbeat_handler = single_stage_handler_ng<heartbeat_api, 0, 4>;
 
 }
