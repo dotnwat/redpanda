@@ -520,6 +520,7 @@ public:
       const model::topic_partition& tp, const offset_metadata& md);
 
     void reset_tx_state(model::term_id);
+    model::term_id term() const { return _term; }
 
     ss::future<cluster::commit_group_tx_reply>
     commit_tx(cluster::commit_group_tx_request r);
@@ -659,6 +660,16 @@ public:
     void add_group_tombstone_record(
       const kafka::group_id& group, storage::record_batch_builder& builder);
 
+    std::vector<model::topic_partition> filter_expired_offsets(
+      const std::function<bool(const model::topic&)>&,
+      const std::function<model::timestamp(const offset_metadata&)>&);
+
+    std::vector<model::topic_partition> delete_expired_offsets();
+
+    bool has_offsets() const {
+        return !_offsets.empty() || !_pending_offset_commits.empty();
+    }
+
 private:
     using member_map = absl::node_hash_map<kafka::member_id, member_ptr>;
     using protocol_support = absl::node_hash_map<kafka::protocol_name, int>;
@@ -757,7 +768,8 @@ private:
         metadata.generation = generation();
         metadata.protocol = protocol();
         metadata.leader = leader();
-        metadata.state_timestamp = _state_timestamp;
+        metadata.state_timestamp = _state_timestamp.value_or(
+          model::timestamp(-1));
 
         for (const auto& [id, member] : _members) {
             auto state = member->state().copy();
@@ -853,9 +865,12 @@ private:
     void update_subscriptions();
     std::optional<absl::node_hash_set<model::topic>> _subscriptions;
 
+    // collect and return expired offsets
+    std::vector<model::topic_partition> get_expired_offsets();
+
     kafka::group_id _id;
     group_state _state;
-    model::timestamp _state_timestamp;
+    std::optional<model::timestamp> _state_timestamp;
     kafka::generation_id _generation;
     protocol_support _supported_protocols;
     member_map _members;
