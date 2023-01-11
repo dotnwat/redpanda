@@ -342,13 +342,9 @@ server::handle_request(request_context& ctx, leave_group_request request) {
     co_return co_await group_router().leave_group(std::move(request));
 }
 
-template<>
-ss::future<response_ptr> list_groups_handler::handle(
-  request_context ctx, [[maybe_unused]] ss::smp_service_group g) {
-    list_groups_request request{};
-    request.decode(ctx.reader(), ctx.header().version);
-    log_request(ctx.header(), request);
-    auto&& [error, groups] = co_await ctx.groups().list_groups();
+ss::future<list_groups_response>
+server::handle_request(request_context& ctx, list_groups_request request) {
+    auto [error, groups] = co_await ctx.groups().list_groups();
 
     list_groups_response resp;
     resp.data.error_code = error;
@@ -356,7 +352,7 @@ ss::future<response_ptr> list_groups_handler::handle(
 
     if (ctx.authorized(
           security::acl_operation::describe, security::default_cluster_name)) {
-        co_return co_await ctx.respond(std::move(resp));
+        co_return resp;
     }
 
     // remove groups from response that should not be visible
@@ -367,10 +363,9 @@ ss::future<response_ptr> list_groups_handler::handle(
           return ctx.authorized(
             security::acl_operation::describe, group.group_id);
       });
-
     resp.data.groups.erase(non_visible_it, resp.data.groups.end());
 
-    co_return co_await ctx.respond(std::move(resp));
+    co_return resp;
 }
 
 template<>
