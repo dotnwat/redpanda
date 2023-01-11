@@ -52,7 +52,8 @@ group_manager::group_manager(
   , _serializer_factory(std::move(serializer_factory))
   , _conf(conf)
   , _self(cluster::make_self_broker(config::node()))
-  , _enable_group_metrics(enable_metrics) {}
+  , _enable_group_metrics(enable_metrics)
+  , _offset_retention_check(_conf.group_offset_retention_check_period.bind()) {}
 
 ss::future<> group_manager::start() {
     /*
