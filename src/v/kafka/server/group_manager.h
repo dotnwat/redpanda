@@ -276,6 +276,7 @@ private:
 
     model::broker _self;
     enable_group_metrics _enable_group_metrics;
+    config::binding<std::chrono::milliseconds> _offset_retention_check;
 };
 
 } // namespace kafka
