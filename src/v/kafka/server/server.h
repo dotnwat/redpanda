@@ -17,6 +17,7 @@
 #include "features/feature_table.h"
 #include "kafka/latency_probe.h"
 #include "kafka/protocol/heartbeat.h"
+#include "kafka/protocol/leave_group.h"
 #include "kafka/server/fetch_metadata_cache.hh"
 #include "kafka/server/fwd.h"
 #include "kafka/server/queue_depth_monitor.h"
@@ -137,6 +138,9 @@ public:
 public:
     ss::future<heartbeat_response>
     handle_request(request_context&, heartbeat_request);
+
+    ss::future<leave_group_response>
+    handle_request(request_context&, leave_group_request);
 
 private:
     ss::smp_service_group _smp_group;

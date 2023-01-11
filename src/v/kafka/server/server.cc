@@ -331,21 +331,15 @@ process_result_stages sync_group_handler::handle(
     return process_result_stages(std::move(stages.dispatched), std::move(res));
 }
 
-template<>
-ss::future<response_ptr> leave_group_handler::handle(
-  request_context ctx, [[maybe_unused]] ss::smp_service_group g) {
-    leave_group_request request;
-    request.decode(ctx.reader(), ctx.header().version);
+ss::future<leave_group_response>
+server::handle_request(request_context& ctx, leave_group_request request) {
     request.version = ctx.header().version;
-    log_request(ctx.header(), request);
 
     if (!ctx.authorized(security::acl_operation::read, request.data.group_id)) {
-        co_return co_await ctx.respond(
-          leave_group_response(error_code::group_authorization_failed));
+        co_return error_code::group_authorization_failed;
     }
 
-    auto resp = co_await ctx.groups().leave_group(std::move(request));
-    co_return co_await ctx.respond(std::move(resp));
+    co_return co_await group_router().leave_group(std::move(request));
 }
 
 template<>
