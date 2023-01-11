@@ -156,6 +156,16 @@ public:
         ss::sstring metadata;
         kafka::leader_epoch committed_leader_epoch;
 
+        offset_metadata(
+          model::offset log_offset,
+          model::offset offset,
+          ss::sstring metadata,
+          kafka::leader_epoch committed_leader_epoch)
+          : log_offset(log_offset)
+          , offset(offset)
+          , metadata(std::move(metadata))
+          , committed_leader_epoch(committed_leader_epoch) {}
+
         friend std::ostream& operator<<(std::ostream&, const offset_metadata&);
     };
 

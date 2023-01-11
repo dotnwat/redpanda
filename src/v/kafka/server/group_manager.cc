@@ -457,6 +457,8 @@ ss::future<> group_manager::do_recover_group(
                 meta.log_offset,
                 meta.metadata.offset,
                 meta.metadata.metadata,
+                kafka::leader_epoch{}, // explicitly defaulted committed leader
+                                       // epoch value
               });
         }
 

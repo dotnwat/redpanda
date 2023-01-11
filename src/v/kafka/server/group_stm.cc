@@ -47,12 +47,13 @@ void group_stm::update_prepared(
 
     for (const auto& tx_offset : val.offsets) {
         group::offset_metadata md{
-          .log_offset = offset,
-          .offset = tx_offset.offset,
-          .metadata = tx_offset.metadata.value_or(""),
-          .committed_leader_epoch = kafka::leader_epoch(tx_offset.leader_epoch),
+          offset,
+          tx_offset.offset,
+          tx_offset.metadata.value_or(""),
+          kafka::leader_epoch(tx_offset.leader_epoch),
         };
-        prepared_it->second.offsets[tx_offset.tp] = md;
+        prepared_it->second.offsets.insert_or_assign(
+          tx_offset.tp, std::move(md));
     }
 }
 

@@ -2205,11 +2205,11 @@ group::store_txn_offsets(txn_offset_commit_request r) {
     ptx.tx_seq = tx_seq;
     for (const auto& [tp, offset] : offsets) {
         offset_metadata md{
-          .log_offset = e.value().last_offset,
-          .offset = offset.offset,
-          .metadata = offset.metadata.value_or(""),
-          .committed_leader_epoch = kafka::leader_epoch(offset.leader_epoch)};
-        ptx.offsets[tp] = md;
+          e.value().last_offset,
+          offset.offset,
+          offset.metadata.value_or(""),
+          kafka::leader_epoch(offset.leader_epoch)};
+        ptx.offsets.insert_or_assign(tp, std::move(md));
     }
     _prepared_txs[pid] = ptx;
 
@@ -2301,16 +2301,17 @@ group::offset_commit_stages group::store_offsets(offset_commit_request&& r) {
 
             model::topic_partition tp(t.name, p.partition_index);
             offset_metadata md{
-              .offset = p.committed_offset,
-              .metadata = p.committed_metadata.value_or(""),
-              .committed_leader_epoch = p.committed_leader_epoch,
+              model::offset{}, // explicitly defaulted log offset value
+              p.committed_offset,
+              p.committed_metadata.value_or(""),
+              p.committed_leader_epoch,
             };
 
             offset_commits.emplace_back(std::make_pair(tp, md));
 
             // record the offset commits as pending commits which will be
             // inspected after the append to catch concurrent updates.
-            _pending_offset_commits[tp] = md;
+            _pending_offset_commits.insert_or_assign(tp, md);
         }
     }
 
