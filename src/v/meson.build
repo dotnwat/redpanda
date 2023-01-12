@@ -83,3 +83,7 @@ add_project_dependencies(common, language: 'cpp')
 add_project_arguments(
   '-Wno-deprecated-experimental-coroutine',
   language: 'cpp')
+
+add_test_setup('redpanda',
+  exe_wrapper: [test_runner, '--meson'],
+  is_default: true)
