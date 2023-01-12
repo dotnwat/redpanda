@@ -344,10 +344,31 @@ def main():
                             type=str,
                             action="append",
                             help='copy file to test execution directory')
+        parser.add_argument('--meson', action='store_true')
+        parser.add_argument('--default_cores',
+                            type=int,
+                            default=None,
+                            help='default number of cores to use')
         return parser
 
     parser = generate_options()
     options, program_options = parser.parse_known_args()
+
+    if options.meson:
+        assert not options.binary
+        options.binary, *program_options = program_options
+
+    # apply smp limit if one has not provided explicitly
+    if options.default_cores:
+        has_sep = False
+        has_smp = False
+        for args in program_options:
+            has_sep = has_sep or "--" in args
+            has_smp = has_smp or "-c" in args or "--smp" in args
+        if not has_smp:
+            if not has_sep:
+                program_options.append("--")
+            program_options.append(f"-c{options.default_cores}")
 
     if not options.binary:
         parser.print_help()
