@@ -45,12 +45,15 @@ void group_stm::update_prepared(
         prepared_it->second.offsets.clear();
     }
 
+    const auto now = model::timestamp::now();
     for (const auto& tx_offset : val.offsets) {
         group::offset_metadata md{
           offset,
           tx_offset.offset,
           tx_offset.metadata.value_or(""),
           kafka::leader_epoch(tx_offset.leader_epoch),
+          now,
+          std::nullopt,
         };
         prepared_it->second.offsets.insert_or_assign(
           tx_offset.tp, std::move(md));

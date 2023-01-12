@@ -459,7 +459,10 @@ ss::future<> group_manager::do_recover_group(
                 meta.metadata.metadata,
                 kafka::leader_epoch{}, // explicitly defaulted committed leader
                                        // epoch value
-              });
+                meta.metadata.commit_timestamp,
+                meta.metadata.expiry_timestamp == model::timestamp(-1)
+                  ? std::optional<model::timestamp>(std::nullopt)
+                  : meta.metadata.expiry_timestamp});
         }
 
         for (const auto& [_, tx] : group_stm.prepared_txs()) {

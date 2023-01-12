@@ -155,16 +155,22 @@ public:
         model::offset offset;
         ss::sstring metadata;
         kafka::leader_epoch committed_leader_epoch;
+        model::timestamp commit_timestamp;
+        std::optional<model::timestamp> expiry_timestamp;
 
         offset_metadata(
           model::offset log_offset,
           model::offset offset,
           ss::sstring metadata,
-          kafka::leader_epoch committed_leader_epoch)
+          kafka::leader_epoch committed_leader_epoch,
+          model::timestamp commit_timestamp,
+          std::optional<model::timestamp> expiry_timestamp)
           : log_offset(log_offset)
           , offset(offset)
           , metadata(std::move(metadata))
-          , committed_leader_epoch(committed_leader_epoch) {}
+          , committed_leader_epoch(committed_leader_epoch)
+          , commit_timestamp(commit_timestamp)
+          , expiry_timestamp(expiry_timestamp) {}
 
         friend std::ostream& operator<<(std::ostream&, const offset_metadata&);
     };
