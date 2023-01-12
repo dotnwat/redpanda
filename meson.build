@@ -14,4 +14,5 @@ project('redpanda', 'cpp',
     'default_library=static',
   ])
 
+subdir('tools')
 subdir('src')

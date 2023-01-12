@@ -344,10 +344,15 @@ def main():
                             type=str,
                             action="append",
                             help='copy file to test execution directory')
+        parser.add_argument('--meson', action='store_true')
         return parser
 
     parser = generate_options()
     options, program_options = parser.parse_known_args()
+
+    if options.meson:
+        assert not options.binary
+        options.binary, *program_options = program_options
 
     if not options.binary:
         parser.print_help()
