@@ -91,6 +91,7 @@ subdir('test_utils')
 subdir('bytes')
 subdir('random')
 subdir('hashing')
+# base 9a397aa79
 subdir('serde')
 subdir('finjector')
 subdir('compression')
