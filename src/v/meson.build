@@ -122,6 +122,7 @@ subdir('kafka/protocol')
 subdir('kafka/client')
 subdir('coproc')
 subdir('kafka')
+# base 9a397aa79, rp_util, redpanda, compat
 subdir('pandaproxy')
 subdir('redpanda')
 subdir('compat')
