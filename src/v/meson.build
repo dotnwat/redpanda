@@ -89,6 +89,7 @@ version_h = vcs_tag(
 
 subdir('test_utils')
 subdir('bytes')
+# base 9a397aa79
 subdir('random')
 subdir('hashing')
 subdir('serde')
