@@ -3384,8 +3384,8 @@ std::vector<model::topic_partition> group::get_expired_offsets() {
 
     if (_protocol_type.has_value()) {
         if (
-          _protocol_type.value() == "consumer" && _subscriptions.has_value()
-          && in_state(group_state::stable)) {
+          _protocol_type.value() == consumer_group_protocol_type
+          && _subscriptions.has_value() && in_state(group_state::stable)) {
             return filter_expired_offsets(
               [this](const auto& topic) {
                   return _subscriptions.value().contains(topic);
