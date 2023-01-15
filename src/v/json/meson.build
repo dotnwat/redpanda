@@ -7,7 +7,7 @@ json = declare_dependency(
   dependencies: [seastar, rapidjson, model],
   link_with: libjson)
 
-t = executable('test_json',
+exe = executable('test_json',
   'tests/json_serialization_test.cc',
   dependencies: [json, seastar_testing_main])
-test('json serialization tests', t)
+test('json', exe)
