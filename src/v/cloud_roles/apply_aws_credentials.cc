@@ -44,13 +44,10 @@ struct aws_signatures {
 static std::string_view sha_for_verb(boost::beast::http::verb verb) {
     switch (verb) {
     case boost::beast::http::verb::get:
-        return aws_signatures::emptysig;
     case boost::beast::http::verb::head:
-        return aws_signatures::emptysig;
     case boost::beast::http::verb::delete_:
         return aws_signatures::emptysig;
     case boost::beast::http::verb::post:
-        return aws_signatures::unsigned_payload;
     case boost::beast::http::verb::put:
         return aws_signatures::unsigned_payload;
     default:
