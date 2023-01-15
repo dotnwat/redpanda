@@ -2208,6 +2208,7 @@ group::store_txn_offsets(txn_offset_commit_request r) {
     ptx.tx_seq = tx_seq;
     const auto now = model::timestamp::now();
     for (const auto& [tp, offset] : offsets) {
+        // needs expiration timestamp?
         offset_metadata md{
           e.value().last_offset,
           offset.offset,
