@@ -22,7 +22,7 @@ if meson.get_compiler('cpp').get_id() == 'clang'
     cpp_args: ['-g', '-O0', '-fsanitize=address,fuzzer'],
     link_args: ['-fsanitize=address,fuzzer,undefined'],
     dependencies: [serde])
-  test('serde_fuzz', exe,
+  test('serde', exe,
     args: ['-max_total_time=60', '-rss_limit_mb=8192'])
 
   exe = executable('serde_fuzz_main',
@@ -30,7 +30,7 @@ if meson.get_compiler('cpp').get_id() == 'clang'
     serde_test_structs_h,
     cpp_args: ['-DMAIN=1'],
     dependencies: [serde])
-  test('serde_fuzz_main', exe)
+  test('serde', exe)
 else
   warning('serde fuzz tests not supported with compiler:', meson.get_compiler('cpp').get_id())
 endif
