@@ -40,6 +40,8 @@
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
 
+static const kafka::protocol_type consumer_group_protocol_type("consumer");
+
 namespace kafka {
 
 using member_config = join_group_response_member;
@@ -3303,7 +3305,7 @@ group::decode_consumer_subscriptions(iobuf data) {
 }
 
 void group::update_subscriptions() {
-    if (_protocol_type != "consumer") {
+    if (_protocol_type != consumer_group_protocol_type) {
         _subscriptions.reset();
         return;
     }
