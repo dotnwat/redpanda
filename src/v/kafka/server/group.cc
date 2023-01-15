@@ -3339,4 +3339,91 @@ void group::update_subscriptions() {
     _subscriptions = std::move(subs);
 }
 
+std::vector<model::topic_partition> group::filter_expired_offsets(
+  const std::function<bool(const model::topic&)>& subscribed,
+  const std::function<model::timestamp(const offset_metadata&)>&
+    effective_expires) {
+    std::vector<model::topic_partition> offsets;
+    for (const auto& offset : _offsets) {
+        if (subscribed(offset.first.topic)) {
+            continue;
+        }
+
+        if (_pending_offset_commits.contains(offset.first)) {
+            continue;
+        }
+
+        const auto now = model::timestamp::now();
+
+        if (offset.second->metadata.expiry_timestamp.has_value()) {
+            const auto& expires
+              = offset.second->metadata.expiry_timestamp.value();
+            if (expires > now) {
+                continue;
+            }
+        } else {
+            const auto retain_for = model::timestamp(
+              config::shard_local_cfg().group_offset_retention().count());
+            const auto expires = effective_expires(offset.second->metadata);
+            if (model::timestamp(now() - expires()) < retain_for) {
+                continue;
+            }
+        }
+
+        offsets.push_back(offset.first);
+    }
+
+    return offsets;
+}
+
+std::vector<model::topic_partition> group::get_expired_offsets() {
+    const auto not_subscribed = [](const auto&) { return false; };
+
+    if (_protocol_type.has_value()) {
+        if (
+          _protocol_type.value() == "consumer" && _subscriptions.has_value()
+          && in_state(group_state::stable)) {
+            return filter_expired_offsets(
+              [this](const auto& topic) {
+                  return _subscriptions.value().contains(topic);
+              },
+              [](const offset_metadata& md) { return md.commit_timestamp; });
+
+        } else if (in_state(group_state::empty)) {
+            return filter_expired_offsets(
+              not_subscribed, [this](const offset_metadata& md) {
+                  if (_state_timestamp.has_value()) {
+                      return _state_timestamp.value();
+                  } else {
+                      return md.commit_timestamp;
+                  }
+              });
+        } else {
+            return {};
+        }
+    } else {
+        return filter_expired_offsets(
+          not_subscribed,
+          [](const offset_metadata& md) { return md.commit_timestamp; });
+    }
+}
+
+std::vector<model::topic_partition> group::delete_expired_offsets() {
+    auto offsets = get_expired_offsets();
+    for (const auto& offset : offsets) {
+        vlog(_ctxlog.debug, "Expiring group offset {}", offset);
+        _offsets.erase(offset);
+    }
+
+    const auto has_offsets = [this] {
+        return !_offsets.empty() || !_pending_offset_commits.empty();
+    };
+
+    if (in_state(group_state::empty) && !has_offsets()) {
+        set_state(group_state::dead);
+    }
+
+    return offsets;
+}
+
 } // namespace kafka
