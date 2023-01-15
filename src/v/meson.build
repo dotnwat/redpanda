@@ -94,8 +94,8 @@ subdir('hashing')
 subdir('serde')
 subdir('finjector')
 subdir('compression')
-# base 9a397aa79
 subdir('model')
+# base 9a397aa79
 subdir('json')
 subdir('utils')
 subdir('ssx')
