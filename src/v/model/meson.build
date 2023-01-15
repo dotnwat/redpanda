@@ -36,4 +36,4 @@ exe = executable('test_model_thread',
   'tests/model_serialization_test.cc',
   implicit_include_directories: false,
   dependencies: [model, seastar_testing_main, model_test_utils])
-test('model_thread', exe)
+test('model', exe)
