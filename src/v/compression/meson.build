@@ -15,12 +15,12 @@ compression = declare_dependency(
   dependencies: [bytes, zlib, zstd, snappy, random],
   link_with: libcompression)
 
-t = executable('bench_zstd_stream',
-  'tests/zstd_stream_bench.cc',
-  dependencies: [compression, seastar_perf_testing])
-benchmark('zstd stream', t)
-
-t = executable('test_zstd',
+exe = executable('test_compression',
   'tests/zstd_tests.cc',
-  dependencies: [compression, seastar_testing_main])
-test('zstd testing', t)
+  dependencies: [seastar_testing_main, compression])
+test('compression', exe)
+
+exe = executable('bench_compression',
+  'tests/zstd_stream_bench.cc',
+  dependencies: [seastar_perf_testing, compression])
+benchmark('compression', exe)
