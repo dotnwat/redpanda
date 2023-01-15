@@ -660,6 +660,14 @@ public:
     void add_group_tombstone_record(
       const kafka::group_id& group, storage::record_batch_builder& builder);
 
+    /*
+     * Delete group offsets that have expired.
+     *
+     * If after expired offsets have been deleted the group is in the empty
+     * state and contains no offsets then the group will be marked as dead.
+     *
+     * The set of expired offsets that have been removed is returned.
+     */
     std::vector<model::topic_partition> delete_expired_offsets();
 
 private:
@@ -857,12 +865,11 @@ private:
     void update_subscriptions();
     std::optional<absl::node_hash_set<model::topic>> _subscriptions;
 
-    // collect and return expired offsets
-    std::vector<model::topic_partition> get_expired_offsets();
-
     std::vector<model::topic_partition> filter_expired_offsets(
       const std::function<bool(const model::topic&)>&,
       const std::function<model::timestamp(const offset_metadata&)>&);
+
+    std::vector<model::topic_partition> get_expired_offsets();
 
     kafka::group_id _id;
     group_state _state;

@@ -3410,12 +3410,18 @@ std::vector<model::topic_partition> group::get_expired_offsets() {
 }
 
 std::vector<model::topic_partition> group::delete_expired_offsets() {
+    /*
+     * collect and delete expired offsets
+     */
     auto offsets = get_expired_offsets();
     for (const auto& offset : offsets) {
         vlog(_ctxlog.debug, "Expiring group offset {}", offset);
         _offsets.erase(offset);
     }
 
+    /*
+     * maybe mark the group as dead
+     */
     const auto has_offsets = [this] {
         return !_offsets.empty() || !_pending_offset_commits.empty();
     };
