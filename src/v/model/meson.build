@@ -21,19 +21,19 @@ model_test_utils = declare_dependency(
   dependencies: [seastar, compression, model],
   link_with: libmodel_test_utils)
 
-t = executable('test_model',
+exe = executable('test_model',
   'tests/lexical_cast_tests.cc',
   'tests/ntp_path_test.cc',
   'tests/topic_view_tests.cc',
+  'tests/timeout_adl.cc',
   implicit_include_directories: false,
   dependencies: [model, boost, model_test_utils])
-test('model testing', t)
+test('model', exe)
 
-# ARGS "-- -c 1"
-t = executable('test_model_thread',
+exe = executable('test_model_thread',
   'tests/record_batch_test.cc',
   'tests/record_batch_reader_test.cc',
   'tests/model_serialization_test.cc',
   implicit_include_directories: false,
   dependencies: [model, seastar_testing_main, model_test_utils])
-test('model thread tests', t)
+test('model_thread', exe)
