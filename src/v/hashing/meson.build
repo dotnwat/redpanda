@@ -10,12 +10,12 @@ hashing = declare_dependency(
 exe = executable('test_xxhash',
   'tests/xx_tests.cc',
   dependencies: [hashing, boost])
-test('xxhash', exe)
+test('hashing', exe)
 
 exe = executable('test_secure_hash',
   'tests/secure_tests.cc',
   dependencies: [hashing, boost])
-test('secure_hash', exe)
+test('hashing', exe)
 
 exe = executable('bench_hash',
   'tests/hash_bench.cc',
