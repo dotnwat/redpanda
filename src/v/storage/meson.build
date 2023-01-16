@@ -31,8 +31,8 @@ libstorage = library('storage',
   'readers_cache.cc',
   'backlog_controller.cc',
   'compaction_controller.cc',
-  'fs_utils.cc',
   'offset_to_filepos.cc',
+  'fs_utils.cc',
   implicit_include_directories: false,
   dependencies: [seastar, model, config, compression, roaring,
     syschecks, utils, resource_mgmt])
@@ -51,14 +51,12 @@ storage_test_utils = declare_dependency(
   dependencies: [storage],
   link_with: libstorage_test_utils)
 
-# ARGS "-- -c 1"
-t = executable('test_storage',
+exe = executable('test_storage',
   'tests/log_segment_appender_test.cc',
   'tests/segment_size_jitter_test.cc',
   'tests/log_segment_reader_test.cc',
   'tests/log_manager_test.cc',
   'tests/offset_assignment_test.cc',
-  'tests/storage_e2e_test.cc',
   'tests/log_truncate_test.cc',
   'tests/offset_index_utils_tests.cc',
   'tests/compaction_index_format_tests.cc',
@@ -70,58 +68,39 @@ t = executable('test_storage',
   'tests/timequery_test.cc',
   'tests/kvstore_test.cc',
   'tests/backlog_controller_test.cc',
-  dependencies: [storage, seastar_testing_main, model_test_utils,
-    storage_test_utils])
-test('storage basic', t)
-
-# Putting this first, last, or in the middle of the other single thread tests
-# results in:
-# runtime error: member access within null pointer of type
-# 'shared_ptr_no_esft<storage::segment>'
-# ARGS "-- -c 1"
-t = executable('test_log_replayer_single_thread',
+  'tests/readers_cache_test.cc',
+  'tests/concat_segment_reader_test.cc',
+  'tests/offset_to_filepos_test.cc',
+  'tests/storage_e2e_test.cc',
   'tests/log_replayer_test.cc',
-  dependencies: [storage, seastar_testing_main, model_test_utils,
-    storage_test_utils])
-test('storage log replayer', t)
-
-t = executable('test_segment_index_state',
-  'tests/index_state_test.cc',
-  dependencies: [storage, boost])
-test('segment index state', t)
-
-t = executable('test_storage_threaded',
   'tests/batch_cache_test.cc',
   'tests/record_batch_builder_test.cc',
   'tests/snapshot_test.cc',
   dependencies: [storage, seastar_testing_main, model_test_utils,
     storage_test_utils])
-test('storage threaded', t)
+test('storage', exe)
 
-#rp_test(
-#  UNIT_TEST
-#  BINARY_NAME batch_cache_reclaim_test
-#  SOURCES batch_cache_reclaim_test.cc
-#  LIBRARIES v::seastar_testing_main v::storage_test_utils
-#  ARGS "-- -c1 -m100"
-#  LABELS storage
-#  SKIP_BUILD_TYPES "Debug"
-#)
-t = executable('test_batch_reclaim',
-  'tests/batch_cache_reclaim_test.cc',
-  dependencies: [storage, boost, seastar_testing_main])
+exe = executable('test_segment_index_state',
+  'tests/index_state_test.cc',
+  dependencies: [boost, storage])
+test('storage', exe)
+
 # this test is only run on release builds because non-release builds use the
 # default allocator which doesn't support reclaim
-# test('batch cache reclaim', t)
+exe = executable('test_batch_reclaim',
+  'tests/batch_cache_reclaim_test.cc',
+  dependencies: [seastar_testing_main, storage, boost])
+if get_option('buildtype') == 'release'
+  test('storage', exe, args: ['--', '-c1', '-m100'])
+endif
 
-t = executable('bench_compaction_index',
-  'tests/compaction_idx_bench.cc',
-  dependencies: [storage, seastar_perf_testing])
-benchmark('compaction index', t)
-
-# ARGS "-- -c 1"
-t = executable('test_storage_opfuzz',
+exe = executable('test_storage_opfuzz',
   'opfuzz/opfuzz.cc',
   'opfuzz/opfuzz_test.cc',
-  dependencies: [storage, seastar_testing_main, model_test_utils])
-test('storage opfuzz', t)
+  dependencies: [seastar_testing_main, model_test_utils, storage])
+test('storage opfuzz', exe)
+
+exe = executable('bench_compaction_index',
+  'tests/compaction_idx_bench.cc',
+  dependencies: [seastar_perf_testing, storage])
+benchmark('storage', exe)
