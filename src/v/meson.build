@@ -106,10 +106,10 @@ subdir('syschecks')
 subdir('net')
 subdir('http')
 subdir('cloud_roles')
-# base 9a397aa79
 subdir('cloud_storage_clients')
 subdir('resource_mgmt')
 subdir('storage')
+# base 9a397aa79
 subdir('rpc')
 subdir('raft')
 subdir('cloud_storage')
