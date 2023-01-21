@@ -1,3 +1,8 @@
+# TODO
+# - vcs tag
+# - shared library
+# - test names
+
 #
 # makes the sub-subprojects available to meson
 # then use -Dredpanda_build=true --wrap-mode=forcefallback
