@@ -1,12 +1,4 @@
 #
-# makes the sub-subprojects available to meson
-# then use -Dredpanda_build=true --wrap-mode=forcefallback
-#
-if get_option('redpanda_build')
-  redpanda_subprojects = subproject('redpanda-subprojects')
-endif
-
-#
 # Dependencies that have customizations or are not provided by system packages
 # on supported platforms. These are compiled from source for production release
 # builds and for public builds when a system package is not available.

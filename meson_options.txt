@@ -1,5 +1,2 @@
-option('redpanda_build', type: 'boolean', value: false,
-  description: 'Configure for Redpanda production build')
-
 option('default_test_cores', type: 'integer', min: 1, value: 5,
   description: 'Default number of cores to use in tests')
