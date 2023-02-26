@@ -13,3 +13,9 @@ exe = executable('test_kafka_protocol_parser',
   dependencies: [kafka_server, storage_test_utils, seastar_testing_main,
     model_test_utils])
 test('kafka_protocol_parser', exe)
+
+executable('fuzz_kafka_protocol',
+  'protocol_fuzz.cc',
+  link_args: '-fsanitize=fuzzer',
+  dependencies: [kafka_server, storage_test_utils, seastar_testing_main,
+    model_test_utils])

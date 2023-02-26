@@ -81,6 +81,18 @@ add_project_arguments(
   '-Wno-deprecated-experimental-coroutine',
   language: 'cpp')
 
+add_project_arguments(
+  '-fsanitize=address,undefined,fuzzer-no-link',
+  '-fprofile-instr-generate',
+  '-fcoverage-mapping',
+  language: 'cpp')
+
+add_project_link_arguments(
+  '-fsanitize=address,undefined,fuzzer-no-link',
+  '-fprofile-instr-generate',
+  '-fcoverage-mapping',
+  language: 'cpp')
+
 git_version = find_program('git-version.py')
 version_h = custom_target(
   input: 'version.h.in',
