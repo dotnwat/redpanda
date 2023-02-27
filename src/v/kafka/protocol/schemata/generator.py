@@ -1044,6 +1044,7 @@ HEADER_TEMPLATE = """
 #include "kafka/protocol/errors.h"
 #include "seastarx.h"
 #include "utils/fragmented_vector.h"
+#include "kafka/protocol/batch_reader.h"
 
 {%- for header in struct.headers("header") %}
 {%- if header.startswith("<") %}
@@ -1087,6 +1088,105 @@ struct {{ struct.name }} {
 {%- if struct.is_default_comparable %}
     friend bool operator==(const {{ struct.name }}&, const {{ struct.name }}&) = default;
 {%- endif %}
+
+    struct fuzz_reader {
+        const uint8_t*& data;
+        size_t& size;
+
+        fuzz_reader(const uint8_t*& data, size_t& size)
+          : data(data), size(size) {}
+
+        bool read_bool() { return read<int8_t>(); }
+        auto read_int8() { return read<int8_t>(); }
+        auto read_int16() { return read<int16_t>(); }
+        auto read_int32() { return read<int32_t>(); }
+        auto read_int64() { return read<int64_t>(); }
+        auto read_string() { return ss::sstring(); }
+        auto read_nullable_string() { return std::optional<ss::sstring>(); }
+        auto read_bytes() { return bytes(); }
+        auto read_uuid() { return uuid(); }
+        std::optional<iobuf> read_fragmented_nullable_bytes() { return iobuf(); }
+        std::optional<kafka::batch_reader> read_nullable_batch_reader() {
+            return std::nullopt;
+        }
+
+        template<typename T>
+        auto read() -> T {
+            if (size < sizeof(T)) {
+                throw std::runtime_error("end of program");
+            }
+            T ret;
+            std::memcpy(&ret, data, sizeof(T));
+            data += sizeof(T);
+            size -= sizeof(T);
+            return ret;
+        }
+    };
+
+    /*
+     *
+     */
+    static {{ struct.name }} make_fuzzed(const uint8_t*& data, size_t& size) {
+        fuzz_reader reader(data, size);
+        {{ struct.name }} r;
+{%- for field in struct.fields %}
+{%- if field.is_array %}
+{%- if field.nullable() %}
+        if (reader.read<int8_t>() < 0) {
+            r.{{ field.name }} = std::nullopt;
+        } else {
+            r.{{ field.name }}.emplace();
+            for (auto i = reader.read<int32_t>(); i > 0; --i) {
+{%- if field.type().value_type().is_struct %}
+                auto v = {{ field.type().value_type().name }}::make_fuzzed(data, size);
+                r.{{ field.name }}->push_back(std::move(v));
+{%- else %}
+{%- set decoder, named_type = field.decoder(flex) %}
+{%- if named_type == None %}
+                r.{{ field.name }}->push_back(reader.{{ decoder }});
+{%- else %}
+                r.{{ field.name }}->push_back({{ named_type }}(reader.{{ decoder }}));
+{%- endif %}
+{%- endif %}
+            }
+        }
+{%- else %}
+        for (auto i = reader.read<int32_t>(); i > 0; --i) {
+{%- if field.type().value_type().is_struct %}
+            auto v = {{ field.type().value_type().name }}::make_fuzzed(data, size);
+            r.{{ field.name }}.push_back(std::move(v));
+{%- else %}
+{%- set decoder, named_type = field.decoder(flex) %}
+{%- if named_type == None %}
+            r.{{ field.name }}.push_back(reader.{{ decoder }});
+{%- else %}
+            r.{{ field.name }}.push_back({{ named_type }}(reader.{{ decoder }}));
+{%- endif %}
+{%- endif %}
+        }
+{%- endif %}
+{%- else %}
+{%- set decoder, named_type = field.decoder(flex) %}
+{%- if named_type == None %}
+        r.{{ field.name }} = reader.{{ decoder }};
+{%- elif field.nullable() %}
+    {
+        auto tmp = reader.{{ decoder }};
+        if (tmp) {
+{%- if named_type == "kafka::produce_request_record_data" %}
+            r.{{ field.name }} = {{ named_type }}(std::move(*tmp), kafka::api_version(0));
+{%- else %}
+            r.{{ field.name }} = {{ named_type }}(std::move(*tmp));
+{%- endif %}
+        }
+    }
+{%- else %}
+        r.{{ field.name }} = {{ named_type }}(reader.{{ decoder }});
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+        return r;
+    }
 {% endmacro %}
 
 namespace kafka {
@@ -1111,6 +1211,7 @@ class response;
 {%- endif %}
 
     friend std::ostream& operator<<(std::ostream&, const {{ struct.name }}&);
+
 {%- if first_flex > 0 %}
 private:
     void encode_flex(response_writer&, api_version);
