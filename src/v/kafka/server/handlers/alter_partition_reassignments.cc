@@ -278,7 +278,7 @@ map_errc_to_response(const model::ntp& ntp, std::error_code ec) {
 }
 
 ss::future<reassignable_topic_response> do_handle_topic(
-  reassignable_topic topic,
+  reassignable_topic& topic,
   std::vector<model::node_id> alive_nodes,
   alter_op_context& octx) {
     reassignable_topic_response topic_response{.name = topic.name};
@@ -348,7 +348,9 @@ static ss::future<response_ptr> do_handle(alter_op_context& octx) {
             octx.request.data.topics.end(),
             [&octx, alive_nodes = std::move(alive_nodes)](
               reassignable_topic topic) mutable {
-                return do_handle_topic(topic, alive_nodes, octx);
+                return ss::do_with(topic, [&octx, alive_nodes](auto& topic) {
+                    return do_handle_topic(topic, alive_nodes, octx);
+                });
             });
       })
       .then([&octx](std::vector<reassignable_topic_response> topic_responses) {
