@@ -46,6 +46,7 @@ group_manager::group_manager(
   group_metadata_serializer_factory serializer_factory,
   enable_group_metrics enable_metrics)
   : _tp_ns(std::move(tp_ns))
+  , _offset_expiration(this)
   , _gm(gm)
   , _pm(pm)
   , _topic_table(topic_table)
@@ -54,8 +55,10 @@ group_manager::group_manager(
   , _serializer_factory(std::move(serializer_factory))
   , _conf(config::shard_local_cfg())
   , _self(cluster::make_self_broker(config::node()))
-  , _enable_group_metrics(enable_metrics)
-  , _offset_retention_check(_conf.group_offset_retention_check_ms.bind()) {}
+  , _enable_group_metrics(enable_metrics) {
+    _offset_expiration.set_binding(
+      _conf.group_offset_retention_check_ms.bind());
+}
 
 ss::future<> group_manager::start() {
     /*
@@ -100,34 +103,15 @@ ss::future<> group_manager::start() {
             handle_topic_delta(deltas);
         });
 
-    /*
-     * periodically remove expired group offsets.
-     */
-    _timer.set_callback([this] {
-        ssx::spawn_with_gate(_gate, [this] {
-            return handle_offset_expiration().finally([this] {
-                if (!_gate.is_closed()) {
-                    _timer.arm(_offset_retention_check());
-                }
-            });
-        });
-    });
-    _timer.arm(_offset_retention_check());
-
-    /*
-     * reschedule periodic collection of expired offsets when the configured
-     * frequency changes. useful if it were accidentally configured to be much
-     * longer than desired / reasonable, and then fixed (e.g. 1 year vs 1 day).
-     */
-    _offset_retention_check.watch([this] {
-        if (_timer.armed()) {
-            _timer.cancel();
-            _timer.arm(_offset_retention_check());
-        }
-    });
+    _offset_expiration.start();
 
     return ss::make_ready_future<>();
 }
+
+ss::future<> group_manager::offset_expiration_task::task() const {
+    co_await _gm->handle_offset_expiration();
+}
+
 /*
  * Compute if retention is enabled.
  *
@@ -366,7 +350,7 @@ ss::future<> group_manager::stop() {
      * during application shutdown
      */
     if (_gate.is_closed()) {
-        return ss::now();
+        co_return;
     }
     _pm.local().unregister_manage_notification(_manage_notify_handle);
     _pm.local().unregister_unmanage_notification(_unmanage_notify_handle);
@@ -378,9 +362,9 @@ ss::future<> group_manager::stop() {
         e.second->as.request_abort();
     }
 
-    _timer.cancel();
+    co_await _offset_expiration.stop();
 
-    return _gate.close().then([this]() {
+    co_return co_await _gate.close().then([this]() {
         /**
          * cancel all pending group opeartions
          */

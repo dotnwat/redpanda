@@ -32,6 +32,7 @@
 #include "raft/group_manager.h"
 #include "seastarx.h"
 #include "ssx/semaphore.h"
+#include "utils/timer.h"
 
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/coroutine.hh>
@@ -274,7 +275,19 @@ private:
     std::optional<std::chrono::seconds> offset_retention_enabled();
     std::optional<bool> _prev_offset_retention_enabled;
 
-    ss::timer<> _timer;
+    class offset_expiration_task : public periodic_task {
+    public:
+        explicit offset_expiration_task(group_manager* gm)
+          : _gm(gm) {}
+
+        ss::future<> task() const override;
+
+    private:
+        group_manager* _gm;
+    };
+
+    offset_expiration_task _offset_expiration;
+
     ss::future<> handle_offset_expiration();
     ss::future<size_t> delete_expired_offsets(group_ptr, std::chrono::seconds);
     ss::sharded<raft::group_manager>& _gm;
@@ -291,7 +304,6 @@ private:
 
     model::broker _self;
     enable_group_metrics _enable_group_metrics;
-    config::binding<std::chrono::milliseconds> _offset_retention_check;
 };
 
 } // namespace kafka
