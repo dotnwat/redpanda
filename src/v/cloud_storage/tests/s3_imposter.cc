@@ -107,7 +107,7 @@ void s3_imposter_fixture::set_routes(
                             <Resource>resource</Resource>
                             <RequestId>requestid</RequestId>
                         </Error>)xml";
-            http_test_utils::request_info ri{request._method, request._url, request.content, request.content_length};
+            http_test_utils::request_info ri(request);
             fixture._requests.push_back(ri);
             fixture._targets.insert(std::make_pair(ri.url, ri));
             vlog(

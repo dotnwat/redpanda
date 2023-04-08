@@ -110,7 +110,7 @@ void http_imposter_fixture::set_routes(ss::httpd::routes& r) {
               }
           }
 
-          http_test_utils::request_info ri{req._method, req._url, req.content, req.content_length};
+          http_test_utils::request_info ri(req);
           _requests.push_back(ri);
           _targets.insert(std::make_pair(ri.url, ri));
 
