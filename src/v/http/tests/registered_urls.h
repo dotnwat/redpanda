@@ -22,7 +22,7 @@
 namespace http_test_utils {
 struct response {
     ss::sstring body;
-    ss::httpd::reply::status_type status;
+    ss::http::reply::status_type status;
 };
 
 std::ostream& operator<<(std::ostream& os, const response& resp);
@@ -49,12 +49,12 @@ struct registered_urls {
             ss::sstring request_content;
 
             void then_reply_with(ss::sstring content);
-            void then_reply_with(ss::httpd::reply::status_type status);
+            void then_reply_with(ss::http::reply::status_type status);
 
             void then_reply_with(
-              ss::sstring content, ss::httpd::reply::status_type status);
+              ss::sstring content, ss::http::reply::status_type status);
 
-            add_mapping_when& with_method(ss::operation_type m);
+            add_mapping_when& with_method(ss::httpd::operation_type m);
 
             add_mapping_when& with_content(ss::sstring content);
         };

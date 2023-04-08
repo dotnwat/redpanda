@@ -299,11 +299,12 @@ std::error_condition make_error_condition(reply_error_code ec) {
     return {static_cast<int>(ec), reply_error_category};
 }
 
-std::error_condition make_error_condition(ss::httpd::reply::status_type st) {
+std::error_condition make_error_condition(ss::http::reply::status_type st) {
     using rec = reply_error_code;
-    using sec = ss::httpd::reply::status_type;
+    using sec = ss::http::reply::status_type;
 
     switch (st) {
+    case sec::partial_content: // FIXME
     case sec::continue_:
         return rec::continue_;
     case sec::switching_protocols:

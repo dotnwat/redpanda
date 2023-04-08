@@ -46,9 +46,8 @@ constexpr std::string_view request_schema = R"(
 
 namespace cloud_storage {
 
-recovery_request::recovery_request(ss::httpd::request req)
-  : _request(std::move(req)) {
-    parse_request_body();
+recovery_request::recovery_request(const ss::http::request& req) {
+    parse_request_body(req);
 }
 
 std::optional<ss::sstring> recovery_request::topic_names_pattern() const {
@@ -77,7 +76,8 @@ static std::optional<ss::sstring> find_content_type(const headers& h) {
     return std::nullopt;
 }
 
-void recovery_request::parse_request_body() {
+void recovery_request::parse_request_body(const ss::http::request& req) {
+    auto& _request = req;
     if (_request.content_length > 0) {
         auto content_type = find_content_type(_request._headers);
         if (!content_type) {
