@@ -25,7 +25,7 @@ public:
 
 struct recovery_request {
 public:
-    explicit recovery_request(ss::httpd::request req);
+    explicit recovery_request(ss::http::request req);
 
     std::optional<ss::sstring> topic_names_pattern() const;
 
@@ -37,7 +37,7 @@ private:
     void parse_request_body();
 
 private:
-    ss::httpd::request _request;
+    ss::http::request _request;
     std::optional<ss::sstring> _topic_names_pattern;
     std::optional<size_t> _retention_bytes;
     std::optional<std::chrono::milliseconds> _retention_ms;
