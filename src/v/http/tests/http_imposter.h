@@ -89,7 +89,7 @@ public:
         template<typename T>
         bool operator()(T&& url) {
             auto found = std::find_if(
-              _begin, _end, [&url](const auto& u) { return u._url == url; });
+              _begin, _end, [&url](const auto& u) { return u.url == url; });
             if (found == _end) {
                 return false;
             }
