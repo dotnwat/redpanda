@@ -25,6 +25,13 @@ struct response {
     ss::httpd::reply::status_type status;
 };
 
+struct request_info {
+    ss::sstring method;
+    ss::sstring url;
+    ss::sstring content;
+    size_t content_length;
+};
+
 std::ostream& operator<<(std::ostream& os, const response& resp);
 
 struct registered_urls {
@@ -70,6 +77,6 @@ struct registered_urls {
 
     add_mapping::add_mapping_when request(ss::sstring url);
 
-    response lookup(ss::httpd::const_req& req) const;
+    response lookup(const request_info&) const;
 };
 } // namespace http_test_utils
