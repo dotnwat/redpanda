@@ -24,8 +24,11 @@ static ss::logger http_imposter_log("http_imposter"); // NOLINT
  * do it in some places.  To enable these unit tests to run in parallel,
  * each unit test binary must declare its own function to pick a port that
  * no other unit test uses.
+ *
+ * temp hack needs to be fixed for shared library
  */
-extern uint16_t unit_test_httpd_port_number();
+//extern uint16_t unit_test_httpd_port_number();
+static uint16_t unit_test_httpd_port_number() { return 4443; }
 
 http_imposter_fixture::http_imposter_fixture()
   : _server_addr{ss::ipv4_addr{
