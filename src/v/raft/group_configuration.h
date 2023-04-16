@@ -185,7 +185,20 @@ public:
     /**
      * Check if node is a voter
      */
-    bool is_voter(vnode) const;
+bool is_voter(vnode id) const {
+    auto it = std::find(_current.voters.cbegin(), _current.voters.cend(), id);
+
+    if (it != _current.voters.cend()) {
+        return true;
+    }
+    if (!_old) {
+        return false;
+    }
+    auto old_it = std::find(_old->voters.cbegin(), _old->voters.cend(), id);
+
+    return old_it != _old->voters.cend();
+}
+
 
     /**
      * Check if node with given id is allowed to request for votes

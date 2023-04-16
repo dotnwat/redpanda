@@ -300,20 +300,6 @@ bool group_configuration::has_voters() const {
     return !(_current.voters.empty() || (_old && _old->voters.empty()));
 }
 
-bool group_configuration::is_voter(vnode id) const {
-    auto it = std::find(_current.voters.cbegin(), _current.voters.cend(), id);
-
-    if (it != _current.voters.cend()) {
-        return true;
-    }
-    if (!_old) {
-        return false;
-    }
-    auto old_it = std::find(_old->voters.cbegin(), _old->voters.cend(), id);
-
-    return old_it != _old->voters.cend();
-}
-
 bool group_configuration::is_allowed_to_request_votes(vnode id) const {
     // either current voter
     auto it = std::find(_current.voters.cbegin(), _current.voters.cend(), id);
