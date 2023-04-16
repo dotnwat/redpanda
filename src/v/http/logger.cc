@@ -10,5 +10,5 @@
 #include "http/logger.h"
 
 namespace http {
-ss::logger http_log("http");
+ss::logger http_log("rphttp");
 } // namespace http
