@@ -15,7 +15,7 @@ v_cc_library(
     topic_cache.cc
     sasl_client.cc
   DEPS
-    v::kafka
+    v::kafka_protocol
     v::ssx
   )
 
