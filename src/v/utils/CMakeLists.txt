@@ -19,8 +19,7 @@ v_cc_library(
     Seastar::seastar
     Hdrhistogram::hdr_histogram
     aklomp::base64
-    v::rphashing
-    v::rprandom
+    absl::hash
     v::bytes
     v::json)
 add_subdirectory(tests)
