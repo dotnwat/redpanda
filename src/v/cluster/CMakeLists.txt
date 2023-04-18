@@ -162,6 +162,15 @@ v_cc_library(
     cloud_storage_size_reducer.cc
     topic_recovery_service.cc
     partition_recovery_manager.cc
+    ../archival/archival_policy.cc
+    ../archival/ntp_archiver_service.cc
+    ../archival/probe.cc
+    ../archival/types.cc
+    ../archival/upload_controller.cc
+    ../archival/segment_reupload.cc
+    ../archival/retention_calculator.cc
+    ../archival/upload_housekeeping_service.cc
+    ../archival/adjacent_segment_merger.cc
   DEPS
     Seastar::seastar
     bootstrap_rpc
@@ -179,8 +188,19 @@ v_cc_library(
     absl::flat_hash_map
     v::model
     v::cloud_storage
-    v::archival
     v::features
   )
 add_subdirectory(tests)
 add_subdirectory(self_test/tests)
+
+#Seastar::seastar
+#v::bytes
+#v::http
+#v::cloud_storage_clients
+#v::cloud_storage
+#v::json
+#v::model
+#v::storage
+#v::cluster
+#v::config
+#v::rphashing
