@@ -17,6 +17,8 @@ v_cc_library(
   DEPS
     v::kafka_protocol
     v::ssx
+    v::storage # batch builder
+    v::cluster # log cert reload helper
   )
 
 add_subdirectory(test)
