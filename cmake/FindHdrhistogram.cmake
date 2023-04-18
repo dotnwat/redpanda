@@ -3,7 +3,7 @@ find_path (Hdrhistogram_INCLUDE_DIR
   PATH_SUFFIXES hdr)
 
 find_library (Hdrhistogram_LIBRARY
-  NAMES hdr_histogram_static)
+  NAMES hdr_histogram_static hdr_histogram)
 
 mark_as_advanced (
   Hdrhistogram_INCLUDE_DIR

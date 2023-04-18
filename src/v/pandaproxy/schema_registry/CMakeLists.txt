@@ -28,7 +28,7 @@ v_cc_library(
     v::kafka
     v::ssx
     v::utils
-    avrocpp_s
+    avrocpp # or avrocpp_s for static builds
     Boost::iostreams
     protobuf::libprotobuf
     protobuf::libprotoc
