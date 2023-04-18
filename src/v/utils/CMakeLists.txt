@@ -20,6 +20,8 @@ v_cc_library(
     Hdrhistogram::hdr_histogram
     aklomp::base64
     absl::hash
+    absl::random_seed_sequences
     v::bytes
+    v::rphashing
     v::json)
 add_subdirectory(tests)
