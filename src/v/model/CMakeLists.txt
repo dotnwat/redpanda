@@ -8,9 +8,8 @@ v_cc_library(
     adl_serde.cc
     validation.cc
   DEPS
-    v::bytes
-    v::rphashing
-    v::reflection
     Seastar::seastar
+    v::rphashing
+    v::serde
   )
 add_subdirectory(tests)

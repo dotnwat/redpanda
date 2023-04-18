@@ -6,6 +6,7 @@ v_cc_library(
     "metrics.h"
   DEPS
     Seastar::seastar
+    v::utils
   )
 
 add_subdirectory(tests)

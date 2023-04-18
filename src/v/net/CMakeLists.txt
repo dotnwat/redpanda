@@ -14,6 +14,7 @@ v_cc_library(
     absl::node_hash_map
     v::config
     v::rphashing
+    v::utils
   )
 
 add_subdirectory(tests)

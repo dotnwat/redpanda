@@ -17,7 +17,6 @@ v_cc_library(
     Seastar::seastar
     v::bytes
     v::cloud_roles
-    v::net
     LibXml2::LibXml2
   DEFINES
     -DBOOST_ASIO_HAS_STD_INVOKE_RESULT

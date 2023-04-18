@@ -5,6 +5,8 @@ v_cc_library(
     storage.cc
   DEPS
     Seastar::seastar
+    v::ssx
+    v::config
   )
 
 add_subdirectory(tests)

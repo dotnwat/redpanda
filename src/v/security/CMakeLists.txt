@@ -12,8 +12,11 @@ v_cc_library(
     krb5_configurator.cc
     gssapi_principal_mapper.cc
   DEPS
+    Seastar::seastar
     v::bytes
     v::utils
+    v::model
+    v::json
     v::rprandom
     absl::flat_hash_map
     absl::flat_hash_set

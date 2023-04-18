@@ -17,7 +17,7 @@ rp_test(
     token_bucket_test.cc
     uuid_test.cc
     seastar_histogram_test.cc
-  LIBRARIES v::seastar_testing_main v::utils v::bytes absl::flat_hash_set
+  LIBRARIES v::seastar_testing_main v::utils v::rprandom absl::flat_hash_set
   ARGS "-- -c 1"
   LABELS utils
 )
@@ -28,7 +28,7 @@ rp_test(
   SOURCES
     remote_test.cc
     retry_test.cc
-  LIBRARIES v::seastar_testing_main
+  LIBRARIES v::seastar_testing_main v::utils
   ARGS "-- -c 2"
   LABELS utils
 )

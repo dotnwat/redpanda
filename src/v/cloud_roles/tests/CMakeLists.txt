@@ -7,8 +7,6 @@ rp_test(
     DEFINITIONS BOOST_TEST_DYN_LINK
     LIBRARIES
     v::seastar_testing_main
-    Boost::unit_test_framework
-    v::http
     v::cloud_roles
     ARGS "-- -c 1"
     LABELS cloud_roles
@@ -28,7 +26,6 @@ rp_test(
     LIBRARIES
     v::seastar_testing_main
     v::cloud_roles
-    Boost::unit_test_framework
     v::http_test_utils
     ARGS "-- -c 1"
     LABELS cloud_roles
