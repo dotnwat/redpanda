@@ -283,6 +283,12 @@ process_result_stages process_request(
     }
 
     if (auto handler = handler_for_key(key)) {
+        vlog(
+          klog.error,
+          "XXXXXXXXXXXXXX {} {} {}",
+          api_name_to_key("produce"),
+          api_name_to_key((*handler)->name()),
+          (*handler)->key());
         return process_generic(*handler, std::move(ctx), g, sres);
     }
 
