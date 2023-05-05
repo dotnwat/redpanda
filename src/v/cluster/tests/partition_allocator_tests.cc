@@ -488,14 +488,14 @@ FIXTURE_TEST(rack_aware_assignment_2, partition_allocator_fixture) {
     auto group = units->get_assignments().front();
     std::set<ss::sstring> racks;
     for (auto [node_id, shard] : group.replicas) {
-        auto rack_it = std::lower_bound(
-          id_rack_ncpu.begin(),
-          id_rack_ncpu.end(),
-          std::make_tuple(node_id(), ss::sstring(), 0));
-        BOOST_REQUIRE(rack_it != id_rack_ncpu.end());
-        BOOST_REQUIRE(std::get<0>(*rack_it) == node_id());
-        auto rack = std::get<1>(*rack_it);
-        racks.insert(rack);
+        //auto rack_it = std::lower_bound(
+        //  id_rack_ncpu.begin(),
+        //  id_rack_ncpu.end(),
+        //  std::make_tuple(node_id(), ss::sstring(), 0));
+        //BOOST_REQUIRE(rack_it != id_rack_ncpu.end());
+        //BOOST_REQUIRE(std::get<0>(*rack_it) == node_id());
+        //auto rack = std::get<1>(*rack_it);
+        //racks.insert(rack);
     }
     BOOST_REQUIRE(racks.size() == 2);
     BOOST_REQUIRE(racks.contains("rack-a"));

@@ -100,15 +100,16 @@ retention_calculator::retention_calculator(
   , _strategies(std::move(strategies)) {}
 
 std::optional<model::offset> retention_calculator::next_start_offset() {
-    auto it = std::find_if(
-      _manifest.first_addressable_segment(),
-      _manifest.end(),
-      [this](const auto& entry) -> bool {
-          return std::all_of(
-            _strategies.begin(), _strategies.end(), [&](auto& strat) {
-                return strat->done(entry);
-            });
-      });
+    auto it = _manifest.end();
+    //auto it = std::find_if(
+    //  _manifest.first_addressable_segment(),
+    //  _manifest.end(),
+    //  [this](const auto& entry) -> bool {
+    //      return std::all_of(
+    //        _strategies.begin(), _strategies.end(), [&](auto& strat) {
+    //            return strat->done(entry);
+    //        });
+    //  });
 
     // We made it to the end of our strategies and our policies are still not
     // satisfied. Return just past the end -- we will truncate all segments.

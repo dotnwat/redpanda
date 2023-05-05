@@ -30,6 +30,7 @@
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/shared_ptr.hh>
+#include <seastar/core/sstring.hh>
 #include <seastar/util/later.hh>
 
 #include <fmt/ostream.h>
@@ -1856,14 +1857,15 @@ partition_manifest::timequery(model::timestamp t) const {
     if (segment_iter->base_timestamp < t) {
         // Our guess's base_timestamp is before the search point, so our
         // result must be this segment or a later one: search forward
-        return *std::find_if(
-          std::move(segment_iter),
-          _segments.at_index(_segments.size() - 1),
-          [&](auto const& s) {
-              // We found a segment bounding the search point - or -
-              // We found the first segment after the search point
-              return s.max_timestamp >= t || s.base_timestamp > t;
-          });
+        auto end = _segments.at_index(_segments.size() - 1);
+        for (auto& it = segment_iter; it != end; ++it) {
+            // We found a segment bounding the search point - or -
+            // We found the first segment after the search point
+            if (it->max_timestamp >= t || it->base_timestamp > t) {
+                return *it;
+            }
+        }
+        vassert(false, "bad stuff");
     } else {
         // Search backwards: we must peek at each preceding segment
         // to see if its max_timestamp is >= the query t, before
