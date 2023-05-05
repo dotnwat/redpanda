@@ -1072,7 +1072,7 @@ struct partition_manifest_handler
                 _delta_offset_end = model::offset_delta(u);
             } else if (_segment_meta_key == "sname_format") {
                 _meta_sname_format = segment_name_format(u);
-            } else if ("metadata_size_hint" == _segment_meta_key) {
+            } else if (_segment_meta_key == "metadata_size_hint") {
                 _metadata_size_hint = static_cast<size_t>(u);
             }
             if (_state == state::expect_segment_meta_value) {
