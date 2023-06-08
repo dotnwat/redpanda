@@ -203,7 +203,8 @@ admin_server::admin_server(
   ss::sharded<cloud_storage::topic_recovery_service>& topic_recovery_svc,
   ss::sharded<cluster::topic_recovery_status_frontend>&
     topic_recovery_status_frontend,
-  ss::sharded<cluster::tx_registry_frontend>& tx_registry_frontend)
+  ss::sharded<cluster::tx_registry_frontend>& tx_registry_frontend,
+  ss::sharded<storage::node>& storage_node)
   : _log_level_timer([this] { log_level_timer_handler(); })
   , _server("admin")
   , _cfg(std::move(cfg))
@@ -225,6 +226,7 @@ admin_server::admin_server(
   , _topic_recovery_service(topic_recovery_svc)
   , _topic_recovery_status_frontend(topic_recovery_status_frontend)
   , _tx_registry_frontend(tx_registry_frontend)
+  , _storage_node(storage_node)
   , _default_blocked_reactor_notify(
       ss::engine().get_blocked_reactor_notify_ms()) {}
 
@@ -4175,6 +4177,111 @@ void admin_server::register_debug_routes() {
     register_route<superuser>(
       ss::httpd::debug_json::unsafe_reset_metadata,
       std::move(unsafe_reset_metadata_handler));
+
+    register_route<superuser>(
+      ss::httpd::debug_json::get_disk_stat,
+      [this](std::unique_ptr<ss::http::request> request) {
+          return get_disk_stat_handler(std::move(request));
+      });
+
+    register_route<superuser>(
+      ss::httpd::debug_json::put_disk_stat,
+      [this](std::unique_ptr<ss::http::request> request) {
+          return put_disk_stat_handler(std::move(request));
+      });
+}
+
+ss::future<ss::json::json_return_type>
+admin_server::get_disk_stat_handler(std::unique_ptr<ss::http::request>) {
+    auto data = co_await _storage_node.local().get_statvfs(
+      storage::node::disk_type::data);
+
+    auto cache = co_await _storage_node.local().get_statvfs(
+      storage::node::disk_type::cache);
+
+    ss::httpd::debug_json::disks disks;
+
+    // data disk
+    ss::httpd::debug_json::disk_stat data_disk;
+    data_disk.total_bytes = data.stat.f_blocks * data.stat.f_frsize;
+    data_disk.free_bytes = data.stat.f_bfree * data.stat.f_frsize;
+    disks.data = data_disk;
+
+    // cache disk?
+    if (cache.stat.f_fsid != data.stat.f_fsid) {
+        ss::httpd::debug_json::disk_stat cache_disk;
+        cache_disk.total_bytes = cache.stat.f_blocks * cache.stat.f_frsize;
+        cache_disk.free_bytes = cache.stat.f_bfree * cache.stat.f_frsize;
+        disks.cache = cache_disk;
+    }
+
+    co_return disks;
+}
+
+static json::validator make_disk_stat_validator() {
+    const std::string schema = R"(
+{
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "object",
+            "properties": {
+                "total_bytes": {
+                    "type": "integer"
+                },
+                "free_bytes": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["total_bytes", "free_bytes"]
+        },
+        "cache": {
+            "type": "object",
+            "properties": {
+                "total_bytes": {
+                    "type": "integer"
+                },
+                "free_bytes": {
+                    "type": "integer"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["total_bytes", "free_bytes"]
+        }
+    },
+    "additionalProperties": false
+}
+)";
+    return json::validator(schema);
+}
+
+/*
+ * TODO: we may nee dto make free bytes be some sort of adjuster factor to be
+ * useful
+ *
+ * 1. just need to figure out the request schema here for dealing with updates
+ * 2. proper sharding of node service?
+ * 3. add the overrides
+ * 4. some comments etc
+ * 5. simple test
+ */
+ss::future<ss::json::json_return_type> admin_server::put_disk_stat_handler(
+  std::unique_ptr<ss::http::request> request) {
+    static thread_local auto disk_stat_validator(make_disk_stat_validator());
+
+    auto doc = parse_json_body(*request);
+    apply_validator(disk_stat_validator, doc);
+
+    if (doc.HasMember("data")) {
+    } else {
+    }
+
+    if (doc.HasMember("cache")) {
+    } else {
+    }
+
+    co_return ss::json::json_void();
 }
 
 ss::future<ss::json::json_return_type>
