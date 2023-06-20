@@ -24,10 +24,12 @@ namespace storage {
 disk_space_manager::disk_space_manager(
   config::binding<bool> enabled,
   ss::sharded<storage::api>* storage,
+  ss::sharded<storage::node>* storage_node,
   ss::sharded<cloud_storage::cache>* cache,
   ss::sharded<cluster::partition_manager>* pm)
   : _enabled(std::move(enabled))
   , _storage(storage)
+  , _storage_node(storage_node)
   , _cache(cache->local_is_initialized() ? cache : nullptr)
   , _pm(pm) {
     _enabled.watch([this] {
