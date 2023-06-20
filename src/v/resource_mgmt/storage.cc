@@ -11,6 +11,7 @@
 
 #include "storage.h"
 
+#include "cloud_storage/cache_service.h"
 #include "cluster/partition_manager.h"
 #include "vlog.h"
 
