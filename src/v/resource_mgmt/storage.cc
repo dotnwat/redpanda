@@ -65,6 +65,18 @@ ss::future<> disk_space_manager::run_loop() {
      */
     constexpr auto frequency = std::chrono::seconds(30);
 
+    /*
+     * the run loop can currently only control the cache. the cache cannot be
+     * runtime enabled. so if it isn't enabled, there is no reason to keep the
+     * run loop active.
+     */
+    if (_cache == nullptr) {
+        vlog(
+          rlog.info,
+          "Stopping storage management control loop. Nothing to control");
+        co_return;
+    }
+
     while (true) {
         try {
             if (_enabled()) {
