@@ -13,6 +13,7 @@
 
 #include "cloud_storage/cache_service.h"
 #include "cluster/partition_manager.h"
+#include "utils/human.h"
 #include "vlog.h"
 
 #include <seastar/util/log.hh>
@@ -59,14 +60,8 @@ ss::future<> disk_space_manager::start() {
     if (ss::this_shard_id() == run_loop_core) {
         ssx::spawn_with_gate(_gate, [this] { return run_loop(); });
         _cache_disk_nid = _storage_node->local().register_disk_notification(
-          node::disk_type::cache,
-          [this](
-            uint64_t total, uint64_t free, storage::disk_space_alert alert) {
-              _cache_disk_info = {
-                .total = total,
-                .free = free,
-                .alert = alert,
-              };
+          node::disk_type::cache, [this](node::disk_space_info info) {
+              _cache_disk_info = info;
               if (_cache_disk_info.alert != disk_space_alert::ok) {
                   _control_sem.signal();
               }
@@ -126,6 +121,10 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
+        vlog(rlog.info, "XXX threshold low {} threshold degraded {}",
+                human::bytes(_cache_disk_info.low_space_threshold),
+                human::bytes(_cache_disk_info.degraded_threshold));
+
         // 1. how much space do we need to find and remove in order to get out
         // of the low disk situation? this should come from the local monitor,
         // since that is who is also providing the alerts!
@@ -152,8 +151,8 @@ ss::future<> disk_space_manager::run_loop() {
         // size such as 50 GB, or a percentage of total disk capacity.
         const auto target_cache_max_bytes = _cache->local().target_max_bytes();
 
-        // 1. calculate what the effective cache size should be in order to get out
-        // of the low disk situation. then let's incrementally try to reach
+        // 1. calculate what the effective cache size should be in order to get
+        // out of the low disk situation. then let's incrementally try to reach
         // this. meaning, let's knock of 1 GB then trim. take a moment, repeat.
         // we want to be aggressive, but also smooth: what if there were a temp
         // spike in space usage or a bug / error in accounting? we wouldn't want

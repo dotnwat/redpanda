@@ -64,15 +64,8 @@ private:
     ss::sharded<cluster::partition_manager>* _pm;
 
     node::notification_id _cache_disk_nid;
-
-    struct disk_info {
-        uint64_t total{0};
-        uint64_t free{0};
-        disk_space_alert alert{disk_space_alert::ok};
-    };
-
     // details from last disk notification
-    disk_info _cache_disk_info;
+    node::disk_space_info _cache_disk_info;
 
 
     ss::gate _gate;
