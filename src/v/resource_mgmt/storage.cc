@@ -48,12 +48,29 @@ ss::future<> disk_space_manager::start() {
       _enabled() ? "enabled" : "disabled");
     if (ss::this_shard_id() == run_loop_core) {
         ssx::spawn_with_gate(_gate, [this] { return run_loop(); });
+        _cache_disk_nid = _storage_node->local().register_disk_notification(
+          node::disk_type::cache,
+          [this](
+            uint64_t total, uint64_t free, storage::disk_space_alert alert) {
+              _cache_disk_info = {
+                .total = total,
+                .free = free,
+                .alert = alert,
+              };
+              if (_cache_disk_info.alert != disk_space_alert::ok) {
+                  _control_sem.signal();
+              }
+          });
     }
     co_return;
 }
 
 ss::future<> disk_space_manager::stop() {
     vlog(rlog.info, "Stopping disk space manager service");
+    if (ss::this_shard_id() == run_loop_core) {
+        _storage_node->local().unregister_disk_notification(
+          node::disk_type::cache, _cache_disk_nid);
+    }
     _control_sem.broken();
     co_await _gate.close();
 }
@@ -95,6 +112,10 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
+        if (_cache_disk_info.alert == disk_space_alert::ok) {
+            continue;
+        }
+
         /*
          * Collect cache and logs storage usage information. These accumulate
          * across all shards (despite the local() accessor). If a failure occurs
@@ -123,14 +144,30 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
+        // the cache owns its own target maximum size. this might be a fixed
+        // size such as 50 GB, or a percentage of total disk capacity.
+        const auto target_cache_max_bytes = _cache->local().target_max_bytes();
+
+        vlog(rlog.info, "ZZZ not OKOKOKOKO");
+
+        // respond to disk alerts...
+        // the key here is that if we have no alerts active, then there isn't
+        // much to do (yet). maybe other policies will be more active about
+        // things.
+        //
+        // NEXT: get an alert!
+
         vlog(
-          rlog.debug,
+          rlog.info, "XXX target-cache-max-bytes {}", target_cache_max_bytes);
+
+        vlog(
+          rlog.info,
           "Cloud storage cache target minimum size {} nice to have {}",
           cache_usage_target.target_min_bytes,
           cache_usage_target.target_bytes);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage total {} - data {} index {} compaction {}",
           logs_usage.usage.total(),
           logs_usage.usage.data,
@@ -138,13 +175,13 @@ ss::future<> disk_space_manager::run_loop() {
           logs_usage.usage.compaction);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage available for reclaim local {} total {}",
           logs_usage.reclaim.retention,
           logs_usage.reclaim.available);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage target minimum size {} nice to have {}",
           logs_usage.target.min_capacity,
           logs_usage.target.min_capacity_wanted);
