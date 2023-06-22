@@ -1869,7 +1869,7 @@ configuration::configuration()
       "Threshold of minimim bytes free space before setting storage space "
       "alert",
       {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
-      0,
+      7_GiB,
       {.min = 0})
   , storage_min_free_bytes(
       *this,
