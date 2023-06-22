@@ -49,12 +49,8 @@ ss::future<> disk_space_manager::start() {
     if (ss::this_shard_id() == run_loop_core) {
         ssx::spawn_with_gate(_gate, [this] { return run_loop(); });
         _cache_disk_nid = _storage_node->local().register_disk_notification(
-          node::disk_type::cache, [this](node::disk_space_info info) {
-              _cache_disk_info = info;
-              if (_cache_disk_info.alert != disk_space_alert::ok) {
-                  _control_sem.signal();
-              }
-          });
+          node::disk_type::cache,
+          [this](node::disk_space_info info) { _cache_disk_info = info; });
     }
     co_return;
 }
