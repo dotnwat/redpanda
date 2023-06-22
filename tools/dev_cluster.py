@@ -49,6 +49,11 @@ class RedpandaConfig:
     seed_servers: list[NetworkAddress]
     empty_seed_starts_cluster: bool = False
     rack: str = None
+    cloud_storage_enabled: bool = True
+    cloud_storage_secret_key: str = "asdf"
+    cloud_storage_access_key: str = "asdf"
+    cloud_storage_region: str = "us-west-2"
+    cloud_storage_bucket: str = "bucket"
 
 
 @dataclasses.dataclass
