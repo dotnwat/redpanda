@@ -9,6 +9,7 @@
  * by the Apache License, Version 2.0
  */
 #include "storage/node.h"
+
 #include <seastar/core/reactor.hh>
 
 namespace storage {

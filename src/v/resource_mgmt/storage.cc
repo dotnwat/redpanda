@@ -13,11 +13,27 @@
 
 #include "cloud_storage/cache_service.h"
 #include "cluster/partition_manager.h"
+#include "utils/human.h"
 #include "vlog.h"
 
 #include <seastar/util/log.hh>
 
 static ss::logger rlog("resource_mgmt");
+
+/*
+ * TODO
+ *  - something seems whack with the debug endpoint for changing statvfs lies
+ *  - what should be the run-loop frequency when in a not-ok-state?
+ *  - should we have an internal alert below the normal alert that we use to
+ *  start making room so that we don't reach the alert status?
+ *  - cache service target max size should be the adjusted amount calculated in
+ *  trim() function
+ *  - restart run loop if an exception occurs
+ *  - on small disk sizes, the low space threshold is smaller than min size /
+ *  blocking threshold
+ *  - should trimming be disabled on config change in cache service?
+ *  - if we notice that we are below the must-have should we increase it?
+ */
 
 namespace storage {
 
@@ -49,8 +65,12 @@ ss::future<> disk_space_manager::start() {
     if (ss::this_shard_id() == run_loop_core) {
         ssx::spawn_with_gate(_gate, [this] { return run_loop(); });
         _cache_disk_nid = _storage_node->local().register_disk_notification(
-          node::disk_type::cache,
-          [this](node::disk_space_info info) { _cache_disk_info = info; });
+          node::disk_type::cache, [this](node::disk_space_info info) {
+              _cache_disk_info = info;
+              if (_cache_disk_info.alert != disk_space_alert::ok) {
+                  _control_sem.signal();
+              }
+          });
     }
     co_return;
 }
@@ -72,7 +92,20 @@ ss::future<> disk_space_manager::run_loop() {
      * we want the code here to actually run a little, but the final shape of
      * configuration options is not yet known.
      */
-    constexpr auto frequency = std::chrono::seconds(30);
+    constexpr auto frequency = std::chrono::seconds(3);
+    constexpr auto max_bytes_step_size = 100_MiB;
+
+    /*
+     * the run loop can currently only control the cache. the cache cannot be
+     * runtime enabled. so if it isn't enabled, there is no reason to keep the
+     * run loop active.
+     */
+    if (_cache == nullptr) {
+        vlog(
+          rlog.info,
+          "Stopping storage management control loop. Nothing to control");
+        co_return;
+    }
 
     while (true) {
         try {
@@ -90,22 +123,100 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
-        /*
-         * Collect cache and logs storage usage information. These accumulate
-         * across all shards (despite the local() accessor). If a failure occurs
-         * we wait rather than operate with a reduced set of information.
-         */
-        cloud_storage::cache_usage_target cache_usage_target;
-        try {
-            cache_usage_target
-              = co_await _pm->local().get_cloud_cache_disk_usage_target();
-        } catch (...) {
-            vlog(
-              rlog.info,
-              "Unable to collect cloud cache usage: {}",
-              std::current_exception());
+        if (_cache_disk_info.alert == disk_space_alert::ok) {
             continue;
         }
+
+        vlog(
+          rlog.info,
+          "cache disk capacity {} free {} thresholds low {} degraded {}",
+          human::bytes(_cache_disk_info.total),
+          human::bytes(_cache_disk_info.free),
+          human::bytes(_cache_disk_info.low_space_threshold),
+          human::bytes(_cache_disk_info.degraded_threshold));
+
+        auto cache_targets
+          = co_await _pm->local().get_cloud_cache_disk_usage_target();
+
+        vlog(
+          rlog.info,
+          "cache size {} effective max {} target {} capacity wanted {} "
+          "required {}",
+          human::bytes(_cache->local().current_size()),
+          human::bytes(_cache->local().max_bytes()),
+          human::bytes(_cache->local().target_max_bytes()),
+          human::bytes(cache_targets.target_bytes),
+          human::bytes(cache_targets.target_min_bytes));
+
+        /*
+         * the first knob we can adjust in a low free space state.
+         *
+         * the cache may not contain enough data available for removal that
+         * will take the system out of the alert state, but we can still play
+         * nice by not allowing the cache to use any additional free space.
+         *
+         * the max_bytes_tirm_threshold value is the effective maximum size of
+         * cache that achives this. this is like a "shrink_to_fit" operation.
+         */
+        const auto cache_max_trim_threshold
+          = _cache->local().max_bytes_trim_threshold();
+        vlog(
+          rlog.info,
+          "cache effective max size set to trim threshold {}",
+          human::bytes(cache_max_trim_threshold));
+        _cache->local().set_max_bytes_override(cache_max_trim_threshold);
+
+        // amount of additional free space needed to clear the alert
+        const auto free_space_needed = _cache_disk_info.low_space_threshold
+                                       - _cache_disk_info.free;
+
+        // the size by which the cache may be reduced without violating the
+        // current must-have space requirement.
+        const auto max_reduction = _cache->local().max_bytes()
+                                   - std::min(
+                                     cache_targets.target_min_bytes,
+                                     _cache->local().max_bytes());
+
+        vlog(
+          rlog.info,
+          "cache disk needs {} freed {} available in cache service",
+          human::bytes(free_space_needed),
+          human::bytes(max_reduction));
+
+        /*
+         * the second knob to adjust.
+         *
+         * reduce the amount of data in the cache. the reduction is applied
+         * incrementally to both smooth out the behavior as well as avoid nuking
+         * a ton of data if the reduction is due to a temporary blip.
+         */
+        if (max_reduction > 0) {
+            const auto step = std::min(max_reduction, max_bytes_step_size);
+            const auto new_max_bytes = _cache->local().max_bytes() - step;
+            vlog(
+              rlog.info,
+              "cache disk max size reduced by {} to {}",
+              human::bytes(step),
+              human::bytes(new_max_bytes));
+            _cache->local().set_max_bytes_override(new_max_bytes);
+            co_await _cache->local().trim();
+        }
+
+        // TODO add info/warn for threshold violations
+
+        // this works. now we to run it backwards and re-increase the max size.
+        // so basically i think what we can do is something like this: if the
+        // max size is less than the target max size, and there are no disk
+        // alert, then try to increase the size back up to the target. in order
+        // to avoid thrashing we can add some thresholds like always increasing
+        // to say some small percentage below what is technically possible. so
+        // to reach target 10gb we'd wait for 10.2gb or whatever.
+        //
+        //
+        // this is basically the first version. add tests, ship on friday.
+        //
+        //
+        // =====================================================
 
         storage::usage_report logs_usage;
         try {
@@ -118,14 +229,16 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
-        vlog(
-          rlog.debug,
-          "Cloud storage cache target minimum size {} nice to have {}",
-          cache_usage_target.target_min_bytes,
-          cache_usage_target.target_bytes);
+        continue;
+
+        // vlog(
+        //   rlog.info,
+        //   "Cloud storage cache target minimum size {} nice to have {}",
+        //   cache_usage_target.target_min_bytes,
+        //   cache_usage_target.target_bytes);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage total {} - data {} index {} compaction {}",
           logs_usage.usage.total(),
           logs_usage.usage.data,
@@ -133,13 +246,13 @@ ss::future<> disk_space_manager::run_loop() {
           logs_usage.usage.compaction);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage available for reclaim local {} total {}",
           logs_usage.reclaim.retention,
           logs_usage.reclaim.available);
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage target minimum size {} nice to have {}",
           logs_usage.target.min_capacity,
           logs_usage.target.min_capacity_wanted);
