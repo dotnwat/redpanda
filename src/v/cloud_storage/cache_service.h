@@ -153,6 +153,14 @@ public:
     // Shard 0 only. The effective max bytes
     uint64_t max_bytes() const;
 
+    uint64_t current_size() const;
+
+    // Shard 0 only. The effective maximum cache size that would cause trimming
+    // to occur if the size of the cache were to increase.
+    uint64_t max_bytes_trim_threshold() const;
+
+    ss::future<> trim();
+
 private:
     /// Load access time tracker from file
     ss::future<> load_access_time_tracker();
@@ -166,7 +174,7 @@ private:
 
     /// Triggers directory walker, creates a list of files to delete and deletes
     /// them until cache size <= _cache_size_low_watermark * max_bytes
-    ss::future<> trim();
+    ss::future<> do_trim();
 
     /// Invoke trim, waiting if not enough time passed since the last trim
     ss::future<> trim_throttled();

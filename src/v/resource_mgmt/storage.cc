@@ -28,6 +28,10 @@ static ss::logger rlog("resource_mgmt");
  *  start making room so that we don't reach the alert status?
  *  - cache service target max size should be the adjusted amount calculated in
  *  trim() function
+ *  - restart run loop if an exception occurs
+ *  - on small disk sizes, the low space threshold is smaller than min size /
+ *  blocking threshold
+ *  - should trimming be disabled on config change in cache service?
  */
 
 namespace storage {
@@ -87,7 +91,8 @@ ss::future<> disk_space_manager::run_loop() {
      * we want the code here to actually run a little, but the final shape of
      * configuration options is not yet known.
      */
-    constexpr auto frequency = std::chrono::seconds(1);
+    constexpr auto frequency = std::chrono::seconds(3);
+    constexpr auto max_bytes_step_size = 100_MiB;
 
     /*
      * the run loop can currently only control the cache. the cache cannot be
@@ -121,9 +126,133 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
-        vlog(rlog.info, "XXX threshold low {} threshold degraded {}",
-                human::bytes(_cache_disk_info.low_space_threshold),
-                human::bytes(_cache_disk_info.degraded_threshold));
+        vlog(
+          rlog.info,
+          "cache disk capacity {} free {} thresholds low {} degraded {}",
+          human::bytes(_cache_disk_info.total),
+          human::bytes(_cache_disk_info.free),
+          human::bytes(_cache_disk_info.low_space_threshold),
+          human::bytes(_cache_disk_info.degraded_threshold));
+
+        auto cache_targets
+          = co_await _pm->local().get_cloud_cache_disk_usage_target();
+
+        vlog(
+          rlog.info,
+          "cache size {} effective max {} target {} capacity wanted {} "
+          "required {}",
+          human::bytes(_cache->local().current_size()),
+          human::bytes(_cache->local().max_bytes()),
+          human::bytes(_cache->local().target_max_bytes()),
+          human::bytes(cache_targets.target_bytes),
+          human::bytes(cache_targets.target_min_bytes));
+
+        /*
+         * the cache may not have enough data in it available for removal that
+         * will get us out of the low free space state, but we can still play
+         * nice by not allowing the cache to use any additional free space.
+         * the max_bytes_tirm_threshold value is the effective maximum size of
+         * cache that achives this. by setting this we also avoid reducing the
+         * max size of the cache above the trim threshold and having no actual
+         * effect when trimming. this is like "shrink_to_fit".
+         */
+        const auto cache_max_trim_threshold
+          = _cache->local().max_bytes_trim_threshold();
+        vlog(
+          rlog.info,
+          "cache effective max size set to trim threshold {}",
+          human::bytes(cache_max_trim_threshold));
+        _cache->local().set_max_bytes_override(cache_max_trim_threshold);
+
+        // amount of additional free space needed to clear the alert
+        const auto free_space_needed = _cache_disk_info.low_space_threshold
+                                       - _cache_disk_info.free;
+
+        // the size by which the cache may be reduced without violating the
+        // current must-have space requirement.
+        const auto max_reduction = _cache->local().max_bytes()
+                                   - std::min(
+                                     cache_targets.target_min_bytes,
+                                     _cache->local().max_bytes());
+
+        vlog(
+          rlog.info,
+          "cache disk needs {} freed {} available in cache service",
+          human::bytes(free_space_needed),
+          human::bytes(max_reduction));
+
+        // apply reduction, if any, by reducing the max size of the cache and
+        // then requesting the cache trim to this max size.
+        if (max_reduction > 0) {
+            const auto step = std::min(max_reduction, max_bytes_step_size);
+            const auto new_max_bytes = _cache->local().max_bytes() - step;
+            vlog(
+              rlog.info,
+              "cache disk max size reduced by {} to {}. trimming...",
+              human::bytes(step),
+              human::bytes(new_max_bytes));
+            _cache->local().set_max_bytes_override(new_max_bytes);
+            co_await _cache->local().trim();
+        }
+
+        // this works. now we to run it backwards and re-increase the max size.
+        // so basically i think what we can do is something like this: if the
+        // max size is less than the target max size, and there are no disk
+        // alert, then try to increase the size back up to the target. in order
+        // to avoid thrashing we can add some thresholds like always increasing
+        // to say some small percentage below what is technically possible. so
+        // to reach target 10gb we'd wait for 10.2gb or whatever.
+        //
+        //
+        // this is basically the first version. add tests, ship on friday.
+        //
+        //
+        // =====================================================
+
+        // 2. decide how much of that we can satisfy from the cache without
+        // violating the must-have requirement. knock off some of this, say 1gb
+        // at a time, and then loop bcak around and maybe knock off some more.
+
+        // initially  the max was 20gb and the effective max was 20gb
+
+        // 77502: INFO  2023-06-21 16:47:26,702 [shard 0] resource_mgmt -
+        // storage.cc:134 - cache disk capacity 9.938GiB free 6.274GiB
+        // thresholds low 7.000GiB degraded 5.000GiB 77502: INFO  2023-06-21
+        // 16:47:26,704 [shard 0] resource_mgmt - storage.cc:146 - cache
+        // size 3.500GiB effective max 20.000GiB target 20.000GiB capacity
+        // wanted 0.000bytes required 0.000bytes 77502: INFO  2023-06-21
+        // 16:47:26,704 [shard 0] resource_mgmt - storage.cc:160 - cache
+        // effective max size set to trim threshold 3.500GiB
+
+        // then, we noticed the alert, and clamped the effective max size of the
+        // cache at its current capacity. now it isn't going to grow.
+        //
+        // ----> this is the first knob that we have turned
+
+        // 77502: INFO  2023-06-21 16:47:27,704 [shard 0] resource_mgmt -
+        // storage.cc:134 - cache disk capacity 9.938GiB free 6.274GiB
+        // thresholds low 7.000GiB degraded 5.000GiB 77502: INFO  2023-06-21
+        // 16:47:27,704 [shard 0] resource_mgmt - storage.cc:146 - cache
+        // size 3.500GiB effective max 3.500GiB target 20.000GiB capacity wanted
+        // 0.000bytes required 0.000bytes 77502: INFO  2023-06-21 16:47:27,704
+        // [shard 0] resource_mgmt - storage.cc:160 - cache effective max size
+        // set to trim threshold 3.500GiB
+
+        // ----> now how about a second knob? let's try to remove data
+        //
+        // now that its capped, let's start maybe reducing the size. go down
+        // slowly past wanted don't go past required. but... we might already be
+        // at the required level so also make sure we issue the relevant
+        // warnings where necessary.
+
+        // if we aren't already below the required cache size (must-have) then
+        // proceed to reduce the max size (and trim). this can be an iterative
+        // slow process. not too slow.
+
+        // dispatch appropraite warnings about must-have and nice-to-have
+        // thresholds being violated.
+
+        // once the violation is fixed, then, .... try to raise it back up?
 
         // 1. how much space do we need to find and remove in order to get out
         // of the low disk situation? this should come from the local monitor,
@@ -149,7 +278,8 @@ ss::future<> disk_space_manager::run_loop() {
 
         // the cache owns its own target maximum size. this might be a fixed
         // size such as 50 GB, or a percentage of total disk capacity.
-        const auto target_cache_max_bytes = _cache->local().target_max_bytes();
+        // const auto target_cache_max_bytes =
+        // _cache->local().target_max_bytes();
 
         // 1. calculate what the effective cache size should be in order to get
         // out of the low disk situation. then let's incrementally try to reach
@@ -168,8 +298,6 @@ ss::future<> disk_space_manager::run_loop() {
 
         // 4. how do we raise the threshold back up?
 
-        vlog(rlog.info, "ZZZ not OKOKOKOKO");
-
         // respond to disk alerts...
         // the key here is that if we have no alerts active, then there isn't
         // much to do (yet). maybe other policies will be more active about
@@ -177,25 +305,11 @@ ss::future<> disk_space_manager::run_loop() {
         //
         // NEXT: get an alert!
 
-        vlog(
-          rlog.info, "XXX target-cache-max-bytes {}", target_cache_max_bytes);
-
         /*
          * Collect cache and logs storage usage information. These accumulate
          * across all shards (despite the local() accessor). If a failure occurs
          * we wait rather than operate with a reduced set of information.
          */
-        cloud_storage::cache_usage_target cache_usage_target;
-        try {
-            cache_usage_target
-              = co_await _pm->local().get_cloud_cache_disk_usage_target();
-        } catch (...) {
-            vlog(
-              rlog.info,
-              "Unable to collect cloud cache usage: {}",
-              std::current_exception());
-            continue;
-        }
 
         storage::usage_report logs_usage;
         try {
@@ -208,11 +322,13 @@ ss::future<> disk_space_manager::run_loop() {
             continue;
         }
 
-        vlog(
-          rlog.info,
-          "Cloud storage cache target minimum size {} nice to have {}",
-          cache_usage_target.target_min_bytes,
-          cache_usage_target.target_bytes);
+        continue;
+
+        // vlog(
+        //   rlog.info,
+        //   "Cloud storage cache target minimum size {} nice to have {}",
+        //   cache_usage_target.target_min_bytes,
+        //   cache_usage_target.target_bytes);
 
         vlog(
           rlog.info,
