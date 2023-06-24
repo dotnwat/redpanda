@@ -1362,7 +1362,8 @@ void application::wire_up_redpanda_services(model::node_id node_id) {
       config::shard_local_cfg().log_storage_max_size.bind(),
       &storage,
       &shadow_index_cache,
-      &partition_manager);
+      &partition_manager,
+      &metadata_cache);
 
     // group membership
     syschecks::systemd_message("Creating kafka group manager").get();

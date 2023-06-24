@@ -196,6 +196,11 @@ public:
     const topic_table::updates_t& updates_in_progress() const;
     bool is_update_in_progress(const model::ntp& ntp) const;
 
+    /*
+     * Block or unblock the kafka produce api.
+     */
+    void block_writes(bool);
+
 private:
     ss::sharded<topic_table>& _topics_state;
     ss::sharded<members_table>& _members_table;
@@ -203,5 +208,6 @@ private:
     ss::sharded<health_monitor_frontend>& _health_monitor;
 
     bool _is_node_isolated{false};
+    bool _block_writes{false};
 };
 } // namespace cluster

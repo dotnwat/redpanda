@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "cluster/fwd.h"
 #include "config/property.h"
 #include "seastarx.h"
 #include "ssx/semaphore.h"
@@ -62,7 +63,8 @@ public:
       config::binding<std::optional<uint64_t>> log_storage_max_size,
       ss::sharded<storage::api>* storage,
       ss::sharded<cloud_storage::cache>* cache,
-      ss::sharded<cluster::partition_manager>* pm);
+      ss::sharded<cluster::partition_manager>* pm,
+      ss::sharded<cluster::metadata_cache>* mc);
 
     disk_space_manager(disk_space_manager&&) noexcept = delete;
     disk_space_manager& operator=(disk_space_manager&&) noexcept = delete;
@@ -79,6 +81,7 @@ private:
     ss::sharded<storage::api>* _storage;
     ss::sharded<cloud_storage::cache>* _cache;
     ss::sharded<cluster::partition_manager>* _pm;
+    ss::sharded<cluster::metadata_cache>* _mc;
 
     ss::gate _gate;
     ss::future<> run_loop();

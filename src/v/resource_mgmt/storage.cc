@@ -11,6 +11,7 @@
 
 #include "storage.h"
 
+#include "cluster/metadata_cache.h"
 #include "cluster/partition_manager.h"
 #include "config/configuration.h"
 #include "utils/human.h"
@@ -27,12 +28,14 @@ disk_space_manager::disk_space_manager(
   config::binding<std::optional<uint64_t>> log_storage_max_size,
   ss::sharded<storage::api>* storage,
   ss::sharded<cloud_storage::cache>* cache,
-  ss::sharded<cluster::partition_manager>* pm)
+  ss::sharded<cluster::partition_manager>* pm,
+  ss::sharded<cluster::metadata_cache>* mc)
   : _enabled(std::move(enabled))
   , _log_storage_max_size(std::move(log_storage_max_size))
   , _storage(storage)
   , _cache(cache->local_is_initialized() ? cache : nullptr)
-  , _pm(pm) {
+  , _pm(pm)
+  , _mc(mc) {
     _enabled.watch([this] {
         vlog(
           rlog.info,
@@ -108,6 +111,11 @@ ss::future<> disk_space_manager::run_loop() {
               "API blocked",
               human::bytes(logs_usage.usage.total()),
               human::bytes(_log_storage_max_size().value()));
+            co_await _mc->invoke_on_all(
+              [](auto& mc) { mc.block_writes(true); });
+        } else {
+            co_await _mc->invoke_on_all(
+              [](auto& mc) { mc.block_writes(false); });
         }
     }
 }

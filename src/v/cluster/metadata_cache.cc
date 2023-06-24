@@ -165,7 +165,8 @@ std::vector<model::node_id> metadata_cache::node_ids() const {
 
 bool metadata_cache::should_reject_writes() const {
     return _health_monitor.local().get_cluster_disk_health()
-           == storage::disk_space_alert::degraded;
+             == storage::disk_space_alert::degraded
+           || _block_writes;
 }
 
 bool metadata_cache::contains(
@@ -351,5 +352,7 @@ const topic_table::updates_t& metadata_cache::updates_in_progress() const {
 bool metadata_cache::is_update_in_progress(const model::ntp& ntp) const {
     return _topics_state.local().is_update_in_progress(ntp);
 }
+
+void metadata_cache::block_writes(bool flag) { _block_writes = flag; }
 
 } // namespace cluster
