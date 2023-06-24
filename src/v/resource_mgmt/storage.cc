@@ -13,6 +13,7 @@
 
 #include "cluster/partition_manager.h"
 #include "config/configuration.h"
+#include "utils/human.h"
 #include "vlog.h"
 
 #include <seastar/util/log.hh>
@@ -97,6 +98,17 @@ ss::future<> disk_space_manager::run_loop() {
           logs_usage.usage.data,
           logs_usage.usage.index,
           logs_usage.usage.compaction);
+
+        if (
+          _log_storage_max_size().has_value()
+          && logs_usage.usage.total() > _log_storage_max_size().value()) {
+            vlog(
+              rlog.info,
+              "Log storage usage {} exceeds configured max {}. Kafka produce "
+              "API blocked",
+              human::bytes(logs_usage.usage.total()),
+              human::bytes(_log_storage_max_size().value()));
+        }
     }
 }
 
