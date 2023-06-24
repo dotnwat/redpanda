@@ -59,6 +59,7 @@ class disk_space_manager {
 public:
     disk_space_manager(
       config::binding<bool> enabled,
+      config::binding<std::optional<uint64_t>> log_storage_max_size,
       ss::sharded<storage::api>* storage,
       ss::sharded<cloud_storage::cache>* cache,
       ss::sharded<cluster::partition_manager>* pm);
@@ -74,6 +75,7 @@ public:
 
 private:
     config::binding<bool> _enabled;
+    config::binding<std::optional<uint64_t>> _log_storage_max_size;
     ss::sharded<storage::api>* _storage;
     ss::sharded<cloud_storage::cache>* _cache;
     ss::sharded<cluster::partition_manager>* _pm;

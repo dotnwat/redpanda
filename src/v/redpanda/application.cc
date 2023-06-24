@@ -1359,6 +1359,7 @@ void application::wire_up_redpanda_services(model::node_id node_id) {
     construct_single_service(
       space_manager,
       config::shard_local_cfg().enable_storage_space_manager.bind(),
+      config::shard_local_cfg().log_storage_max_size.bind(),
       &storage,
       &shadow_index_cache,
       &partition_manager);

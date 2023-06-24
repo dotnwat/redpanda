@@ -12,6 +12,7 @@
 #include "storage.h"
 
 #include "cluster/partition_manager.h"
+#include "config/configuration.h"
 #include "vlog.h"
 
 #include <seastar/util/log.hh>
@@ -22,10 +23,12 @@ namespace storage {
 
 disk_space_manager::disk_space_manager(
   config::binding<bool> enabled,
+  config::binding<std::optional<uint64_t>> log_storage_max_size,
   ss::sharded<storage::api>* storage,
   ss::sharded<cloud_storage::cache>* cache,
   ss::sharded<cluster::partition_manager>* pm)
   : _enabled(std::move(enabled))
+  , _log_storage_max_size(std::move(log_storage_max_size))
   , _storage(storage)
   , _cache(cache->local_is_initialized() ? cache : nullptr)
   , _pm(pm) {
