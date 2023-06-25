@@ -232,6 +232,14 @@ public:
 
     void handle_disk_notification(storage::disk_space_alert);
 
+    /*
+     * Set or clear the max size exceeded. When the maximum size is exceeded
+     * then the housekeeping loop will priortize garbage collection over
+     * compaction, and will perform collections starting with the partition that
+     * has the largest amount of reclaimable space.
+     */
+    void max_size_exceeded(bool);
+
 private:
     using logs_type
       = absl::flat_hash_map<model::ntp, std::unique_ptr<log_housekeeping_meta>>;
@@ -248,6 +256,7 @@ private:
     ss::future<> housekeeping();
     ssx::semaphore _housekeeping_sem{0, "log_manager::housekeeping"};
     disk_space_alert _disk_space_alert{disk_space_alert::ok};
+    bool _max_size_exceeded{false};
 
     std::optional<batch_cache_index> create_cache(with_cache);
 

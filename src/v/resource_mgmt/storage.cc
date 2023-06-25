@@ -65,7 +65,7 @@ ss::future<> disk_space_manager::run_loop() {
      * we want the code here to actually run a little, but the final shape of
      * configuration options is not yet known.
      */
-    constexpr auto frequency = std::chrono::seconds(30);
+    constexpr auto frequency = std::chrono::seconds(3);
 
     while (true) {
         try {
@@ -95,7 +95,7 @@ ss::future<> disk_space_manager::run_loop() {
         }
 
         vlog(
-          rlog.debug,
+          rlog.info,
           "Log storage usage total {} - data {} index {} compaction {}",
           logs_usage.usage.total(),
           logs_usage.usage.data,

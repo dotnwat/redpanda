@@ -240,6 +240,16 @@ log_manager::housekeeping_scan(model::timestamp collection_threshold) {
         if (_logs_list.empty()) {
             co_return;
         }
+
+        /*
+         * de-priortize compaction in low disk space scenarios. compaction
+         * itself requires additional space for temporary staging files, and its
+         * benefit isn't currently estimated when scheduling work in low disk
+         * space situations. however, don't completely stop it from running.
+         */
+        if (_max_size_exceeded) {
+            co_return;
+        }
     }
 }
 
@@ -286,7 +296,7 @@ ss::future<> log_manager::housekeeping() {
          * interface.
          */
         if (
-          _disk_space_alert == disk_space_alert::degraded
+          _max_size_exceeded || _disk_space_alert == disk_space_alert::degraded
           || _disk_space_alert == disk_space_alert::low_space) {
             /*
              * build a schedule of partitions to gc ordered by amount of
@@ -758,6 +768,13 @@ void log_manager::handle_disk_notification(storage::disk_space_alert alert) {
         if (alert != disk_space_alert::ok) {
             _housekeeping_sem.signal();
         }
+    }
+}
+
+void log_manager::max_size_exceeded(bool exceeded) {
+    _max_size_exceeded = exceeded;
+    if (_max_size_exceeded) {
+        _housekeeping_sem.signal();
     }
 }
 

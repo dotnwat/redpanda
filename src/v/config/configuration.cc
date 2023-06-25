@@ -117,7 +117,8 @@ configuration::configuration()
       {.needs_restart = needs_restart::no,
        .example = "31536000000",
        .visibility = visibility::tunable},
-      std::nullopt)
+       6_MiB)
+      //std::nullopt)
   , rpc_server_listen_backlog(
       *this,
       "rpc_server_listen_backlog",
