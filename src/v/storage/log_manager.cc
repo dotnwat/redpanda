@@ -240,6 +240,10 @@ log_manager::housekeeping_scan(model::timestamp collection_threshold) {
         if (_logs_list.empty()) {
             co_return;
         }
+
+        if (_gc_triggered) {
+            co_return;
+        }
     }
 }
 
@@ -286,8 +290,10 @@ ss::future<> log_manager::housekeeping() {
          * interface.
          */
         if (
-          _disk_space_alert == disk_space_alert::degraded
+          _gc_triggered || _disk_space_alert == disk_space_alert::degraded
           || _disk_space_alert == disk_space_alert::low_space) {
+            _gc_triggered = false;
+
             /*
              * build a schedule of partitions to gc ordered by amount of
              * estimated reclaimable space. since logs may be asynchronously
@@ -759,6 +765,11 @@ void log_manager::handle_disk_notification(storage::disk_space_alert alert) {
             _housekeeping_sem.signal();
         }
     }
+}
+
+void log_manager::trigger_gc() {
+    _gc_triggered = true;
+    _housekeeping_sem.signal();
 }
 
 } // namespace storage
