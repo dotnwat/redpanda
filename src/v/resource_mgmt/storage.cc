@@ -23,6 +23,7 @@ namespace storage {
 
 disk_space_manager::disk_space_manager(
   config::binding<bool> enabled,
+  config::binding<std::optional<uint64_t>> log_storage_target_size,
   ss::sharded<storage::api>* storage,
   ss::sharded<storage::node>* storage_node,
   ss::sharded<cloud_storage::cache>* cache,
@@ -31,7 +32,8 @@ disk_space_manager::disk_space_manager(
   , _storage(storage)
   , _storage_node(storage_node)
   , _cache(cache->local_is_initialized() ? cache : nullptr)
-  , _pm(pm) {
+  , _pm(pm)
+  , _log_storage_target_size(std::move(log_storage_target_size)) {
     _enabled.watch([this] {
         vlog(
           rlog.info,
@@ -94,7 +96,72 @@ ss::future<> disk_space_manager::run_loop() {
         if (!_enabled()) {
             continue;
         }
+
+        if (_log_storage_target_size().has_value()) {
+            co_await manage_data_disk(_log_storage_target_size().value());
+        }
     }
+}
+
+ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
+    /*
+     * query log storage usage across all cores
+     */
+    storage::usage_report usage;
+    try {
+        usage = co_await _storage->local().disk_usage();
+    } catch (...) {
+        vlog(
+          rlog.info,
+          "Unable to collect log storage usage. Skipping management tick: "
+          "{}",
+          std::current_exception());
+        co_return;
+    }
+
+    /*
+     * how much data from log storage do we need to remove from disk to be able
+     * to stay below the current target size?
+     */
+    const auto target_excess = usage.usage.total() < target_size
+                                 ? 0
+                                 : usage.usage.total() - target_size;
+    if (target_excess <= 0) {
+        co_return;
+    }
+
+    /*
+     * when log storage has exceeded the target usage, then there are some knobs
+     * that can be adjusted to help stay below this target.
+     *
+     * the first knob is to prioritize garbage collection. this is normally a
+     * periodic task performed by the storage layer. if it hasn't run recently,
+     * or it has been spending most of its time doing low impact compaction
+     * work, then we can instead immediately begin applying retention rules.
+     *
+     * the effect of gc is defined entirely by topic configuration and current
+     * state of storage. so in order to turn the first knob we need only trigger
+     * gc across shards.
+     *
+     * however, if current retention is not sufficient to bring usage below the
+     * target, then a second knob must be turned: overriding local retention
+     * targets for cloud-enabled topics, removing data that has been backed up
+     * into the cloud.
+     */
+    if (target_excess > usage.reclaim.retention) {
+        /*
+         * TODO: prior to triggering a priorty GC run across cores (below),
+         * adjust local retention settings according to the to-be-created policy
+         * for selecting victims.
+         *
+         * https://github.com/redpanda-data/core-internal/issues/268
+         */
+    }
+
+    /*
+     * ask storage across all nodes to apply retention rules asap.
+     */
+    co_await _storage->invoke_on_all([](api& api) { api.trigger_gc(); });
 }
 
 } // namespace storage
