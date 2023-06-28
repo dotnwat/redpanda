@@ -49,6 +49,19 @@ class RedpandaConfig:
     seed_servers: list[NetworkAddress]
     empty_seed_starts_cluster: bool = False
     rack: str = None
+    cloud_storage_enabled: bool = True
+    cloud_storage_secret_key: str = "minioadmin"
+    cloud_storage_access_key: str = "minioadmin"
+    cloud_storage_region: str = "panda-region"
+    cloud_storage_bucket: str = "bucketasdf"
+    cloud_storage_enable_remote_write: bool = True
+    cloud_storage_enable_remote_read: bool = True
+    cloud_storage_api_endpoint: str = 'localhost'
+    cloud_storage_api_endpoint_port: int = 9000
+    cloud_storage_disable_tls: bool = True
+    cloud_storage_backend: str = 'aws'
+    log_storage_target_size: int = 10 * 2**20
+    log_segment_size: int = 4 * 2**20
 
 
 @dataclasses.dataclass
