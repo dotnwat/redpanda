@@ -244,6 +244,8 @@ private:
     // Mutually exclude operations that will cause segment rolling
     // do_housekeeping and maybe_roll
     mutex _segments_rolling_lock;
+
+    std::optional<model::offset> _remote_retention_gc_offset;
 };
 
 } // namespace storage

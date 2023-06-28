@@ -777,6 +777,31 @@ ss::future<std::optional<model::offset>> disk_log_impl::do_gc(gc_config cfg) {
 
     cfg = apply_overrides(cfg);
 
+    /*
+     * _remote_retention_gc_offset is used to communicate the intent to collect
+     * partition data in excess of normal retention settings (and for infinite
+     * retention / no retention settings). it is expected that an external
+     * process such as disk space management drives this process such that after
+     * a round of gc has run the intent flag can be cleared.
+     */
+    if (_remote_retention_gc_offset.has_value()) {
+        const auto offset = _remote_retention_gc_offset.value();
+        _remote_retention_gc_offset.reset();
+
+        vassert(
+          is_cloud_retention_active(), "Expected remote retention active");
+
+        vlog(
+          gclog.info,
+          "[{}] applying 'deletion' log cleanup with remote retention override "
+          "offset {} and config {}",
+          config().ntp(),
+          _remote_retention_gc_offset,
+          cfg);
+
+        co_return co_await request_eviction_until_offset(offset);
+    }
+
     if (!config().is_collectable()) {
         co_return std::nullopt;
     }
