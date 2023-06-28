@@ -13,6 +13,8 @@
 
 #include "cloud_storage/cache_service.h"
 #include "cluster/partition_manager.h"
+#include "storage/disk_log_impl.h"
+#include "utils/human.h"
 #include "vlog.h"
 
 #include <seastar/util/log.hh>
@@ -79,7 +81,7 @@ ss::future<> disk_space_manager::run_loop() {
      * we want the code here to actually run a little, but the final shape of
      * configuration options is not yet known.
      */
-    constexpr auto frequency = std::chrono::seconds(30);
+    constexpr auto frequency = std::chrono::seconds(3);
 
     while (!_gate.is_closed()) {
         try {
@@ -127,6 +129,11 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
                                  ? 0
                                  : usage.usage.total() - target_size;
     if (target_excess <= 0) {
+        vlog(
+          rlog.info,
+          "Log storage usage {} <= target size {}. No work to do.",
+          human::bytes(usage.usage.total()),
+          human::bytes(target_size));
         co_return;
     }
 
@@ -149,13 +156,66 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
      * into the cloud.
      */
     if (target_excess > usage.reclaim.retention) {
+        vlog(
+          rlog.info,
+          "Log storage usage {} > target size {} by {}. Garbage collection "
+          "expected to recover {}. Overriding tiered storage retention to "
+          "recover {}. Total estimated available to recover {}",
+          human::bytes(usage.usage.total()),
+          human::bytes(target_size),
+          human::bytes(target_excess),
+          human::bytes(usage.reclaim.retention),
+          human::bytes(target_excess - usage.reclaim.retention),
+          human::bytes(usage.reclaim.available));
+
         /*
-         * TODO: prior to triggering a priorty GC run across cores (below),
-         * adjust local retention settings according to the to-be-created policy
-         * for selecting victims.
-         *
-         * https://github.com/redpanda-data/core-internal/issues/268
+         * This is the simplest possible policy: a greedy approach that will
+         * truncate as much data as possible from each log until the estimated
+         * target amount of reclaimed data has been reached. The target is
+         * applied the same on each core, so it is expected if the amount of
+         * reclaimed data exceeds the target.
          */
+        co_await _pm->invoke_on_all([target_excess](const auto& pm) {
+            // build a lightweight copy to avoid invalidations during iteration
+            fragmented_vector<ss::lw_shared_ptr<cluster::partition>> partitions;
+            for (const auto& p : pm.partitions()) {
+                if (!p.second->remote_partition()) {
+                    continue;
+                }
+                partitions.push_back(p.second);
+            }
+
+            return ss::do_with(
+              std::move(partitions),
+              size_t{0},
+              [target_excess](auto& partitions, auto& total) {
+                  return ss::do_for_each(
+                    partitions, [&total, target_excess](auto& p) {
+                        // if it seems we met the target, skip the rest
+                        if (total >= target_excess) {
+                            return ss::now();
+                        }
+
+                        auto log = dynamic_cast<storage::disk_log_impl*>(
+                          p->log().get_impl());
+
+                        return log
+                          ->set_remote_topic_prefix_truncate_point(
+                            target_excess)
+                          .then(
+                            [&total](auto reclaimed) { total += reclaimed; });
+                    });
+              });
+        });
+    } else {
+        vlog(
+          rlog.info,
+          "Log storage usage {} > target size {} by {}. Garbage collection "
+          "expected to recover {}.",
+          human::bytes(usage.usage.total()),
+          human::bytes(target_size),
+          human::bytes(target_excess),
+          human::bytes(usage.reclaim.retention));
     }
 
     /*
