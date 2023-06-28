@@ -115,9 +115,22 @@ public:
     ss::future<usage_report> disk_usage(gc_config);
 
     /*
-     * Interfaces used by space management policies (see
-     * resource_mgmt/storage.cc) to reclaim
+     * Interface for disk space management (see resource_mgmt/storage.cc).
+     *
+     * Manager will use `cloud_gc_eligible_segments` to determine the point at
+     * which the partition should be prefix truncated, subject to data being
+     * uploaded into the cloud.
+     *
+     * Finally, the target offset is set via `set_cloud_gc_offset` which will be
+     * used to configure garbage collection during the next GC pass at which
+     * point the request will be cleared.
+     *
+     * Caller will generally configure many partitions and then trigger GC
+     * across all partitions.
      */
+    fragmented_vector<ss::lw_shared_ptr<segment>> cloud_gc_eligible_segments();
+    void set_cloud_gc_offset(model::offset);
+
     ss::future<size_t> set_remote_topic_prefix_truncate_point(size_t target);
 
 private:
@@ -251,7 +264,7 @@ private:
     // do_housekeeping and maybe_roll
     mutex _segments_rolling_lock;
 
-    std::optional<model::offset> _remote_retention_gc_offset;
+    std::optional<model::offset> _cloud_gc_offset;
 };
 
 } // namespace storage
