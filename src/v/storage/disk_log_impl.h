@@ -114,6 +114,12 @@ public:
 
     ss::future<usage_report> disk_usage(gc_config);
 
+    /*
+     * Interfaces used by space management policies (see
+     * resource_mgmt/storage.cc) to reclaim
+     */
+    ss::future<size_t> set_remote_topic_prefix_truncate_point(size_t target);
+
 private:
     friend class disk_log_appender; // for multi-term appends
     friend class disk_log_builder;  // for tests

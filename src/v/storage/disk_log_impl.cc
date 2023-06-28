@@ -2214,4 +2214,63 @@ ss::future<usage_report> disk_log_impl::disk_usage(gc_config cfg) {
     co_return usage_report(usage, reclaim, target);
 }
 
+/*
+ * compacted topics. stored in whole always locally?
+ * https://vectorizedio.atlassian.net/wiki/spaces/CORE/pages/277020716/Compacted+segment+re-uploads
+ *
+ * is_collectible checks if deletion flag is set. however, for cloud topics
+ * the data is ostensibly backed up independent of this flag. so presumably
+ * we can also remove data for topics that don't even have the delete flag
+ * set.
+ */
+ss::future<size_t>
+disk_log_impl::set_remote_topic_prefix_truncate_point(size_t target) {
+    // protect against concurrent log removal with housekeeping loop
+    auto gate = _compaction_housekeeping_gate.hold();
+
+    if (!is_cloud_retention_active()) {
+        co_return 0;
+    }
+
+    // must-have restriction
+    if (_segs.size() <= 2) {
+        co_return 0;
+    }
+
+    /*
+     * for a cloud-backed topic the max collecible offset is the threshold below
+     * which data has been uploaded and can safely be removed from local disk.
+     */
+    const auto max_collectible = stm_manager()->max_collectible_offset();
+
+    // collect eligible segments
+    fragmented_vector<segment_set::type> segments;
+    for (auto remaining = _segs.size() - 2; auto& seg : _segs) {
+        if (seg->offsets().committed_offset <= max_collectible) {
+            segments.push_back(seg);
+        }
+        if (--remaining > 0) {
+            break;
+        }
+    }
+
+    if (segments.empty()) {
+        co_return 0;
+    }
+
+    // find offset that'll collect up to the target size
+    size_t total = 0;
+    auto offset = segments.front()->offsets().committed_offset;
+    for (const auto& seg : segments) {
+        auto usage = co_await seg->persistent_size();
+        total += usage.total();
+        if (total >= target) {
+            break;
+        }
+    }
+
+    _remote_retention_gc_offset = offset;
+    co_return total;
+}
+
 } // namespace storage
