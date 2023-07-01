@@ -2243,7 +2243,7 @@ disk_log_impl::cloud_gc_eligible_segments() {
       config().ntp());
 
     // must-have restriction
-    if (_segs.size() <= 2) {
+    if (_segs.size() <= 1) {
         return {};
     }
 
@@ -2255,7 +2255,7 @@ disk_log_impl::cloud_gc_eligible_segments() {
 
     // collect eligible segments
     fragmented_vector<segment_set::type> segments;
-    for (auto remaining = _segs.size() - 2; auto& seg : _segs) {
+    for (auto remaining = _segs.size() - 1; auto& seg : _segs) {
         if (seg->offsets().committed_offset <= max_collectible) {
             segments.push_back(seg);
         }
