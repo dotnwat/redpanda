@@ -22,9 +22,15 @@ import time
 from enum import Enum
 
 
+# the upload interval doesn't actually roll the active segment. so it
+# does need to fill up or expire or roll organically. so what we can do
+# is tighten the bounds here by rolling the segment once we are over the
+# target size, but probably want to keep some minimum segment size.
+# maybe it could be like 5 mbs or something.
 class LogStorageTargetSizeTest(RedpandaTest):
     segment_upload_interval = 30
     manifest_upload_interval = 10
+    log_storage_max_usage_interval = 5
 
     def __init__(self, test_context, *args, **kwargs):
         super().__init__(test_context, *args, **kwargs)
@@ -33,22 +39,49 @@ class LogStorageTargetSizeTest(RedpandaTest):
         # defer redpanda startup to the test
         pass
 
-    def _kafka_size_on_disk(self, node):
-        return self.redpanda.data_usage("kafka", node)
+    def _kafka_usage(self):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.redpanda.nodes)) as executor:
+            return list(executor.map(lambda n: self.redpanda.data_dir_usage("kafka", n), self.redpanda.nodes))
 
+    # for 1mb segments, 120e6 tp, and 5 sec delay, overage of around 500 mb was
+    # observed. so for this case, we can do delay * tp.
     @cluster(num_nodes=4)
-    @matrix(log_segment_size=[1024 * 1024])
+    @matrix(log_segment_size=[50 * 1024 * 1024])#, 50 * 1024 * 1024])
     def streaming_cache_test(self, log_segment_size):
         if self.redpanda.dedicated_nodes:
-            partition_count = 128
-            rate_limit_bps = 100 * 1024 * 1024
-            target_size = 1 * 1024 * 1024 * 1024
-            data_size = 10 * target_size
+            partition_count = 64
+            rate_limit_bps = int(120E6)
+            target_size = 5 * 1024 * 1024 * 1024
         else:
             partition_count = 16
-            rate_limit_bps = 10 * 1024 * 1024
-            target_size = 250 * 1024 * 1024
-            data_size = 2 * target_size
+            rate_limit_bps = int(30E6)
+            target_size = 300 * 1024 * 1024
+
+        # we never reclaim the active segment. so at a minimum we could observe
+        # a segment per partition nearly full. of course, we can also roll the
+        # active segment to make it eligible for reclaim, but this model is
+        # intentionally being simple and convservative.
+        active_segments_usage = partition_count * log_segment_size
+
+        # accounting for new data being written and old data being removed is
+        # not immediate. currently a monitoring loop runs periodically, and
+        # during this time data may accumulate that is not subject to being
+        # removed because the monitor has not run to notice it.
+        accounting_delay_accumulation = rate_limit_bps * self.log_storage_max_usage_interval
+
+        # consider the case where all the active segments fill up and roll at
+        # the same time, and then a full accounting period passes during which
+        # fresh data being written will accumulate.
+        usage_overhead = active_segments_usage + accounting_delay_accumulation
+
+        # write a lot more data into the system than the target size to make
+        # sure that we are definitely exercising target size enforcement.
+        data_size = target_size * 10
+
+        # max usage over the target that is considered success. we don't expect
+        # to stay completely below the target because there are accounting and
+        # removal delays, among other factors affecting precision.
+        max_overage = usage_overhead * 2
 
         msg_size = 16384
         msg_count = data_size // msg_size
@@ -60,6 +93,8 @@ class LogStorageTargetSizeTest(RedpandaTest):
             self.segment_upload_interval,
             'cloud_storage_manifest_max_upload_interval_sec':
             self.manifest_upload_interval,
+            'log_storage_max_usage_interval':
+            self.log_storage_max_usage_interval,
             'log_storage_target_size': target_size,
         }
         si_settings = SISettings(test_context=self.test_context,
@@ -92,25 +127,28 @@ class LogStorageTargetSizeTest(RedpandaTest):
         producer.start()
         produce_start_time = time.time()
 
+        # helper: bytes to MBs / human readable
+        def hmb(bs):
+            convert = lambda b: round(b / (1024 * 1024), 1)
+            if isinstance(bs, int):
+                return convert(bs)
+            return [convert(b) for b in bs]
+
         max_totals = None
         last_report_time = 0
         while producer.produce_status.acked < msg_count:
             # calculate and report disk usage across nodes
             if time.time() - last_report_time >= 10:
-                with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.redpanda.nodes)) as executor:
-                    totals = list(executor.map(lambda n: self._kafka_size_on_disk(n), self.redpanda.nodes))
+                totals = self._kafka_usage()
                 if not max_totals:
                     max_totals = totals
-                targets = [target_size] * len(totals)
-                cur_overages = [a - b for a, b in zip(totals, targets)]
-                max_overages = [a - b for a, b in zip(max_totals, targets)]
-                max_totals = [max(a, b) for a, b in zip(max_totals, totals)]
-                h = lambda bs: [round(t / (1024 * 1024), 1) for t in bs]
-                self.logger.info(f" Acked msgs {producer.produce_status.acked}")
-                self.logger.info(f"Total usage {h(totals)}")
-                self.logger.info(f"  Max usage {h(max_totals)}")
-                self.logger.info(f"Cur overage {h(cur_overages)}")
-                self.logger.info(f"Max overage {h(max_overages)}")
+                max_totals = [max(t, m) for t, m in zip(totals, max_totals)]
+                overages = [t - target_size for t in totals]
+                violation = any(o > max_overage for o in overages)
+                self.logger.info(f"Acked messages {producer.produce_status.acked} / {msg_count}")
+                self.logger.info(f"Latest totals {hmb(totals)} maxes {hmb(max_totals)}")
+                self.logger.info(f"Target {hmb(target_size)} overages {hmb(overages)} max {hmb(max_overage)}")
+                assert not violation, f"Overage exceeded max {hmb(max_overage)}"
                 last_report_time = time.time()
             # don't sleep long--we want good responsivenses when producing is
             # completed so that our calculated bandwidth is accurate
@@ -121,33 +159,16 @@ class LogStorageTargetSizeTest(RedpandaTest):
         producer.wait(timeout_sec=30)
         produce_duration = time.time() - produce_start_time
         self.logger.info(
-            f"Produced x {data_size} bytes in {produce_duration} seconds, {(data_size/produce_duration)/1000000.0:.2f}MB/s"
+            f"Produced {hmb([data_size])} in {produce_duration} seconds, {(data_size/produce_duration)/1E6:.2f}MB/s"
         )
         producer.stop()
         producer.free()
 
         def target_size_reached():
-            totals = [self._kafka_size_on_disk(n) for n in self.redpanda.nodes]
-            targets = [target_size + 3 * log_segment_size] * len(totals)
-            overages = [a - b for a, b in zip(totals, targets)]
-            targets_met = all(t <= 0 for t in overages)
-            self.logger.debug(f"Totals {totals} targets {targets} overages {overages} met {targets_met}")
-            return targets_met
+            totals = self._kafka_usage()
+            overages = [t - target_size for t in totals]
+            self.logger.info(f"Latest total usage {hmb(totals)}")
+            self.logger.info(f"Target {hmb(target_size)} overages {hmb(overages)}")
+            return all(o < max_overage for o in overages)
 
         wait_until(target_size_reached, timeout_sec=120, backoff_sec=5)
-
-
-        # there is a reasonable minimum based on several factors such as how
-        # how big the segment size is multiplied by partition count because we
-        # won't collect the active segment. other factors too. actually kind of
-        # a complicated model. target size needs to take into account the case
-        # where we almost fill up an entire segment but it doesn't roll and we
-        # also don't wait for automatic rolling etc... either segmetn ms or the
-        # max data age from the cloud layer
-        #target_size = 400 * 1024 * 1024
-        #target_size = max(target_size, partition_count * log_segment_size)
-
-
-
-
-
