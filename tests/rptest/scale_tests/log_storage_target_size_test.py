@@ -46,7 +46,7 @@ class LogStorageTargetSizeTest(RedpandaTest):
     # for 1mb segments, 120e6 tp, and 5 sec delay, overage of around 500 mb was
     # observed. so for this case, we can do delay * tp.
     @cluster(num_nodes=4)
-    @matrix(log_segment_size=[50 * 1024 * 1024])#, 50 * 1024 * 1024])
+    @matrix(log_segment_size=[1024 * 1024, 100 * 1024 * 1024])
     def streaming_cache_test(self, log_segment_size):
         if self.redpanda.dedicated_nodes:
             partition_count = 64
