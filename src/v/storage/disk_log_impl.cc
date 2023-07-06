@@ -2313,4 +2313,171 @@ void disk_log_impl::set_cloud_gc_offset(model::offset offset) {
     _cloud_gc_offset = offset;
 }
 
+/*
+ * TODO: the computation in this routine is highly cacheable and we should
+ * consider this optimization as a follow-up once the overall policy / approach
+ * is validated.
+ */
+ss::future<disk_log_impl::reclaimable_offsets>
+disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
+    // protect against concurrent log removal with housekeeping loop
+    auto gate = _compaction_housekeeping_gate.hold();
+
+    reclaimable_offsets res;
+
+    if (!is_cloud_retention_active()) {
+        vlog(
+          stlog.debug,
+          "Reporting no reclaimable offsets for non-cloud partition {}",
+          config().ntp());
+        co_return res;
+    }
+
+    /*
+     * there is currently a bug with read replicas that makes the max
+     * collectible offset unreliable. the read replica topics still have a
+     * retention setting, but we are going to exempt them from forced reclaim
+     * until this bug is fixed to avoid any complications.
+     *
+     * https://github.com/redpanda-data/redpanda/issues/11936
+     */
+    if (config().is_read_replica_mode_enabled()) {
+        vlog(
+          stlog.debug,
+          "Reporting no reclaimable offsets for read replica partition {}",
+          config().ntp());
+        co_return res;
+    }
+
+    /*
+     * calculate the effective local retention. this forces the local retention
+     * override in contrast to housekeeping GC where the overrides are applied
+     * only when local retention is non-advisory.
+     */
+    cfg = apply_base_overrides(cfg);
+    cfg = override_retention_config(cfg);
+    const auto local_retention_offset
+      = co_await maybe_adjusted_retention_offset(cfg);
+
+    /*
+     * when local retention is based off an explicit override, then we treat it
+     * as the partition having a retention hint and use it to deprioritize
+     * selection of data to reclaim over data without any hints.
+     */
+    const auto hinted = has_local_retention_override();
+
+    /*
+     * for a cloud-backed topic the max collecible offset is the threshold below
+     * which data has been uploaded and can safely be removed from local disk.
+     */
+    const auto max_collectible = stm_manager()->max_collectible_offset();
+
+    /*
+     * lightweight segment set copy for safe iteration
+     */
+    fragmented_vector<segment_set::type> segments;
+    for (const auto& seg : _segs) {
+        segments.push_back(seg);
+    }
+
+    /*
+     * currently we use two segments as the low watermark size
+     */
+    std::optional<model::offset> low_watermark_offset;
+    if (segments.size() >= 2) {
+        low_watermark_offset
+          = segments[segments.size() - 2]->offsets().base_offset;
+    }
+
+    /*
+     * categorize each segment.
+     */
+    size_t total_size = 0;
+    for (const auto& seg : segments) {
+        /*
+         * if we have recorded enough candidate segments to meet the target then
+         * return early since the caller will end up ignoring them anyway.
+         */
+        if (total_size >= target) {
+            break;
+        }
+
+        const auto usage = co_await seg->persistent_size();
+        total_size += usage.total();
+
+        /*
+         * the active segment designation takes precedence because it requires
+         * special consideration related to the implications of force rolling.
+         */
+        if (seg == segments.back()) {
+            /*
+             * since the active segment receives all new data at any given time
+             * it may not be fully uploaded to cloud storage so it is hard to
+             * say anything definitive about it. instead, we report its size as
+             * a potential:
+             *
+             *   1. rolling the active segment will bound progress towards
+             *   making its current full size reclaimable as max collectible
+             *   increases to cover the entire segment.
+             *
+             *   2. finally, we don't report it if max collectible hasn't even
+             *   made it to the active segment yet.
+             */
+            if (max_collectible >= seg->offsets().base_offset) {
+                res.force_roll = total_size;
+            }
+            break;
+        }
+
+        // to be categorized
+        const reclaimable_offsets::offset point{
+          .offset = seg->offsets().dirty_offset,
+          .size = total_size,
+        };
+
+        /*
+         * if the current segment is not fully collectible, then subsequent
+         * segments will not be either, and don't require consideration.
+         */
+        if (point.offset < max_collectible) {
+            break;
+        }
+
+        /*
+         * when local retention is non-advisory then standard garbage collection
+         * housekeeping will automatically remove data down to local retention.
+         *
+         * however when local retention is advisory, then partition storage is
+         * allowed to expand up to the consumable retention. in this case
+         * housekeeping will remove data above consumable retention, and we
+         * categorize this excess data here down to the local retention.
+         */
+        if (
+          local_retention_offset.has_value()
+          && point.offset <= local_retention_offset.value()) {
+            res.effective_local_retention.push_back(point);
+            continue;
+        }
+
+        /*
+         * the low watermark represents the limit of data we want to remove from
+         * any partition before moving on to more extreme tactics.
+         */
+        if (
+          low_watermark_offset.has_value()
+          && point.offset <= low_watermark_offset.value()) {
+            if (hinted) {
+                res.low_watermark_hinted.push_back(point);
+            } else {
+                res.low_watermark_non_hinted.push_back(point);
+            }
+            continue;
+        }
+
+        res.active_segment.push_back(point);
+    }
+
+    co_return res;
+}
+
 } // namespace storage
