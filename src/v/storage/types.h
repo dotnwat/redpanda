@@ -556,4 +556,29 @@ struct usage_report {
     }
 };
 
+/*
+ * A set of categorized offsets annotated with the amount of data
+ * represented in the log up to the offset, along with any other metadata
+ * necessary to make low-disk reclaim decisions.
+ *
+ * This data structure is co-designed with the implementation of the reclaim
+ * policy in resource_mgmt/storage.cc where the definitive documentation for
+ * this data structure is located.
+ *
+ * TODO use smaller chunk sizes. for example, optimize for like some common
+ * case of 1gb of data given segment size most data in first phase?
+ */
+struct reclaimable_offsets {
+    struct offset {
+        model::offset offset;
+        size_t size;
+    };
+
+    ss::chunked_fifo<offset> effective_local_retention;
+    ss::chunked_fifo<offset> low_watermark_non_hinted;
+    ss::chunked_fifo<offset> low_watermark_hinted;
+    ss::chunked_fifo<offset> active_segment;
+    std::optional<size_t> force_roll;
+};
+
 } // namespace storage
