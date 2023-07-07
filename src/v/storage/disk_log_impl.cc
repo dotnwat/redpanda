@@ -2318,7 +2318,7 @@ void disk_log_impl::set_cloud_gc_offset(model::offset offset) {
  * consider this optimization as a follow-up once the overall policy / approach
  * is validated.
  */
-ss::future<disk_log_impl::reclaimable_offsets>
+ss::future<reclaimable_offsets>
 disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
     // protect against concurrent log removal with housekeeping loop
     auto gate = _compaction_housekeeping_gate.hold();
