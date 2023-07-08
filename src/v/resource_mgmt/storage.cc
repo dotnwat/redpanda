@@ -182,6 +182,155 @@ set_partition_retention_offsets(cluster::partition_manager& pm, size_t target) {
     co_return partitions_total;
 }
 
+size_t disk_space_manager::eviction_schedule::size() const {
+    return std::reduce(
+      this->offsets.cbegin(),
+      this->offsets.cend(),
+      size_t{0},
+      [](size_t acc, const shard_offsets& offsets) {
+          return acc + offsets.offsets.size();
+      });
+}
+
+void disk_space_manager::eviction_schedule::seek(size_t cursor) {
+    // reset iterator
+    shard_idx = 0;
+    group_idx = 0;
+
+    for (; shard_idx < offsets.size(); ++shard_idx) {
+        const auto count = offsets[shard_idx].offsets.size();
+        if (cursor < count) {
+            group_idx = cursor;
+            return;
+        }
+        cursor -= count;
+    }
+
+    vassert(false, "");
+}
+
+void disk_space_manager::eviction_schedule::next() {
+    ++group_idx;
+    while (true) {
+        if (group_idx >= offsets[shard_idx].offsets.size()) {
+            shard_idx = (shard_idx + 1) % offsets.size();
+            group_idx = 0;
+        } else {
+            break;
+        }
+    }
+}
+
+disk_space_manager::group_offsets&
+disk_space_manager::eviction_schedule::current() {
+    return offsets[shard_idx].offsets[group_idx];
+}
+
+/*
+ * Collect reclaimable partition offsets on the local core.
+ *
+ * TODO remove target from get_reclaimable_offsets
+ */
+ss::future<fragmented_vector<disk_space_manager::group_offsets>>
+disk_space_manager::collect_reclaimable_offsets() {
+    // build a lightweight copy to avoid invalidations during iteration
+    fragmented_vector<ss::lw_shared_ptr<cluster::partition>> partitions;
+    for (const auto& p : _pm->local().partitions()) {
+        if (!p.second->remote_partition()) {
+            continue;
+        }
+        partitions.push_back(p.second);
+    }
+
+    // retention settings mirror settings found in housekeeping()
+    const auto collection_threshold = [this] {
+        const auto& lm = _storage->local().log_mgr();
+        if (!lm.config().delete_retention().has_value()) {
+            return model::timestamp(0);
+        }
+        const auto now = model::timestamp::now().value();
+        const auto retention = lm.config().delete_retention().value().count();
+        return model::timestamp(now - retention);
+    };
+
+    gc_config cfg(
+      collection_threshold(),
+      _storage->local().log_mgr().config().retention_bytes());
+
+    // TODO run in parallel
+    ss::chunked_fifo<group_offsets> res;
+    for (const auto& p : partitions) {
+        auto log = dynamic_cast<storage::disk_log_impl*>(p->log().get_impl());
+        auto gate = log->gate().hold(); // protect against log deletes
+        auto offsets = co_await log->get_reclaimable_offsets(cfg, 0);
+        res.push_back({
+          .group = p->group(),
+          .offsets = std::move(offsets),
+        });
+    }
+
+    // sorting by raft::group_id would provide a more stable round-robin
+    // evaluation of partitions in later processing of the result, but on small
+    // timescales we don't expect enough churn to make a difference.
+
+    co_return res;
+}
+
+/*
+ * Collect reclaimable partition offsets from each core.
+ *
+ * Notice that the partition manager drives cross-core execution via
+ * sharded::map but we ignore its reference parameter and re-index into the
+ * local sharded partition manager (and other services) in the helper function.
+ */
+ss::future<disk_space_manager::eviction_schedule>
+disk_space_manager::initialize_eviction_schedule() {
+    auto offsets = co_await _pm->map([this](auto& /* ignored */) {
+        return collect_reclaimable_offsets().then([](auto offsets) {
+            return shard_offsets{
+              .shard = ss::this_shard_id(),
+              .offsets = std::move(offsets),
+            };
+        });
+    });
+    co_return eviction_schedule(std::move(offsets));
+}
+
+void disk_space_manager::apply_phase2_local_retention(
+  eviction_schedule& sched, size_t target_excess) {
+    const auto size = sched.size();
+    if (size == 0) {
+        return;
+    }
+    sched.seek(_cursor % size);
+
+    /*
+     * round robin reclaim oldest segment until we've met the target size or we
+     * exhaust the amount of available space to reclaim in this phase.
+     */
+    const auto& begin = sched.current();
+    auto& group = sched.current();
+    while (true) {
+        /*
+         * if it's the first time here in this phase, initialize iter
+         */
+        if (group.phase != &group.offsets.effective_local_retention) {
+            group.phase = &group.offsets.effective_local_retention;
+            group.iter = group.offsets.effective_local_retention.begin();
+        }
+
+        if (group.iter == group.offsets.effective_local_retention.end()) {
+            sched.next();
+        } else {
+            // TODO take the next segment for reclaim.
+            // incremtnally add up the size (ie we probably want to report
+            // segment sizes
+            // not cumulative sizes)
+            ++group.iter;
+        }
+    }
+}
+
 ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
     /*
      * query log storage usage across all cores
@@ -228,9 +377,9 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
      * gc across shards.
      *
      * however, if current retention is not sufficient to bring usage below the
-     * target, then a second knob must be turned: overriding local retention
-     * targets for cloud-enabled topics, removing data that has been backed up
-     * into the cloud.
+     * target, then a second knob must be turned: removing data that would
+     * otherwise not be removed by normal garbage collection, such as data that
+     * has bene uploaded to cloud storage but falls below local retention.
      */
     if (target_excess > usage.reclaim.retention) {
         vlog(
@@ -244,6 +393,18 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
           human::bytes(usage.reclaim.retention),
           human::bytes(target_excess - usage.reclaim.retention),
           human::bytes(usage.reclaim.available));
+
+        /*
+         * In the overall eviction policy phase 1 corresponds to a prioritized
+         * application of normal GC. When that is insufficient we reach this
+         * point which starts with phase 2 of the policy.
+         */
+        auto schedule = co_await initialize_eviction_schedule();
+
+        /*
+         *
+         */
+        apply_phase2_local_retention(schedule, target_excess);
 
         /*
          * This is a simple greedy approach. It will attempt to reclaim as much
