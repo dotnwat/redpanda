@@ -2430,7 +2430,7 @@ disk_log_impl::get_reclaimable_offsets(gc_config cfg) {
          * if the current segment is not fully collectible, then subsequent
          * segments will not be either, and don't require consideration.
          */
-        if (point.offset < max_collectible) {
+        if (point.offset > max_collectible) {
             break;
         }
 
