@@ -81,9 +81,25 @@ private:
         raft::group_id group;
         reclaimable_offsets offsets;
 
-        // current phase. used to detect if we need iterator reset
+        /*
+         * points to the next offset to consider for eviction in the offset
+         * container for the current phase of evaluation. the only reason this
+         * is an optional<T> is because the seastar iterator doesn't have a
+         * default constructor.
+         */
+        std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator> iter;
+
+        /*
+         * pointer to one of the offset groups in the offsets member. this
+         * pointer allows policy evaluation to know when the iterator needs to
+         * initialized for the given phase.
+         */
         ss::chunked_fifo<reclaimable_offsets::offset>* phase{nullptr};
-        ss::chunked_fifo<reclaimable_offsets::offset>::iterator iter;
+
+        /*
+         *
+         */
+        std::optional<model::offset> decision;
     };
 
     struct shard_offsets {
@@ -129,7 +145,7 @@ private:
          * preconditions:
          *   - seek() has been invoked
          */
-        group_offsets& current();
+        group_offsets* current();
     };
 
     /*

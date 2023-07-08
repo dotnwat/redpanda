@@ -571,7 +571,6 @@ struct usage_report {
 struct reclaimable_offsets {
     struct offset {
         model::offset offset;
-        // size is cumulative
         size_t size;
     };
 

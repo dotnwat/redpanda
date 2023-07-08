@@ -221,9 +221,9 @@ void disk_space_manager::eviction_schedule::next() {
     }
 }
 
-disk_space_manager::group_offsets&
+disk_space_manager::group_offsets*
 disk_space_manager::eviction_schedule::current() {
-    return offsets[shard_idx].offsets[group_idx];
+    return &offsets[shard_idx].offsets[group_idx];
 }
 
 /*
@@ -258,7 +258,7 @@ disk_space_manager::collect_reclaimable_offsets() {
       _storage->local().log_mgr().config().retention_bytes());
 
     // TODO run in parallel
-    ss::chunked_fifo<group_offsets> res;
+    fragmented_vector<group_offsets> res;
     for (const auto& p : partitions) {
         auto log = dynamic_cast<storage::disk_log_impl*>(p->log().get_impl());
         auto gate = log->gate().hold(); // protect against log deletes
@@ -298,35 +298,52 @@ disk_space_manager::initialize_eviction_schedule() {
 
 void disk_space_manager::apply_phase2_local_retention(
   eviction_schedule& sched, size_t target_excess) {
-    const auto size = sched.size();
-    if (size == 0) {
+    const auto sched_size = sched.size();
+    if (sched_size == 0) {
         return;
     }
-    sched.seek(_cursor % size);
+    sched.seek(_cursor % sched_size);
 
     /*
      * round robin reclaim oldest segment until we've met the target size or we
      * exhaust the amount of available space to reclaim in this phase.
      */
-    const auto& begin = sched.current();
-    auto& group = sched.current();
+    bool progress = false;
+    size_t total = 0;
+    auto group = sched.current();
+    const auto begin = group;
     while (true) {
         /*
          * if it's the first time here in this phase, initialize iter
          */
-        if (group.phase != &group.offsets.effective_local_retention) {
-            group.phase = &group.offsets.effective_local_retention;
-            group.iter = group.offsets.effective_local_retention.begin();
+        if (group->phase != &group->offsets.effective_local_retention) {
+            group->phase = &group->offsets.effective_local_retention;
+            group->iter = group->offsets.effective_local_retention.begin();
         }
 
-        if (group.iter == group.offsets.effective_local_retention.end()) {
-            sched.next();
-        } else {
-            // TODO take the next segment for reclaim.
-            // incremtnally add up the size (ie we probably want to report
-            // segment sizes
-            // not cumulative sizes)
-            ++group.iter;
+        if (
+          group->iter.value()
+          != group->offsets.effective_local_retention.end()) {
+            /*
+             * TODO grop.iter->size needs to be incremental for this to work
+             */
+            total += group->iter.value()->size;
+            group->decision = group->iter.value()->offset;
+            ++group->iter.value();
+            progress = true;
+        }
+
+        sched.next();
+        group = sched.current();
+        if (group == begin) {
+            if (!progress) {
+                break;
+            }
+            progress = false;
+        }
+
+        if (total > target_excess) {
+            break;
         }
     }
 }

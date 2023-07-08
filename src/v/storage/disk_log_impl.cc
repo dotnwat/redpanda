@@ -2319,7 +2319,7 @@ void disk_log_impl::set_cloud_gc_offset(model::offset offset) {
  * is validated.
  */
 ss::future<reclaimable_offsets>
-disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
+disk_log_impl::get_reclaimable_offsets(gc_config cfg) {
     // protect against concurrent log removal with housekeeping loop
     auto gate = _compaction_housekeeping_gate.hold();
 
@@ -2392,18 +2392,9 @@ disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
     /*
      * categorize each segment.
      */
-    size_t total_size = 0;
     for (const auto& seg : segments) {
-        /*
-         * if we have recorded enough candidate segments to meet the target then
-         * return early since the caller will end up ignoring them anyway.
-         */
-        if (total_size >= target) {
-            break;
-        }
-
         const auto usage = co_await seg->persistent_size();
-        total_size += usage.total();
+        const auto seg_size = usage.total();
 
         /*
          * the active segment designation takes precedence because it requires
@@ -2424,7 +2415,7 @@ disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
              *   made it to the active segment yet.
              */
             if (max_collectible >= seg->offsets().base_offset) {
-                res.force_roll = total_size;
+                res.force_roll = seg_size;
             }
             break;
         }
@@ -2432,7 +2423,7 @@ disk_log_impl::get_reclaimable_offsets(gc_config cfg, size_t target) {
         // to be categorized
         const reclaimable_offsets::offset point{
           .offset = seg->offsets().dirty_offset,
-          .size = total_size,
+          .size = seg_size,
         };
 
         /*
