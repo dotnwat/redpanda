@@ -87,7 +87,8 @@ private:
          * is an optional<T> is because the seastar iterator doesn't have a
          * default constructor.
          */
-        std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator> iter;
+        std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator>
+          iter;
 
         /*
          * pointer to one of the offset groups in the offsets member. this
@@ -100,6 +101,7 @@ private:
          *
          */
         std::optional<model::offset> decision;
+        size_t total{0};
     };
 
     struct shard_offsets {
@@ -112,22 +114,21 @@ private:
      */
     struct eviction_schedule {
         std::vector<shard_offsets> offsets;
+        const size_t sched_size;
 
         size_t shard_idx{0};
         size_t group_idx{0};
 
-        explicit eviction_schedule(std::vector<shard_offsets> offsets)
-          : offsets(std::move(offsets)) {}
-
-        // number of elements in the offsets container
-        size_t size() const;
+        explicit eviction_schedule(
+          std::vector<shard_offsets> offsets, size_t size)
+          : offsets(std::move(offsets))
+          , sched_size(size) {}
 
         /*
          * reposition the iterator at the cursor location.
          *
          * preconditions:
-         *   - container is not empty (size() != 0)
-         *   - normalize cursor with cursor % size()
+         *   - container is not empty (i.e. sched_size > 0)
          */
         void seek(size_t cursor);
 
@@ -163,7 +164,9 @@ private:
     // policy phases that select data to be evicted.
     size_t _cursor{0};
 
-    void apply_phase2_local_retention(eviction_schedule&, size_t);
+    size_t apply_phase2_local_retention(eviction_schedule&, size_t);
+
+    ss::future<> broadcast_schedule(eviction_schedule);
 
     ss::gate _gate;
     ss::future<> run_loop();

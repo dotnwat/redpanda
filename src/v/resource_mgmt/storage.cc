@@ -107,6 +107,7 @@ ss::future<> disk_space_manager::run_loop() {
  * This is greedy approach which will recover as much as possible from each
  * partition before moving on to the next.
  */
+#if 0
 static ss::future<size_t>
 set_partition_retention_offsets(cluster::partition_manager& pm, size_t target) {
     // build a lightweight copy to avoid invalidations during iteration
@@ -181,18 +182,12 @@ set_partition_retention_offsets(cluster::partition_manager& pm, size_t target) {
 
     co_return partitions_total;
 }
-
-size_t disk_space_manager::eviction_schedule::size() const {
-    return std::reduce(
-      this->offsets.cbegin(),
-      this->offsets.cend(),
-      size_t{0},
-      [](size_t acc, const shard_offsets& offsets) {
-          return acc + offsets.offsets.size();
-      });
-}
+#endif
 
 void disk_space_manager::eviction_schedule::seek(size_t cursor) {
+    vassert(sched_size > 0, "");
+    cursor = cursor % sched_size;
+
     // reset iterator
     shard_idx = 0;
     group_idx = 0;
@@ -228,8 +223,6 @@ disk_space_manager::eviction_schedule::current() {
 
 /*
  * Collect reclaimable partition offsets on the local core.
- *
- * TODO remove target from get_reclaimable_offsets
  */
 ss::future<fragmented_vector<disk_space_manager::group_offsets>>
 disk_space_manager::collect_reclaimable_offsets() {
@@ -262,7 +255,7 @@ disk_space_manager::collect_reclaimable_offsets() {
     for (const auto& p : partitions) {
         auto log = dynamic_cast<storage::disk_log_impl*>(p->log().get_impl());
         auto gate = log->gate().hold(); // protect against log deletes
-        auto offsets = co_await log->get_reclaimable_offsets(cfg, 0);
+        auto offsets = co_await log->get_reclaimable_offsets(cfg);
         res.push_back({
           .group = p->group(),
           .offsets = std::move(offsets),
@@ -293,17 +286,20 @@ disk_space_manager::initialize_eviction_schedule() {
             };
         });
     });
-    co_return eviction_schedule(std::move(offsets));
+
+    const auto size = std::reduce(
+      offsets.cbegin(),
+      offsets.cend(),
+      size_t{0},
+      [](size_t acc, const shard_offsets& offsets) {
+          return acc + offsets.offsets.size();
+      });
+
+    co_return eviction_schedule(std::move(offsets), size);
 }
 
-void disk_space_manager::apply_phase2_local_retention(
+size_t disk_space_manager::apply_phase2_local_retention(
   eviction_schedule& sched, size_t target_excess) {
-    const auto sched_size = sched.size();
-    if (sched_size == 0) {
-        return;
-    }
-    sched.seek(_cursor % sched_size);
-
     /*
      * round robin reclaim oldest segment until we've met the target size or we
      * exhaust the amount of available space to reclaim in this phase.
@@ -312,6 +308,7 @@ void disk_space_manager::apply_phase2_local_retention(
     size_t total = 0;
     auto group = sched.current();
     const auto begin = group;
+
     while (true) {
         /*
          * if it's the first time here in this phase, initialize iter
@@ -319,33 +316,88 @@ void disk_space_manager::apply_phase2_local_retention(
         if (group->phase != &group->offsets.effective_local_retention) {
             group->phase = &group->offsets.effective_local_retention;
             group->iter = group->offsets.effective_local_retention.begin();
+            vlog(
+              rlog.info,
+              "Initializing group {} phase 2 iterator with {} candidates",
+              group->group,
+              group->offsets.effective_local_retention.size());
         }
 
         if (
           group->iter.value()
-          != group->offsets.effective_local_retention.end()) {
+          == group->offsets.effective_local_retention.end()) {
+            vlog(
+              rlog.info,
+              "Reached the end of phase 2 candidates for group {}",
+              group->group);
+        } else {
             /*
              * TODO grop.iter->size needs to be incremental for this to work
              */
             total += group->iter.value()->size;
+            group->total += group->iter.value()->size;
             group->decision = group->iter.value()->offset;
-            ++group->iter.value();
             progress = true;
+            vlog(
+              rlog.info,
+              "Group {}: remove offset {} size {} total {} overall total {}",
+              group->group,
+              group->decision,
+              group->iter.value()->size,
+              group->total,
+              total);
+            ++group->iter.value();
         }
 
+        ++_cursor;
         sched.next();
         group = sched.current();
         if (group == begin) {
             if (!progress) {
+                vlog(
+                  rlog.info,
+                  "Phase 2 did not find any more candidate segments");
                 break;
             }
+            vlog(rlog.info, "Phase 2 examined all partitions. Starting over.");
             progress = false;
         }
 
         if (total > target_excess) {
+            vlog(
+              rlog.info,
+              "Phase 2 completing after finding enough data to reclaim");
             break;
         }
     }
+
+    return total;
+}
+
+ss::future<>
+disk_space_manager::broadcast_schedule(eviction_schedule schedule) {
+    co_await ss::parallel_for_each(schedule.offsets, [this](auto& sched) {
+        return _pm->invoke_on(sched.shard, [&sched](auto& pm) {
+            for (const auto& group : sched.offsets) {
+                if (!group.decision.has_value()) {
+                    continue;
+                }
+                auto p = pm.partition_for(group.group);
+                if (!p) {
+                    continue;
+                }
+                auto log = dynamic_cast<storage::disk_log_impl*>(
+                  p->log().get_impl());
+                vlog(
+                  rlog.info,
+                  "Setting {}/{} gc offset {}",
+                  group.group,
+                  p->ntp(),
+                  group.decision.value());
+                log->set_cloud_gc_offset(group.decision.value());
+            }
+        });
+    });
 }
 
 ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
@@ -401,7 +453,8 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
     if (target_excess > usage.reclaim.retention) {
         vlog(
           rlog.info,
-          "Log storage usage {} > target size {} by {}. Garbage collection "
+          "XXXXXXXXXXXXXXXX Log storage usage {} > target size {} by {}. "
+          "Garbage collection "
           "expected to recover {}. Overriding tiered storage retention to "
           "recover {}. Total estimated available to recover {}",
           human::bytes(usage.usage.total()),
@@ -417,31 +470,30 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
          * point which starts with phase 2 of the policy.
          */
         auto schedule = co_await initialize_eviction_schedule();
+        vlog(rlog.info, "Schedule size {}", schedule.sched_size);
+        if (schedule.sched_size > 0) {
+            schedule.seek(_cursor);
+            /*
+             *
+             */
+            auto estimate = apply_phase2_local_retention(
+              schedule, target_excess);
+            vlog(
+              stlog.info,
+              "Phase 2 total estimate reclaim {} target {}",
+              human::bytes(estimate),
+              human::bytes(target_excess));
+        }
 
         /*
          *
          */
-        apply_phase2_local_retention(schedule, target_excess);
-
-        /*
-         * This is a simple greedy approach. It will attempt to reclaim as much
-         * data as possible from each partition on each core, stopping once
-         * enough space has been reclaimed to meet the current target.
-         */
-        size_t total = 0;
-        for (auto shard : ss::smp::all_cpus()) {
-            auto goal = target_excess - total;
-            total += co_await _pm->invoke_on(shard, [goal](auto& pm) {
-                return set_partition_retention_offsets(pm, goal);
-            });
-            if (total >= target_excess) {
-                break;
-            }
-        }
+        co_await broadcast_schedule(std::move(schedule));
     } else {
         vlog(
           rlog.info,
-          "Log storage usage {} > target size {} by {}. Garbage collection "
+          "XXXXXXXXXXXXX-OK Log storage usage {} > target size {} by {}. "
+          "Garbage collection "
           "expected to recover {}.",
           human::bytes(usage.usage.total()),
           human::bytes(target_size),
