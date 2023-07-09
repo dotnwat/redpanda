@@ -59,6 +59,15 @@ class eviction_policy {
         /*
          * used when applying policies to the schedule.
          *
+         * pointer to one of the offset groups in the offsets member. this
+         * pointer allows policy evaluation to know when the iterator needs
+         * to initialized for the given phase.
+         */
+        ss::chunked_fifo<reclaimable_offsets::offset>* level{nullptr};
+
+        /*
+         * used when applying policies to the schedule.
+         *
          * the iterator points to the next reclaimable offset for consideration
          * within the context of the current policy phase being evaluated.
          *
@@ -67,15 +76,6 @@ class eviction_policy {
          */
         std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator>
           iter;
-
-        /*
-         * used when applying policies to the schedule.
-         *
-         * pointer to one of the offset groups in the offsets member. this
-         * pointer allows policy evaluation to know when the iterator needs
-         * to initialized for the given phase.
-         */
-        ss::chunked_fifo<reclaimable_offsets::offset>* level{nullptr};
     };
 
     /*
