@@ -356,61 +356,57 @@ ss::future<size_t> eviction_policy::install_schedule(shard_partitions shard) {
     });
 }
 
-size_t eviction_policy::evict_until_local_retention(
-  schedule& sched, size_t target_excess) {
+size_t eviction_policy::evict_balanced_from_level(
+  schedule& sched, size_t target_excess, const level_selector& selector) {
     /*
      * round robin reclaim oldest segment until we've met the target size or we
      * exhaust the amount of available space to reclaim in this phase.
      */
     bool progress = false;
     size_t total = 0;
-    auto group = sched.current();
-    const auto begin = group;
+    auto partition = sched.current();
+    const auto first = partition;
 
     while (true) {
         /*
          * if it's the first time here in this phase, initialize iter
          */
-        if (group->phase != &group->offsets.effective_local_retention) {
-            group->phase = &group->offsets.effective_local_retention;
-            group->iter = group->offsets.effective_local_retention.begin();
+        auto level = selector(partition);
+        if (partition->level != level) {
+            partition->level = level;
+            partition->iter = level->begin();
             vlog(
               rlog.info,
               "Initializing group {} phase 2 iterator with {} candidates",
-              group->group,
-              group->offsets.effective_local_retention.size());
+              partition->group,
+              level->size());
         }
 
-        if (
-          group->iter.value()
-          == group->offsets.effective_local_retention.end()) {
+        if (partition->iter.value() == level->end()) {
             vlog(
               rlog.info,
               "Reached the end of phase 2 candidates for group {}",
-              group->group);
+              partition->group);
         } else {
-            /*
-             * TODO grop.iter->size needs to be incremental for this to work
-             */
-            total += group->iter.value()->size;
-            group->total += group->iter.value()->size;
-            group->decision = group->iter.value()->offset;
+            total += partition->iter.value()->size;
+            partition->total += partition->iter.value()->size;
+            partition->decision = partition->iter.value()->offset;
             progress = true;
             vlog(
               rlog.info,
               "Group {}: remove offset {} size {} total {} overall total {}",
-              group->group,
-              group->decision,
-              group->iter.value()->size,
-              group->total,
+              partition->group,
+              partition->decision,
+              partition->iter.value()->size,
+              partition->total,
               total);
-            ++group->iter.value();
+            ++partition->iter.value();
         }
 
         ++_cursor;
         sched.next();
-        group = sched.current();
-        if (group == begin) {
+        partition = sched.current();
+        if (partition == first) {
             if (!progress) {
                 vlog(
                   rlog.info,
@@ -430,6 +426,13 @@ size_t eviction_policy::evict_until_local_retention(
     }
 
     return total;
+}
+
+size_t eviction_policy::evict_until_local_retention(
+  schedule& sched, size_t target_excess) {
+    return evict_balanced_from_level(sched, target_excess, [](auto group) {
+        return &group->offsets.effective_local_retention;
+    });
 }
 
 ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {

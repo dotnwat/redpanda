@@ -75,7 +75,7 @@ class eviction_policy {
          * pointer allows policy evaluation to know when the iterator needs
          * to initialized for the given phase.
          */
-        ss::chunked_fifo<reclaimable_offsets::offset>* phase{nullptr};
+        ss::chunked_fifo<reclaimable_offsets::offset>* level{nullptr};
     };
 
     /*
@@ -102,8 +102,7 @@ class eviction_policy {
         size_t shard_idx{0};
         size_t partition_idx{0};
 
-        explicit schedule(
-          std::vector<shard_partitions> offsets, size_t size)
+        explicit schedule(std::vector<shard_partitions> offsets, size_t size)
           : shards(std::move(offsets))
           , sched_size(size) {}
 
@@ -168,6 +167,15 @@ private:
      * schedule, such as balanced removal of old segments.
      */
     size_t _cursor{0};
+
+    /*
+     * marks segments for eviction from a scheduling level using a round robin
+     * balanced strategy. the process ends if the target eviction size is
+     * achieved or the process stops making progress.
+     */
+    using level_selector = std::function<
+      ss::chunked_fifo<reclaimable_offsets::offset>*(partition*)>;
+    size_t evict_balanced_from_level(schedule&, size_t, const level_selector&);
 
     ss::future<fragmented_vector<partition>> collect_reclaimable_offsets();
     ss::future<size_t> install_schedule(shard_partitions);
