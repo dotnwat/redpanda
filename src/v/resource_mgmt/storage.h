@@ -156,9 +156,17 @@ public:
      */
     ss::future<> install_schedule(schedule);
 
+    size_t cursor() const { return _cursor; }
+
 private:
     ss::sharded<cluster::partition_manager>* _pm;
     ss::sharded<storage::api>* _storage;
+
+    /*
+     * used to approximate round-robin iteration across partitions in a
+     * schedule, such as balanced removal of old segments.
+     */
+    size_t _cursor{0};
 
     /*
      * marks segments for eviction from a scheduling level using a round robin
@@ -213,6 +221,8 @@ private:
 
     ss::future<> manage_data_disk(uint64_t target_size);
     config::binding<std::optional<uint64_t>> _log_storage_target_size;
+
+    eviction_policy _policy;
 
     ss::gate _gate;
     ss::future<> run_loop();

@@ -35,7 +35,8 @@ disk_space_manager::disk_space_manager(
   , _storage_node(storage_node)
   , _cache(cache->local_is_initialized() ? cache : nullptr)
   , _pm(pm)
-  , _log_storage_target_size(std::move(log_storage_target_size)) {
+  , _log_storage_target_size(std::move(log_storage_target_size))
+  , _policy(_pm, _storage) {
     _enabled.watch([this] {
         vlog(
           rlog.info,
@@ -433,6 +434,29 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
           human::bytes(usage.reclaim.retention),
           human::bytes(target_excess - usage.reclaim.retention),
           human::bytes(usage.reclaim.available));
+
+        /*
+         * In the overall eviction policy phase 1 corresponds to a prioritized
+         * application of normal GC. When that is insufficient we reach this
+         * point which starts with phase 2 of the policy.
+         */
+        auto schedule = co_await _policy.create_new_schedule();
+        vlog(rlog.info, "Schedule size {}", schedule.sched_size);
+        if (schedule.sched_size > 0) {
+            schedule.seek(_policy.cursor());
+            /*
+             *
+             */
+            auto estimate = _policy.evict_until_local_retention(
+              schedule, target_excess);
+            vlog(
+              stlog.info,
+              "Phase 2 total estimate reclaim {} target {}",
+              human::bytes(estimate),
+              human::bytes(target_excess));
+        }
+
+        co_await _policy.install_schedule(std::move(schedule));
     } else {
         vlog(
           rlog.info,
