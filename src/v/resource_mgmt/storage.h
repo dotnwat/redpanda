@@ -12,6 +12,7 @@
 #pragma once
 
 #include "config/property.h"
+#include "raft/types.h"
 #include "seastarx.h"
 #include "ssx/semaphore.h"
 #include "storage/node.h"
@@ -32,6 +33,144 @@ namespace storage {
 
 class api;
 class node;
+
+class eviction_policy {
+    /*
+     * tracks reclaimable data in a partition. the raft::group_id
+     * is used to decouple the process of evaluating the policy from the
+     * lifetime of any one partition. if a partition is removed during the
+     * process, we will notice it missing when looking it up by its raft group
+     * id and skip that particular partition.
+     */
+    struct partition {
+        raft::group_id group;
+        reclaimable_offsets offsets;
+
+        /*
+         * used when applying policies to the schedule.
+         *
+         * the offset at which the scheduling policy would like this partition
+         * to be prefix truncated, along with the total amount of space
+         * estimated to be reclaimed.
+         */
+        std::optional<model::offset> decision;
+        size_t total{0};
+
+        /*
+         * used when applying policies to the schedule.
+         *
+         * the iterator points to the next reclaimable offset for consideration
+         * within the context of the current policy phase being evaluated.
+         *
+         * the only reason this is an optional<T> is because the seastar
+         * chunked_fifo iterator doesn't have a default constructor.
+         */
+        std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator>
+          iter;
+
+        /*
+         * used when applying policies to the schedule.
+         *
+         * pointer to one of the offset groups in the offsets member. this
+         * pointer allows policy evaluation to know when the iterator needs
+         * to initialized for the given phase.
+         */
+        ss::chunked_fifo<reclaimable_offsets::offset>* phase{nullptr};
+    };
+
+    /*
+     * shard-tagged set of partitions. scheduling state is collected on core-0
+     * before being analyzed to determine which decisions to broadcast back to
+     * each core. tagging the partitions with the shard makes it easier to track
+     * which decisions route to which core.
+     */
+    struct shard_partitions {
+        ss::shard_id shard;
+        fragmented_vector<partition> partitions;
+    };
+
+    /*
+     * holds information about reclaimable space partitions across all cores.
+     * policies are applied to the schedule and manipulate it (e.g. recording
+     * eviction decisions). the schedule exposes a round-robin iterator
+     * interface for policies.
+     */
+    struct schedule {
+        std::vector<shard_partitions> shards;
+        size_t sched_size;
+
+        size_t shard_idx{0};
+        size_t partition_idx{0};
+
+        explicit schedule(
+          std::vector<shard_partitions> offsets, size_t size)
+          : shards(std::move(offsets))
+          , sched_size(size) {}
+
+        /*
+         * reposition the iterator at the cursor location.
+         *
+         * preconditions:
+         *   - container is not empty (i.e. sched_size > 0)
+         */
+        void seek(size_t cursor);
+
+        /*
+         * advance the iterator
+         *
+         * preconditions:
+         *   - seek() has been invoked
+         */
+        void next();
+
+        /*
+         * return current partition's reclaimable offsets
+         *
+         * preconditions:
+         *   - seek() has been invoked
+         */
+        partition* current();
+    };
+
+public:
+    eviction_policy(
+      ss::sharded<cluster::partition_manager>* pm,
+      ss::sharded<storage::api>* storage)
+      : _pm(pm)
+      , _storage(storage) {}
+
+    /*
+     * create a new schedule containing information about partitions on the
+     * system. initially the schedule will contain no eviction decisions.
+     */
+    ss::future<schedule> create_new_schedule();
+
+    /*
+     * balanced eviction of segments across all partitions without violating any
+     * partition's local retention policy. when local retention is advisory
+     * this evicts data that has expand best-effort past local retention.
+     */
+    size_t evict_until_local_retention(schedule&, size_t);
+
+    /*
+     * install the schedule by applying eviction decisions on all cores.
+     */
+    ss::future<> install_schedule(schedule);
+
+    size_t cursor() const { return _cursor; }
+
+private:
+    ss::sharded<cluster::partition_manager>* _pm;
+    ss::sharded<storage::api>* _storage;
+
+    /*
+     * used to approximate round-robin iteration across partitions in a
+     * schedule, such as balanced removal of old segments.
+     */
+    size_t _cursor{0};
+
+    ss::future<fragmented_vector<partition>> collect_reclaimable_offsets();
+};
 
 /*
  *
@@ -72,6 +211,8 @@ private:
 
     ss::future<> manage_data_disk(uint64_t target_size);
     config::binding<std::optional<uint64_t>> _log_storage_target_size;
+
+    eviction_policy _policy;
 
     ss::gate _gate;
     ss::future<> run_loop();
