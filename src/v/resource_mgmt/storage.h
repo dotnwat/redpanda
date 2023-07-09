@@ -45,6 +45,16 @@ class eviction_policy {
     struct partition {
         raft::group_id group;
         reclaimable_offsets offsets;
+
+        /*
+         * used when applying policies to the schedule.
+         *
+         * the offset at which the scheduling policy would like this partition
+         * to be prefix truncated, along with the total amount of space
+         * estimated to be reclaimed.
+         */
+        std::optional<model::offset> decision;
+        size_t total{0};
     };
 
     /*
@@ -100,6 +110,31 @@ class eviction_policy {
          */
         partition* current();
     };
+
+public:
+    eviction_policy(
+      ss::sharded<cluster::partition_manager>* pm,
+      ss::sharded<storage::api>* storage)
+      : _pm(pm)
+      , _storage(storage) {}
+
+    /*
+     * create a new schedule containing information about partitions on the
+     * system. initially the schedule will contain no eviction decisions.
+     */
+    ss::future<schedule> create_new_schedule();
+
+    /*
+     * install the schedule by applying eviction decisions on all cores.
+     */
+    ss::future<> install_schedule(schedule);
+
+private:
+    ss::sharded<cluster::partition_manager>* _pm;
+    ss::sharded<storage::api>* _storage;
+
+    ss::future<fragmented_vector<partition>> collect_reclaimable_offsets();
+    ss::future<size_t> install_schedule(shard_partitions);
 };
 
 /*
