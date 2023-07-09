@@ -12,6 +12,7 @@
 #pragma once
 
 #include "config/property.h"
+#include "raft/types.h"
 #include "seastarx.h"
 #include "ssx/semaphore.h"
 #include "storage/node.h"
@@ -32,6 +33,112 @@ namespace storage {
 
 class api;
 class node;
+
+class eviction_policy {
+    struct group_offsets {
+        raft::group_id group;
+        reclaimable_offsets offsets;
+
+        /*
+         * points to the next offset to consider for eviction in the offset
+         * container for the current phase of evaluation. the only reason
+         * this is an optional<T> is because the seastar iterator doesn't
+         * have a default constructor.
+         */
+        std::optional<ss::chunked_fifo<reclaimable_offsets::offset>::iterator>
+          iter;
+
+        /*
+         * pointer to one of the offset groups in the offsets member. this
+         * pointer allows policy evaluation to know when the iterator needs
+         * to initialized for the given phase.
+         */
+        ss::chunked_fifo<reclaimable_offsets::offset>* phase{nullptr};
+
+        /*
+         *
+         */
+        std::optional<model::offset> decision;
+        size_t total{0};
+    };
+
+    struct shard_offsets {
+        ss::shard_id shard;
+        fragmented_vector<group_offsets> offsets;
+    };
+
+    /*
+     * round robin iteration
+     */
+    struct eviction_schedule {
+        std::vector<shard_offsets> offsets;
+        const size_t sched_size;
+
+        size_t shard_idx{0};
+        size_t group_idx{0};
+
+        explicit eviction_schedule(
+          std::vector<shard_offsets> offsets, size_t size)
+          : offsets(std::move(offsets))
+          , sched_size(size) {}
+
+        /*
+         * reposition the iterator at the cursor location.
+         *
+         * preconditions:
+         *   - container is not empty (i.e. sched_size > 0)
+         */
+        void seek(size_t cursor);
+
+        /*
+         * advance the iterator
+         *
+         * preconditions:
+         *   - seek() has been invoked
+         */
+        void next();
+
+        /*
+         * return current partition's reclaimable offsets
+         *
+         * preconditions:
+         *   - seek() has been invoked
+         */
+        group_offsets* current();
+    };
+
+public:
+    eviction_policy(
+      ss::sharded<cluster::partition_manager>* pm,
+      ss::sharded<storage::api>* storage)
+      : _pm(pm)
+      , _storage(storage) {}
+
+    ss::future<eviction_schedule> create_new_schedule();
+    ss::future<> install_schedule(eviction_schedule);
+
+    size_t evict_until_local_retention(eviction_schedule&, size_t);
+
+    size_t cursor() const { return _cursor; }
+
+private:
+    ss::sharded<cluster::partition_manager>* _pm;
+    ss::sharded<storage::api>* _storage;
+
+    // cursor is used to approximate a round-robin schedule when applying
+    // policy phases that select data to be evicted.
+    size_t _cursor{0};
+
+    /*
+     * Collects from each shard a summary of reclaimable partition offsets.
+     * Each set is tagged with its corresponding raft group id. The reason
+     * for this is that the results will be analyzed by the eviction policy
+     * to produce an eviction schedule. That schedule needs to be able to
+     * identify partitions without tracking raw pointers, and we'd also like
+     * to avoid the heavy weight model::ntp representation.
+     */
+    ss::future<fragmented_vector<group_offsets>> collect_reclaimable_offsets();
+};
 
 /*
  *
@@ -72,6 +179,8 @@ private:
 
     ss::future<> manage_data_disk(uint64_t target_size);
     config::binding<std::optional<uint64_t>> _log_storage_target_size;
+
+    eviction_policy _policy;
 
     ss::gate _gate;
     ss::future<> run_loop();
