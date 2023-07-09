@@ -488,7 +488,7 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
     if (target_excess > usage.reclaim.retention) {
         vlog(
           rlog.info,
-          "XXXXXXXXXXXXXXXX Log storage usage {} > target size {} by {}. "
+          "Log storage usage {} > target size {} by {}. "
           "Garbage collection "
           "expected to recover {}. Overriding tiered storage retention to "
           "recover {}. Total estimated available to recover {}",
@@ -527,7 +527,7 @@ ss::future<> disk_space_manager::manage_data_disk(uint64_t target_size) {
     } else {
         vlog(
           rlog.info,
-          "XXXXXXXXXXXXX-OK Log storage usage {} > target size {} by {}. "
+          "Log storage usage {} > target size {} by {}. "
           "Garbage collection "
           "expected to recover {}.",
           human::bytes(usage.usage.total()),
