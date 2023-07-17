@@ -78,7 +78,9 @@ cache::cache(
   , _total_cleaned(0) {
     if (ss::this_shard_id() == ss::shard_id{0}) {
         update_max_bytes(); // initialize _max_bytes
+        _disk_reservation.watch([this]() { update_max_bytes(); });
         _max_bytes_cfg.watch([this]() { update_max_bytes(); });
+        _max_percent.watch([this]() { update_max_bytes(); });
     }
 }
 
