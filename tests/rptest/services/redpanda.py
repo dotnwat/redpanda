@@ -378,7 +378,7 @@ class SISettings:
                  cloud_storage_spillover_manifest_max_segments: Optional[
                      int] = None,
                  fast_uploads=False,
-                 retention_local_is_nonstrict=False):
+                 retention_local_strict=True):
         """
         :param fast_uploads: if true, set low upload intervals to help tests run
                              quickly when they wait for uploads to complete.
@@ -427,7 +427,7 @@ class SISettings:
         self.bypass_bucket_creation = bypass_bucket_creation
         self.cloud_storage_housekeeping_interval_ms = cloud_storage_housekeeping_interval_ms
         self.cloud_storage_spillover_manifest_max_segments = cloud_storage_spillover_manifest_max_segments
-        self.retention_local_is_nonstrict = retention_local_is_nonstrict
+        self.retention_local_strict = retention_local_strict
 
         if fast_uploads:
             self.cloud_storage_segment_max_upload_interval_sec = 10
@@ -567,7 +567,7 @@ class SISettings:
             conf[
                 'cloud_storage_spillover_manifest_max_segments'] = self.cloud_storage_spillover_manifest_max_segments
 
-        conf['retention_local_is_nonstrict'] = self.retention_local_is_nonstrict
+        conf['retention_local_strict'] = self.retention_local_strict
 
         return conf
 
