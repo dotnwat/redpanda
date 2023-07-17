@@ -112,7 +112,7 @@ ss::future<> disk_space_manager::run_loop() {
         /*
          * waiting for the nodes to upgrade isn't important locally, but it
          * allows us to send a consistent message back to the partition balancer
-         * which may be trying to distinguish between new-blaancer / old-broker
+         * which may be trying to distinguish between new-balancer / old-broker
          * scenarios.
          */
         if (!_feature_table->local().is_active(
