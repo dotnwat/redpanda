@@ -145,8 +145,15 @@ void disk_space_manager::update_target_size() {
         * (_retention_target_capacity_percent().value_or(0) / 100.0);
 
     // bytes-based target size
-    const uint64_t target_size_bytes
-      = _retention_target_capacity_bytes().value_or(0);
+    uint64_t target_size_bytes = _retention_target_capacity_bytes().value_or(0);
+    if (target_size_bytes > usable_size) {
+        vlog(
+          rlog.info,
+          "Clamping requested target max bytes {} to usable size {}",
+          target_size_bytes,
+          usable_size);
+        target_size_bytes = usable_size;
+    }
 
     if (target_size_pct > 0 && target_size_bytes == 0) {
         // only percent target
