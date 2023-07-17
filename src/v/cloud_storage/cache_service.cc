@@ -96,7 +96,15 @@ void cache::update_max_bytes() {
     const uint64_t max_size_pct = usable_size
                                   * (_max_percent().value_or(0) / 100.0);
 
-    const auto max_size_bytes = _max_bytes_cfg();
+    auto max_size_bytes = _max_bytes_cfg();
+    if (max_size_bytes > usable_size) {
+        vlog(
+          cst_log.info,
+          "Clamping requested max bytes {} to usable size {}",
+          max_size_bytes,
+          usable_size);
+        max_size_bytes = usable_size;
+    }
 
     if (max_size_pct > 0 && max_size_bytes == 0) {
         // only percent target
