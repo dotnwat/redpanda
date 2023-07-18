@@ -58,12 +58,7 @@ public:
      * data log configuration and usage so it can be added to health report.
      */
     void set_log_data_state(std::optional<local_state::log_data_state> state) {
-        if (state.has_value()) {
-            _log_data_state = tristate<local_state::log_data_state>(
-              state.value());
-        } else {
-            _log_data_state = tristate<local_state::log_data_state>();
-        }
+        _log_data_state = state;
     }
 
 private:
@@ -82,7 +77,7 @@ private:
     // state
     local_state _state;
     // folded/merged into _state by the monitor.
-    tristate<local_state::log_data_state> _log_data_state{std::nullopt};
+    std::optional<local_state::log_data_state> _log_data_state{std::nullopt};
 
     ss::logger::rate_limit _despam_interval = ss::logger::rate_limit(
       std::chrono::hours(1));

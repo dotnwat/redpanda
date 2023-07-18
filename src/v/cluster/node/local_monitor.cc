@@ -90,7 +90,7 @@ ss::future<> local_monitor::update_state() {
 
     /*
      * this is overriden by space management once it starts up. the default
-     * value is the disengaged tristate which indicates this early state.
+     * value is nullopt which indicates this early state.
      */
     _state.log_data_size = _log_data_state;
 

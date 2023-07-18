@@ -94,6 +94,10 @@ struct local_state
      * data_target_size: the target capacity of log data
      * data_current_size: current amount of log data
      * data_reclaimable_size: amount of data reclaimable log data
+     *
+     * this information is optional because it is possible that early on in
+     * bootup that a health report might be generated before the system has had
+     * a chance to determine what values should be filled in here.
      */
     struct log_data_state
       : serde::envelope<
@@ -105,7 +109,7 @@ struct local_state
         uint64_t data_reclaimable_size{0};
         friend std::ostream& operator<<(std::ostream&, const log_data_state&);
     };
-    tristate<log_data_state> log_data_size{std::nullopt};
+    std::optional<log_data_state> log_data_size{std::nullopt};
 
     void serde_read(iobuf_parser&, const serde::header&);
     void serde_write(iobuf& out) const;
