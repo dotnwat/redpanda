@@ -206,7 +206,7 @@ kvstore_backed_stm_snapshot::kvstore_backed_stm_snapshot(
   , _kvstore(kvstore) {}
 
 bytes kvstore_backed_stm_snapshot::snapshot_key() const {
-    bytes k;
+    bytes k{bytes::defaulted{}};
     k.append(
       reinterpret_cast<const uint8_t*>(_snapshot_key.begin()),
       _snapshot_key.size());

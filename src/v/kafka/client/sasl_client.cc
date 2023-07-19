@@ -83,7 +83,7 @@ static ss::future<security::server_first_message> send_scram_client_first(
     sasl_authenticate_request client_first_req;
     {
         auto msg = client_first.message();
-        client_first_req.data.auth_bytes = bytes(msg.cbegin(), msg.cend());
+        client_first_req.data.auth_bytes = bytes(bytes::defaulted{}, msg.cbegin(), msg.cend());
     }
     auto client_first_resp = co_await broker->dispatch(client_first_req);
     if (client_first_resp.data.error_code != error_code::none) {
@@ -101,7 +101,7 @@ static ss::future<security::server_final_message> send_scram_client_final(
     sasl_authenticate_request client_last_req;
     {
         auto msg = client_final.message();
-        client_last_req.data.auth_bytes = bytes(msg.cbegin(), msg.cend());
+        client_last_req.data.auth_bytes = bytes(bytes::defaulted{}, msg.cbegin(), msg.cend());
     }
 
     auto client_last_resp = co_await broker->dispatch(client_last_req);
@@ -155,10 +155,10 @@ static ss::future<> do_authenticate_scram(
      * send client final message
      */
     security::client_final_message client_final(
-      bytes("n,,"), server_first.nonce());
+      bytes(bytes::defaulted{}, "n,,"), server_first.nonce());
 
     auto salted_password = ScramAlgo::hi(
-      bytes(password.cbegin(), password.cend()),
+      bytes(bytes::defaulted{}, password.cbegin(), password.cend()),
       server_first.salt(),
       server_first.iterations());
 

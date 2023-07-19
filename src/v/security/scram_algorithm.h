@@ -116,7 +116,7 @@ private:
     friend std::ostream& operator<<(std::ostream&, const server_first_message&);
 
     ss::sstring _nonce;
-    bytes _salt;
+    bytes _salt{bytes::defaulted{}};
     int _iterations;
 };
 
@@ -151,10 +151,10 @@ public:
 private:
     friend std::ostream& operator<<(std::ostream&, const client_final_message&);
 
-    bytes _channel_binding;
+    bytes _channel_binding{bytes::defaulted{}};
     ss::sstring _nonce;
     ss::sstring _extensions;
-    bytes _proof;
+    bytes _proof{bytes::defaulted{}};
 };
 
 /**
@@ -183,7 +183,7 @@ private:
     friend std::ostream& operator<<(std::ostream&, const server_final_message&);
 
     std::optional<ss::sstring> _error;
-    bytes _signature;
+    bytes _signature{bytes::defaulted{}};
 };
 
 template<
@@ -204,7 +204,7 @@ public:
         MacType mac(stored_key);
         mac.update(auth_message(client_first, server_first, client_final));
         auto result = mac.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     static bytes server_signature(
@@ -215,7 +215,7 @@ public:
         MacType mac(server_key);
         mac.update(auth_message(client_first, server_first, client_final));
         auto result = mac.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     static bytes
@@ -223,7 +223,7 @@ public:
         HashType hash;
         hash.update(client_signature ^ client_proof);
         auto result = hash.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     /**
@@ -268,7 +268,7 @@ public:
         hash.update(c_key);
         auto stored_key = hash.reset();
         auto c_signature = client_signature(
-          bytes(stored_key.begin(), stored_key.end()),
+          bytes(bytes::defaulted{}, stored_key.begin(), stored_key.end()),
           client_first,
           server_first,
           client_final);
@@ -288,14 +288,14 @@ public:
             result = result ^ ui;
             prev = ui;
         }
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     static bytes server_key(bytes_view salted_password) {
         MacType mac(salted_password);
         mac.update("Server Key");
         auto result = mac.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     /**
@@ -316,7 +316,7 @@ public:
 private:
     static bytes salt_password(
       const ss::sstring& password, bytes_view salt, int iterations) {
-        bytes password_bytes(password.begin(), password.end());
+        bytes password_bytes(bytes::defaulted{}, password.begin(), password.end());
         return hi(password_bytes, salt, iterations);
     }
 
@@ -324,14 +324,14 @@ private:
         MacType mac(salted_password);
         mac.update("Client Key");
         auto result = mac.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     static bytes stored_key(bytes_view client_key) {
         HashType hash;
         hash.update(client_key);
         auto result = hash.reset();
-        return bytes(result.begin(), result.end());
+        return bytes(bytes::defaulted{}, result.begin(), result.end());
     }
 
     static ss::sstring auth_message(

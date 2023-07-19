@@ -385,7 +385,7 @@ void group::add_missing_assignments(assignments_type& assignments) const {
       std::cend(_members),
       [&assignments](const member_map::value_type& m) mutable {
           // emplace does nothing if an entry exists
-          assignments.emplace(m.first, bytes{});
+          assignments.emplace(m.first, bytes{bytes::defaulted{}});
       });
 }
 

@@ -59,7 +59,7 @@ scram_authenticator<T>::handle_client_first(bytes_view auth_bytes) {
     _state = state::client_final_message;
 
     auto reply = _server_first->sasl_message();
-    return bytes(reply.cbegin(), reply.cend());
+    return bytes(bytes::defaulted{}, reply.cbegin(), reply.cend());
 }
 
 template<typename T>
@@ -73,7 +73,7 @@ scram_authenticator<T>::handle_client_final(bytes_view auth_bytes) {
 
     auto computed_stored_key = scram::computed_stored_key(
       client_signature,
-      bytes(client_final.proof().begin(), client_final.proof().end()));
+      bytes(bytes::defaulted{}, client_final.proof().begin(), client_final.proof().end()));
 
     if (computed_stored_key != _credential->stored_key()) {
         vlog(
@@ -95,7 +95,7 @@ scram_authenticator<T>::handle_client_final(bytes_view auth_bytes) {
     clear_credentials();
     _state = state::complete;
 
-    return bytes(reply.cbegin(), reply.cend());
+    return bytes(bytes::defaulted{}, reply.cbegin(), reply.cend());
 }
 
 template<typename T>

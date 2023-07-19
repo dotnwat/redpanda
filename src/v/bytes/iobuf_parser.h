@@ -65,7 +65,8 @@ public:
     }
 
     bytes read_bytes(size_t n) {
-        auto b = ss::uninitialized_string<bytes>(n);
+        // auto b = ss::uninitialized_string<bytes>(n);
+        bytes b(bytes::defaulted{});
         _in.consume_to(n, b.begin());
         return b;
     }

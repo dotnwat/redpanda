@@ -192,7 +192,7 @@ static void parse_data_section(license& lc, const json::Document& doc) {
 }
 
 static ss::sstring calculate_sha256_checksum(const ss::sstring& raw_license) {
-    bytes checksum;
+    bytes checksum{bytes::defaulted{}};
     hash_sha256 h;
     h.update(raw_license);
     const auto digest = h.reset();

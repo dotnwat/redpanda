@@ -25,7 +25,7 @@ static constexpr std::string_view max_duration_key{"max_duration"};
 static constexpr std::string_view buckets_key{"buckets"};
 
 static bytes key_to_bytes(std::string_view sv) {
-    bytes k;
+    bytes k{bytes::defaulted{}};
     k.append(reinterpret_cast<const uint8_t*>(sv.begin()), sv.size());
     return k;
 }

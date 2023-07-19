@@ -63,7 +63,7 @@
 
 namespace cluster {
 
-const bytes controller::invariants_key{"configuration_invariants"};
+const bytes controller::invariants_key{bytes::defaulted{}, "configuration_invariants"};
 
 controller::controller(
   config_manager::preload_result&& config_preload,

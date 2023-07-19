@@ -107,8 +107,9 @@ inline bytes to_bytes(uint32_t value) noexcept {
     // our bytes uses a short-string optimization of 31 bytes, at most
     // unsigned_vint::max_length bytes will be used to allocate the encoded size
     // at the start of the returned buffer
-    auto sz = size(static_cast<uint64_t>(value));
-    auto out = ss::uninitialized_string<bytes>(sz);
+    //auto sz = size(static_cast<uint64_t>(value));
+    //auto out = ss::uninitialized_string<bytes>(sz);
+    bytes out(bytes::defaulted{});
     serialize(value, out.begin());
     return out;
 }
@@ -164,8 +165,9 @@ inline bytes to_bytes(int64_t value) noexcept {
     // our bytes uses a short-string optimization of 31 bytes, at most
     // vint::max_length bytes will be used to allocate the encoded size at the
     // start of the returned buffer
-    auto sz = vint_size(value);
-    auto out = ss::uninitialized_string<bytes>(sz);
+    //auto sz = vint_size(value);
+    //auto out = ss::uninitialized_string<bytes>(sz);
+    bytes out(bytes::defaulted{});
     serialize(value, out.begin());
     return out;
 }

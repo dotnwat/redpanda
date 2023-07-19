@@ -787,8 +787,10 @@ void read_nested(iobuf_parser& in, T& t, std::size_t const bytes_left_limit) {
         in.consume_to(str.size(), str.begin());
         t = str;
     } else if constexpr (std::is_same_v<Type, bytes>) {
-        auto str = ss::uninitialized_string<bytes>(
-          read_nested<serde_size_t>(in, bytes_left_limit));
+        bytes str(bytes::defaulted{});
+        read_nested<serde_size_t>(in, bytes_left_limit);
+        //auto str = ss::uninitialized_string<bytes>(
+        //  read_nested<serde_size_t>(in, bytes_left_limit));
         in.consume_to(str.size(), str.begin());
         t = str;
     } else if constexpr (std::is_same_v<Type, uuid_t>) {
@@ -912,15 +914,20 @@ template<typename T>
 std::decay_t<T>
 read_nested(iobuf_parser& in, std::size_t const bytes_left_limit) {
     using Type = std::decay_t<T>;
-    static_assert(
-      std::is_default_constructible_v<T> || has_serde_direct_read<T>);
+    //static_assert(
+    //  std::is_default_constructible_v<T> || has_serde_direct_read<T>);
     if constexpr (has_serde_direct_read<T>) {
         auto const h = read_header<Type>(in, bytes_left_limit);
         return Type::serde_direct_read(in, h._bytes_left_limit);
     } else {
-        auto t = Type();
-        read_nested(in, t, bytes_left_limit);
-        return t;
+        std::optional<T> t;
+        if constexpr (std::is_same_v<Type, bytes>) {
+            t = bytes{bytes::defaulted{}};
+        } else {
+            t = Type();
+        }
+        read_nested(in, *t, bytes_left_limit);
+        return std::move(*t);
     }
 }
 

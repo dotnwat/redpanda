@@ -43,7 +43,7 @@ ss::future<> do_move_persistent_stm_state(
     using state_fptr = ss::foreign_ptr<state_ptr>;
 
     const auto key_as_str = stm_snapshot_key(snapshot_name, ntp);
-    bytes key;
+    bytes key{bytes::defaulted{}};
     key.append(
       reinterpret_cast<const uint8_t*>(key_as_str.begin()), key_as_str.size());
 

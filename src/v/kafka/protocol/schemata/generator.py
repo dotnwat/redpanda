@@ -1089,7 +1089,11 @@ struct {{ struct.name }} {
     {%- if info[1] != None %}
     {{ info[0] }} {{ field.name }}{{'{'}}{{info[1]}}{{'}'}};
     {%- else %}
+    {% if info[0] == "bytes" %}
+    {{ info[0] }} {{ field.name }}{ bytes::defaulted{} };
+    {% else %}
     {{ info[0] }} {{ field.name }}{ {{- field.default_value() -}} };
+    {% endif %}
     {%- endif %}
 {%- endfor %}
 

@@ -19,7 +19,8 @@ void fill_buffer_randomchars(char* start, size_t amount) {
 }
 
 bytes get_bytes(size_t n) {
-    auto b = ss::uninitialized_string<bytes>(n);
+    //auto b = ss::uninitialized_string<bytes>(n);
+    bytes b(bytes::defaulted{});
     std::generate_n(b.begin(), n, [] { return get_int<bytes::value_type>(); });
     return b;
 }

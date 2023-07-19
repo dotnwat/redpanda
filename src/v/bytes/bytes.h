@@ -38,19 +38,24 @@ public:
     using const_pointer = old_bytes_type::const_pointer;
     using value_type = old_bytes_type::value_type;
 
-    bytes() {}
-    bytes(initialized_later, size_t) {}
-    bytes(const char*) {}
-    bytes(bytes_view) {}
-    bytes(std::initializer_list<unsigned char>) {}
+    struct defaulted {};
+
+    ////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
+    bytes(defaulted) {}
+    bytes(defaulted, initialized_later, size_t) {}
+    bytes(defaulted, const char*) {}
+    bytes(defaulted, bytes_view) {}
+    bytes(defaulted, std::initializer_list<unsigned char>) {}
+    template<typename A, typename B>
+    bytes(defaulted, A, B) {}
 
     bytes(const bytes&) = default;
     bytes(bytes&&) noexcept = default;
     bytes& operator=(const bytes&) = default;
     bytes& operator=(bytes&&) noexcept = default;
-
-    template<typename A, typename B>
-    bytes(A, B) {}
+    ////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
 
     char& operator[](size_t) noexcept {
         return x;
@@ -162,7 +167,8 @@ std::ostream& operator<<(std::ostream& os, const bytes& b);
 std::ostream& operator<<(std::ostream& os, const bytes_opt& b);
 
 inline bytes iobuf_to_bytes(const iobuf& in) {
-    auto out = ss::uninitialized_string<bytes>(in.size_bytes());
+    //auto out = ss::uninitialized_string<bytes>(in.size_bytes());
+    bytes out(bytes::defaulted{});
     {
         iobuf::iterator_consumer it(in.cbegin(), in.cend());
         it.consume_to(in.size_bytes(), out.data());
@@ -240,7 +246,7 @@ inline bytes operator^(bytes_view a, bytes_view b) {
         throw std::runtime_error(
           "Cannot compute xor for different size byte strings");
     }
-    bytes res(bytes::initialized_later{}, a.size());
+    bytes res(bytes::defaulted{}, bytes::initialized_later{}, a.size());
     std::transform(
       a.cbegin(), a.cend(), b.cbegin(), res.begin(), std::bit_xor<>());
     return res;

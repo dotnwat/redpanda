@@ -324,7 +324,7 @@ gssapi_authenticator::impl::more(bytes_view auth_bytes) {
         return {_state, errc::invalid_credentials};
     }
 
-    bytes ret{bytes_view{send_tok}};
+    bytes ret{bytes::defaulted{}, bytes_view{send_tok}};
     vlog(seclog.trace, "gss {} sending {} bytes", _state, ret.size());
 
     if (major_status == GSS_S_COMPLETE) {
@@ -367,7 +367,7 @@ gssapi_authenticator::impl::ssfcap(bytes_view auth_bytes) {
     auto mech_ssf = ntohl(ssf);
     vlog(seclog.trace, "gss {} mech_ssf: {}", _state, mech_ssf);
 
-    bytes sasl_data{0x1, 0x0, 0x0, 0xff};
+    bytes sasl_data{bytes::defaulted{}, {0x1, 0x0, 0x0, 0xff}};
     gss::buffer_view input{sasl_data};
     gss::buffer output_token;
     major_status = ::gss_wrap(
@@ -390,7 +390,7 @@ gssapi_authenticator::impl::ssfcap(bytes_view auth_bytes) {
 
     vlog(seclog.trace, "gss {} sending {} bytes", _state, output_token.size());
     _state = state::ssfreq;
-    return {_state, bytes{bytes_view{output_token}}};
+    return {_state, bytes{bytes::defaulted{}, bytes_view{output_token}}};
 }
 
 gssapi_authenticator::impl::state_result<bytes>
@@ -423,7 +423,7 @@ gssapi_authenticator::impl::ssfreq(bytes_view auth_bytes) {
         return {res.state, res.result.assume_error()};
     }
 
-    bytes ret{};
+    bytes ret{bytes::defaulted{}};
     vlog(seclog.trace, "gss {} sending {} bytes", _state, ret.size());
     _state = state::complete;
     return {_state, ret};

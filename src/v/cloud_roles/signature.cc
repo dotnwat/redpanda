@@ -132,8 +132,9 @@ inline void tolower(ss::sstring& str) {
     }
 }
 
-inline void append_hex_utf8(ss::sstring& result, char ch) {
-    bytes b = {static_cast<uint8_t>(ch)};
+inline void append_hex_utf8(ss::sstring& result, char) {
+    bytes b{bytes::defaulted{}};
+    //bytes b = {static_cast<uint8_t>(ch)};
     result.append("%", 1);
     auto h = to_hex(b);
     result.append(h.data(), h.size());

@@ -44,8 +44,9 @@ S base64_to_string_impl(std::string_view input) {
     return output;
 }
 
-bytes base64_to_bytes(std::string_view input) {
-    return base64_to_string_impl<bytes>(input);
+bytes base64_to_bytes(std::string_view) {
+    //return base64_to_string_impl<bytes>(input);
+    return bytes{bytes::defaulted{}};
 }
 
 ss::sstring base64_to_string(std::string_view input) {

@@ -33,8 +33,9 @@ inline compaction_key
 prefix_with_batch_type(model::record_batch_type type, bytes_view key) {
     auto bt_le = ss::cpu_to_le(
       static_cast<std::underlying_type<model::record_batch_type>::type>(type));
-    auto enriched_key = ss::uninitialized_string<bytes>(
-      sizeof(bt_le) + key.size());
+    bytes enriched_key(bytes::defaulted{});
+    //auto enriched_key = ss::uninitialized_string<bytes>(
+    //  sizeof(bt_le) + key.size());
     auto out = enriched_key.begin();
     out = std::copy_n(
       reinterpret_cast<const char*>(&bt_le), sizeof(bt_le), out);

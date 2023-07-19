@@ -58,9 +58,9 @@ public:
 private:
     friend std::ostream& operator<<(std::ostream&, const scram_credential&);
 
-    bytes _salt;
-    bytes _server_key;
-    bytes _stored_key;
+    bytes _salt{bytes::defaulted{}};
+    bytes _server_key{bytes::defaulted{}};
+    bytes _stored_key{bytes::defaulted{}};
     int _iterations{0};
     // Principal is not serialized on disk, it is sent over internal rpc
     std::optional<acl_principal> _principal;

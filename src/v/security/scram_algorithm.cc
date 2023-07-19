@@ -72,20 +72,20 @@ struct client_first_match {
 
 struct server_first_match {
     ss::sstring nonce;
-    bytes salt;
+    bytes salt{bytes::defaulted{}};
     int iterations;
 };
 
 struct client_final_match {
-    bytes channel_binding;
+    bytes channel_binding{bytes::defaulted{}};
     ss::sstring nonce;
     ss::sstring extensions;
-    bytes proof;
+    bytes proof{bytes::defaulted{}};
 };
 
 struct server_final_match {
     std::optional<ss::sstring> error;
-    bytes signature;
+    bytes signature{bytes::defaulted{}};
 };
 
 /*
