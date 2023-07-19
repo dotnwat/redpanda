@@ -98,7 +98,7 @@ index_filtered_copy_reducer::operator()(compacted_index::entry&& e) {
     ++_natural_index;
     if (should_add) {
         return _writer->index(e.key, e.offset, e.delta)
-          .then([k = std::move(e.key)] {
+          .then([] {
               return ss::make_ready_future<stop_t>(stop_t::no);
           });
     }

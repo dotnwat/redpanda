@@ -23,7 +23,7 @@
 
 // cannot be a `std::byte` because that's not sizeof(char)
 constexpr size_t bytes_inline_size = 31;
-using bytes = ss::basic_sstring<
+using old_bytes_type = ss::basic_sstring<
   uint8_t,  // Must be different from char to not leak to std::string_view
   uint32_t, // size type - 4 bytes - 4GB max - don't use a size_t or any 64-bit
   bytes_inline_size, // short string optimization size
@@ -31,6 +31,82 @@ using bytes = ss::basic_sstring<
   >;
 
 using bytes_view = std::basic_string_view<uint8_t>;
+
+class bytes {
+public:
+    using initialized_later = old_bytes_type::initialized_later;
+    using const_pointer = old_bytes_type::const_pointer;
+    using value_type = old_bytes_type::value_type;
+
+    bytes() {}
+    bytes(initialized_later, size_t) {}
+    bytes(const char*) {}
+    bytes(bytes_view) {}
+    bytes(std::initializer_list<unsigned char>) {}
+
+    bytes(const bytes&) = default;
+    bytes(bytes&&) noexcept = default;
+    bytes& operator=(const bytes&) = default;
+    bytes& operator=(bytes&&) noexcept = default;
+
+    template<typename A, typename B>
+    bytes(A, B) {}
+
+    char& operator[](size_t) noexcept {
+        return x;
+    }
+    const char& operator[](size_t) const noexcept {
+        return x;
+    }
+    operator bytes_view() { return bytes_view{}; }
+    operator bytes_view() const { return bytes_view{}; }
+    char* data() { return nullptr; }
+    const char* data() const { return nullptr; }
+    size_t size() const { return 0; }
+
+    template<typename A, typename B>
+    friend bool operator==(const A&, const B&) { return true; }
+    template<typename A, typename B>
+    friend bool operator<(const A&, const B&) { return true; }
+
+    auto begin() {
+        old_bytes_type x{};
+        return x.begin();
+    }
+    auto begin() const {
+        old_bytes_type x{};
+        return x.begin();
+    }
+    auto end() {
+        old_bytes_type x{};
+        return x.begin();
+    }
+    auto end() const {
+        old_bytes_type x{};
+        return x.begin();
+    }
+    auto cbegin() const {
+        old_bytes_type x{};
+        return x.begin();
+    }
+    auto cend() const {
+        old_bytes_type x{};
+        return x.begin();
+    }
+
+    bytes& append(const uint8_t*, size_t) {
+        return *this;
+    }
+
+    bool empty() const { return true; }
+
+    void resize(size_t) {}
+    char* c_str() { return nullptr; }
+    const char* c_str() const { return nullptr; }
+
+    char x;
+};
+
 using bytes_opt = std::optional<bytes>;
 
 struct bytes_type_hash {
@@ -123,8 +199,9 @@ inline size_t bytes_type_hash::operator()(const bytes_view& k) const {
     return absl::Hash<bytes_view>{}(k);
 }
 
-inline size_t bytes_type_hash::operator()(const bytes& k) const {
-    return absl::Hash<bytes>{}(k);
+inline size_t bytes_type_hash::operator()(const bytes&) const {
+    return 0;
+    //return absl::Hash<bytes>{}(k);
 }
 
 inline bool
