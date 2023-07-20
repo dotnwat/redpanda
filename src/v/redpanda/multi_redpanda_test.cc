@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-constexpr char* tmpl = R"###(
+constexpr const char* tmpl = R"###(
 cluster_size: 3
 config_path: data/node{}/config.yaml
 index: {}
@@ -23,7 +23,7 @@ redpanda:
   rack: null
   rpc_server:
     address: 0.0.0.0
-    port: 33145
+    port: {}
   seed_servers:
   - address: 0.0.0.0
     port: 33145
@@ -43,7 +43,8 @@ namespace {
             9644 + node_id,
             33145 + node_id,
             node_id,
-            9092 + node_id);
+            9092 + node_id,
+            33145 + node_id);
         out << config;
         out.close();
     }
@@ -52,7 +53,7 @@ namespace {
 int main() {
     syschecks::initialize_intrinsics();
 
-    std::jthread rp_0([] {
+    std::thread rp_0([] {
         make_config(0);
         std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 0), "-c", "2" };
         std::vector<char*> argv;
@@ -63,7 +64,7 @@ int main() {
         return app.run(argv.size(), argv.data());
     });
 
-    std::jthread rp_1([] {
+    std::thread rp_1([] {
         make_config(1);
         std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 1), "-c", "2" };
         std::vector<char*> argv;
@@ -74,7 +75,7 @@ int main() {
         return app.run(argv.size(), argv.data());
     });
 
-    std::jthread rp_2([] {
+    std::thread rp_2([] {
         make_config(2);
         std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 2), "-c", "2" };
         std::vector<char*> argv;
@@ -84,4 +85,8 @@ int main() {
         application app("c");
         return app.run(argv.size(), argv.data());
     });
+
+    rp_0.join();
+    rp_1.join();
+    rp_2.join();
 }
