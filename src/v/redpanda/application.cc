@@ -180,7 +180,8 @@ set_sr_kafka_client_defaults(kafka::client::configuration& client_config) {
 }
 
 application::application(ss::sstring logger_name)
-  : _log(std::move(logger_name)){};
+  : app(setup_app_config())
+  , _log(std::move(logger_name)) {}
 
 application::~application() = default;
 
@@ -314,7 +315,6 @@ Twitter: https://twitter.com/redpandadata - All the latest Redpanda news!
 
 int application::run(int ac, char** av) {
     std::setvbuf(stdout, nullptr, _IOLBF, 1024);
-    ss::app_template app(setup_app_config());
     app.add_options()("version", po::bool_switch(), "print version and exit");
     app.add_options()(
       "redpanda-cfg",
@@ -343,7 +343,7 @@ int application::run(int ac, char** av) {
     // use endl for explicit flushing
     std::cout << community_msg << std::endl;
 
-    return app.run(ac, av, [this, &app] {
+    return app.run(ac, av, [this] {
         vlog(_log.info, "Redpanda {}", redpanda_version());
         struct ::utsname buf;
         ::uname(&buf);

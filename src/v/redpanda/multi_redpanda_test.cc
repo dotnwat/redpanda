@@ -1,7 +1,14 @@
 #include "redpanda/application.h"
+#include "seastarx.h"
 #include "syschecks/syschecks.h"
+
+#include <seastar/core/alien.hh>
+#include <seastar/util/log.hh>
+
 #include <iostream>
 #include <thread>
+
+ss::logger myfix("asdf");
 
 constexpr const char* tmpl = R"###(
 cluster_size: 3
@@ -34,57 +41,83 @@ redpanda:
 )###";
 
 namespace {
-    void make_config(int node_id) {
-        std::ofstream out(fmt::format("data/node{}/config.yaml", node_id));
-        auto config = fmt::format(
-            tmpl,
-            node_id,
-            node_id,
-            9644 + node_id,
-            33145 + node_id,
-            node_id,
-            9092 + node_id,
-            33145 + node_id);
-        out << config;
-        out.close();
-    }
+void make_config(int node_id) {
+    std::ofstream out(fmt::format("data/node{}/config.yaml", node_id));
+    auto config = fmt::format(
+      tmpl,
+      node_id,
+      node_id,
+      9644 + node_id,
+      33145 + node_id,
+      node_id,
+      9092 + node_id,
+      33145 + node_id);
+    out << config;
+    out.close();
 }
+} // namespace
 
 int main() {
     syschecks::initialize_intrinsics();
 
-    std::thread rp_0([] {
+    application app0("a");
+    application app1("b");
+    application app2("c");
+
+    std::thread rp_0([&app = app0] {
         make_config(0);
-        std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 0), "-c", "2" };
+        std::vector<std::string> args = {
+          "testhingy",
+          "--redpanda-cfg",
+          fmt::format("data/node{}/config.yaml", 0),
+          "-c",
+          "2"};
         std::vector<char*> argv;
         for (auto& arg : args) {
             argv.push_back(arg.data());
         }
-        application app("a");
         return app.run(argv.size(), argv.data());
     });
 
-    std::thread rp_1([] {
+    std::thread rp_1([&app = app1] {
         make_config(1);
-        std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 1), "-c", "2" };
+        std::vector<std::string> args = {
+          "testhingy",
+          "--redpanda-cfg",
+          fmt::format("data/node{}/config.yaml", 1),
+          "-c",
+          "2"};
         std::vector<char*> argv;
         for (auto& arg : args) {
             argv.push_back(arg.data());
         }
-        application app("b");
         return app.run(argv.size(), argv.data());
     });
 
-    std::thread rp_2([] {
+    std::thread rp_2([&app = app2] {
         make_config(2);
-        std::vector<std::string> args = { "testhingy", "--redpanda-cfg", fmt::format("data/node{}/config.yaml", 2), "-c", "2" };
+        std::vector<std::string> args = {
+          "testhingy",
+          "--redpanda-cfg",
+          fmt::format("data/node{}/config.yaml", 2),
+          "-c",
+          "2"};
         std::vector<char*> argv;
         for (auto& arg : args) {
             argv.push_back(arg.data());
         }
-        application app("c");
         return app.run(argv.size(), argv.data());
     });
+
+    // i dunno how to know when the reactors are ready
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    ss::alien::run_on(
+      app0.app.alien(), 0, []() noexcept { myfix.info("hello from fixture"); });
+    ss::alien::run_on(
+      app1.app.alien(), 1, []() noexcept { myfix.info("hello from fixture"); });
+    ss::alien::run_on(
+      app2.app.alien(), 1, []() noexcept { myfix.info("hello from fixture"); });
 
     rp_0.join();
     rp_1.join();
