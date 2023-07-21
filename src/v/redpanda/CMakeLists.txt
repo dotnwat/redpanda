@@ -62,8 +62,10 @@ add_executable(redpanda
 target_link_libraries(redpanda PUBLIC v::application v::raft v::kafka)
 set_property(TARGET redpanda PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+find_package(RdKafka)
+
 add_executable(multi_redpanda_test multi_redpanda_test.cc)
-target_link_libraries(multi_redpanda_test PUBLIC v::application v::raft v::kafka)
+target_link_libraries(multi_redpanda_test PUBLIC v::application v::raft v::kafka RdKafka::rdkafka)
 set_property(TARGET multi_redpanda_test PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_BUILD_TYPE MATCHES Release)

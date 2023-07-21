@@ -5,6 +5,9 @@
 #include <seastar/core/alien.hh>
 #include <seastar/util/log.hh>
 
+#include <kafka/AdminClient.h>
+#include <kafka/KafkaProducer.h>
+
 #include <iostream>
 #include <thread>
 #include <utility>
@@ -75,7 +78,6 @@ public:
       , memory(memory)
       , dir(std::move(dir))
       , app(fmt::format("node-{}", id)) {}
-
     void start() {
         std::filesystem::create_directories(data_directory());
         write_config(id, 3, config_file(), data_directory());
@@ -131,6 +133,49 @@ int main() {
 
     // i dunno how to know when the reactors are ready
     std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    try {
+        const kafka::Topic topic("hello-topic");
+
+        // Prepare the configuration
+        kafka::Properties props;
+        props.put("bootstrap.servers", "127.0.0.1:9092");
+
+        kafka::clients::admin::AdminClient adminClient(props);
+        adminClient.createTopics({topic}, 2, 3);
+
+        // Create a producer
+        kafka::clients::producer::KafkaProducer producer(props);
+
+        std::string line = "This is going to be produced";
+        kafka::clients::producer::ProducerRecord record(
+          topic, kafka::NullKey, kafka::Value(line.c_str(), line.size()));
+
+        // Prepare delivery callback
+        auto deliveryCb =
+          [](
+            const kafka::clients::producer::RecordMetadata& metadata,
+            const kafka::Error& error) {
+              if (!error) {
+                  std::cout << "Message delivered: " << metadata.toString()
+                            << std::endl;
+              } else {
+                  std::cerr
+                    << "Message failed to be delivered: " << error.message()
+                    << std::endl;
+              }
+          };
+
+        // Send a message
+        producer.send(record, deliveryCb);
+
+        // Close the producer explicitly(or not, since RAII will take care of
+        // it)
+        producer.close();
+
+    } catch (...) {
+        fmt::print("{}", std::current_exception());
+    }
 
     n0.run_on(0, []() noexcept { myfix.info("hello from fixture"); });
     n1.run_on(1, []() noexcept { myfix.info("hello from fixture"); });
