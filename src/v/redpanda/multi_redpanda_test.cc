@@ -14,8 +14,9 @@
 
 ss::logger myfix("asdf");
 
+namespace multi_node_fixture {
+
 constexpr const char* tmpl = R"###(
-cluster_size: {cluster_size}
 config_path: {config_file}
 index: {node_id}
 redpanda:
@@ -52,7 +53,6 @@ void write_config(
     std::ofstream out(config_file);
     auto config = fmt::format(
       tmpl,
-      fmt::arg("cluster_size", cluster_size),
       fmt::arg("node_id", node_id),
       fmt::arg("config_file", config_file),
       fmt::arg("data_directory", data_directory),
@@ -120,19 +120,40 @@ private:
     }
 };
 
+class cluster {
+    std::filesystem::path dir;
+    int cores;
+    size_t memory;
+    std::vector<std::unique_ptr<node>> nodes;
+
+public:
+    cluster(std::filesystem::path dir, int cores, size_t memory)
+      : dir(dir)
+      , cores(cores)
+      , memory(memory) {}
+
+    void add_node(int id) {
+        auto node_dir = dir / fmt::format("node{}", id);
+        nodes.push_back(std::make_unique<node>(id, node_dir, cores, memory));
+        nodes.back()->start();
+    }
+
+    void stop() {
+        for (auto& node : nodes) {
+            node->stop();
+        }
+    }
+};
+
+} // namespace multi_node_fixture
+
 int main() {
     syschecks::initialize_intrinsics();
 
-    node n0(0, "./foodata/n0", 2, 4_GiB);
-    node n1(1, "./foodata/n1", 2, 4_GiB);
-    node n2(2, "./foodata/n2", 2, 4_GiB);
-
-    n0.start();
-    n1.start();
-    n2.start();
-
-    // i dunno how to know when the reactors are ready
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    multi_node_fixture::cluster cluster("./foodata", 2, 2_GiB);
+    cluster.add_node(0);
+    cluster.add_node(1);
+    cluster.add_node(2);
 
     try {
         const kafka::Topic topic("hello-topic");
@@ -140,7 +161,6 @@ int main() {
         // Prepare the configuration
         kafka::Properties props;
         props.put("bootstrap.servers", "127.0.0.1:9092");
-
         kafka::clients::admin::AdminClient adminClient(props);
         adminClient.createTopics({topic}, 2, 3);
 
@@ -151,37 +171,14 @@ int main() {
         kafka::clients::producer::ProducerRecord record(
           topic, kafka::NullKey, kafka::Value(line.c_str(), line.size()));
 
-        // Prepare delivery callback
-        auto deliveryCb =
-          [](
-            const kafka::clients::producer::RecordMetadata& metadata,
-            const kafka::Error& error) {
-              if (!error) {
-                  std::cout << "Message delivered: " << metadata.toString()
-                            << std::endl;
-              } else {
-                  std::cerr
-                    << "Message failed to be delivered: " << error.message()
-                    << std::endl;
-              }
-          };
-
-        // Send a message
-        producer.send(record, deliveryCb);
-
-        // Close the producer explicitly(or not, since RAII will take care of
-        // it)
+        for (int i = 0; i < 1000; i++) {
+            producer.syncSend(record);
+        }
         producer.close();
 
     } catch (...) {
         fmt::print("{}", std::current_exception());
     }
 
-    n0.run_on(0, []() noexcept { myfix.info("hello from fixture"); });
-    n1.run_on(1, []() noexcept { myfix.info("hello from fixture"); });
-    n2.run_on(1, []() noexcept { myfix.info("hello from fixture"); });
-
-    n0.stop();
-    n1.stop();
-    n2.stop();
+    cluster.stop();
 }
