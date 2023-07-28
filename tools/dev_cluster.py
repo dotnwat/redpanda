@@ -60,6 +60,9 @@ class RedpandaConfig:
     seed_servers: list[NetworkAddress]
     empty_seed_starts_cluster: bool = False
     rack: Optional[str] = None
+    log_compaction_interval_ms: int = 2000
+    log_segment_ms: int = 2000
+    log_segment_ms_min: int = 1
 
 
 @dataclasses.dataclass

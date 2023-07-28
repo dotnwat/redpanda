@@ -261,7 +261,7 @@ ss::future<> segment::release_appender(readers_cache* readers_cache) {
      *
      * TODO: we should upstream get_units try-variants for semaphore and rwlock.
      */
-    if (_destructive_ops.try_write_lock()) {
+    if (false && _destructive_ops.try_write_lock()) {
         _destructive_ops.write_unlock();
         return write_lock().then([this](ss::rwlock::holder h) {
             return do_flush()

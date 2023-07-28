@@ -38,6 +38,10 @@ struct segment_closed_exception final : std::exception {
     }
 };
 
+inline thread_local ss::lw_shared_ptr<ss::condition_variable> append_ready;
+inline thread_local ss::lw_shared_ptr<ss::condition_variable> append_proceed;
+inline thread_local ss::lw_shared_ptr<ss::condition_variable> roll_proceed;
+
 class segment {
 public:
     using generation_id = named_type<uint64_t, struct segment_gen_tag>;

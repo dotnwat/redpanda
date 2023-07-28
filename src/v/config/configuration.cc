@@ -91,7 +91,7 @@ configuration::configuration()
        .example = "3600000",
        .visibility = visibility::user},
       std::chrono::weeks{2},
-      {.min = 60s})
+      {.min = 0ms})
   , log_segment_ms_min(
       *this,
       "log_segment_ms_min",
@@ -100,7 +100,7 @@ configuration::configuration()
       {.needs_restart = needs_restart::no,
        .example = "60000",
        .visibility = visibility::tunable},
-      60s)
+      1ms)
   , log_segment_ms_max(
       *this,
       "log_segment_ms_max",
