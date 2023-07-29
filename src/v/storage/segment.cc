@@ -513,6 +513,14 @@ ss::future<append_result> segment::do_append(const model::record_batch& b) {
     _generation_id++;
     // proxy serialization to segment_appender
     auto write_fut = _appender->append(b).then(
+      [] {
+          if (append_ready) {
+              vlog(stlog.info, "XXXXX signaling append is staged");
+              append_ready->signal();
+              return append_proceed->wait();
+          }
+          return ss::now();
+      }).then(
       [this, &b, start_physical_offset] {
           _tracker.dirty_offset = b.last_offset();
           const auto end_physical_offset = _appender->file_byte_offset();
@@ -536,6 +544,9 @@ ss::future<append_result> segment::do_append(const model::record_batch& b) {
             .byte_size = (size_t)b.size_bytes()};
           // cache always copies the batch
           cache_put(b);
+          if (roll_proceed) {
+              roll_proceed->signal();
+          }
           return ret;
       });
     auto index_fut = compaction_index_batch(b);

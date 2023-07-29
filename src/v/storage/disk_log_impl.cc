@@ -42,6 +42,7 @@
 #include <seastar/core/reactor.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/core/shared_ptr.hh>
+#include <seastar/util/defer.hh>
 
 #include <fmt/format.h>
 
@@ -1255,6 +1256,26 @@ ss::future<> disk_log_impl::apply_segment_ms() {
     auto gate = _compaction_housekeeping_gate.hold();
     // do_housekeeping races with maybe_roll to use new_segment.
     // take a lock to prevent problems
+
+    append_ready = ss::make_lw_shared<ss::condition_variable>();
+    append_proceed = ss::make_lw_shared<ss::condition_variable>();
+    roll_proceed = ss::make_lw_shared<ss::condition_variable>();
+    auto cleanup = ss::defer([] {
+        append_proceed->broadcast();
+        append_ready = nullptr;
+        append_proceed = nullptr;
+        roll_proceed = nullptr;
+    });
+
+    // wait until an append path gets past maybe_roll (which takes the segment
+    // rolling lock below) and makes it all the way to writing the data into the
+    // segment appender but before that is done and the dirty offset is updated.
+    try {
+        co_await append_ready->wait(std::chrono::milliseconds(1000));
+    } catch (...) {
+        co_return;
+    }
+
     auto lock = co_await _segments_rolling_lock.get_units();
 
     if (_segs.empty()) {
@@ -1296,6 +1317,10 @@ ss::future<> disk_log_impl::apply_segment_ms() {
                                        // bouncer condition checked this
     co_await last->release_appender(_readers_cache.get());
     auto offsets = last->offsets();
+
+    append_proceed->signal();
+    co_await roll_proceed->wait();
+
     co_await new_segment(
       offsets.committed_offset + model::offset{1}, offsets.term, pc);
 }
