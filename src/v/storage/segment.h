@@ -41,6 +41,7 @@ struct segment_closed_exception final : std::exception {
 inline thread_local ss::lw_shared_ptr<ss::condition_variable> append_ready;
 inline thread_local ss::lw_shared_ptr<ss::condition_variable> append_proceed;
 inline thread_local ss::lw_shared_ptr<ss::condition_variable> roll_proceed;
+inline thread_local ss::lw_shared_ptr<ss::condition_variable> no_flush;
 
 class segment {
 public:

@@ -280,6 +280,13 @@ ss::future<> segment::release_appender(readers_cache* readers_cache) {
     } else {
         return read_lock().then([this, readers_cache](ss::rwlock::holder h) {
             return do_flush()
+              .then([] {
+                  if (append_proceed) {
+                      append_proceed->signal();
+                      return roll_proceed->wait();
+                  }
+                  return ss::now();
+              })
               .then([this, readers_cache] {
                   release_appender_in_background(readers_cache);
               })
@@ -522,6 +529,13 @@ ss::future<append_result> segment::do_append(const model::record_batch& b) {
           return ss::now();
       }).then(
       [this, &b, start_physical_offset] {
+          if (append_ready) {
+          vlog(stlog.info, "committed {} old dirty {} new dirty {} num records {}",
+                  _tracker.committed_offset,
+                  _tracker.dirty_offset,
+                  b.last_offset(),
+                  b.record_count());
+          }
           _tracker.dirty_offset = b.last_offset();
           const auto end_physical_offset = _appender->file_byte_offset();
           const auto expected_end_physical = start_physical_offset
@@ -546,8 +560,10 @@ ss::future<append_result> segment::do_append(const model::record_batch& b) {
           cache_put(b);
           if (roll_proceed) {
               roll_proceed->signal();
+              return no_flush->wait().then([ret] { return ret; });
           }
-          return ret;
+          return ss::make_ready_future<append_result>(ret);
+          //return ret;
       });
     auto index_fut = compaction_index_batch(b);
     return ss::when_all(std::move(write_fut), std::move(index_fut))

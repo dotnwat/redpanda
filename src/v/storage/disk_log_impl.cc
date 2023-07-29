@@ -1260,11 +1260,14 @@ ss::future<> disk_log_impl::apply_segment_ms() {
     append_ready = ss::make_lw_shared<ss::condition_variable>();
     append_proceed = ss::make_lw_shared<ss::condition_variable>();
     roll_proceed = ss::make_lw_shared<ss::condition_variable>();
+    no_flush = ss::make_lw_shared<ss::condition_variable>();
     auto cleanup = ss::defer([] {
         append_proceed->broadcast();
+        no_flush->broadcast();
         append_ready = nullptr;
         append_proceed = nullptr;
         roll_proceed = nullptr;
+        no_flush = nullptr;
     });
 
     // wait until an append path gets past maybe_roll (which takes the segment
@@ -1318,11 +1321,10 @@ ss::future<> disk_log_impl::apply_segment_ms() {
     co_await last->release_appender(_readers_cache.get());
     auto offsets = last->offsets();
 
-    append_proceed->signal();
-    co_await roll_proceed->wait();
-
     co_await new_segment(
       offsets.committed_offset + model::offset{1}, offsets.term, pc);
+
+    no_flush->signal();
 }
 
 ss::future<model::record_batch_reader>
