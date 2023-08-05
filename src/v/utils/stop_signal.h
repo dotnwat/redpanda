@@ -40,6 +40,11 @@ public:
 
     ss::abort_source& abort_source() { return _as; };
 
+    void stop() {
+        _as.request_abort();
+        _cond.broadcast();
+    }
+
 private:
     void signaled() {
         if (!_as.abort_requested()) {

@@ -361,7 +361,6 @@ int application::run(int ac, char** av) {
         validate_arguments(cfg);
         return ss::async([this, &cfg] {
             try {
-                ::stop_signal app_signal;
                 auto deferred = ss::defer([this] {
                     shutdown();
                     vlog(_log.info, "Shutdown complete.");

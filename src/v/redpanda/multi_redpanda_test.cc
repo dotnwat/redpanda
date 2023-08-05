@@ -84,7 +84,10 @@ public:
         thread = std::thread([this] { return thread_func(); });
     }
 
-    void stop() { thread.join(); }
+    void stop() {
+        run_on(0, [this]() noexcept { app.app_signal.stop(); });
+        thread.join();
+    }
 
     template<typename Func>
     void run_on(int core, Func func) {

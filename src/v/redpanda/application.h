@@ -94,6 +94,7 @@ public:
     ss::future<> set_proxy_client_config(ss::sstring name, std::any val);
 
     ss::app_template app;
+    ::stop_signal app_signal;
 
     smp_groups smp_service_groups;
     scheduling_groups sched_groups;
