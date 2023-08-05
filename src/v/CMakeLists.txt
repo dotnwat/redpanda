@@ -38,6 +38,9 @@ if(REDPANDA_RUN_CLANG_TIDY)
     unset(clang_tidy_checks)
 endif()
 
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+add_subdirectory(googletest)
+
 # libraries
 add_subdirectory(test_utils)
 add_subdirectory(ssx)
