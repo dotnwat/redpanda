@@ -57,7 +57,7 @@ struct node_state
 
 struct partition_status
   : serde::
-      envelope<partition_status, serde::version<1>, serde::compat_version<0>> {
+      envelope<partition_status, serde::version<2>, serde::compat_version<0>> {
     static constexpr size_t invalid_size_bytes = size_t(-1);
 
     model::partition_id id;
@@ -67,6 +67,15 @@ struct partition_status
     size_t size_bytes;
     std::optional<uint8_t> under_replicated_replicas;
 
+    /*
+     * estimated amount of data above local retention that is subject to
+     * reclaim under disk pressure. this is useful for the partition balancer
+     * which is interested in free space on a node. a node may have very little
+     * physical free space, but have effective free space represented by
+     * reclaimable size bytes.
+     */
+    std::optional<size_t> reclaimable_size_bytes;
+
     auto serde_fields() {
         return std::tie(
           id,
@@ -74,7 +83,8 @@ struct partition_status
           leader_id,
           revision_id,
           size_bytes,
-          under_replicated_replicas);
+          under_replicated_replicas,
+          reclaimable_size_bytes);
     }
 
     friend std::ostream& operator<<(std::ostream&, const partition_status&);
