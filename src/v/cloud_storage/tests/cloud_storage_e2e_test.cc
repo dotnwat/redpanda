@@ -11,8 +11,10 @@
 #include "archival/ntp_archiver_service.h"
 #include "cloud_storage/remote.h"
 #include "cloud_storage/spillover_manifest.h"
+#include "cloud_storage/tests/manual_fixture.h"
 #include "cloud_storage/tests/produce_utils.h"
 #include "cloud_storage/tests/s3_imposter.h"
+#include "cluster/health_monitor_frontend.h"
 #include "config/configuration.h"
 #include "kafka/server/tests/produce_consume_utils.h"
 #include "model/fundamental.h"
@@ -463,4 +465,100 @@ FIXTURE_TEST(test_consume_during_spillover, cloud_storage_manual_e2e_test) {
         BOOST_CHECK(check.get());
     }
     cleanup.cancel();
+}
+
+FIXTURE_TEST(
+  reclaimable_reported_in_health_report,
+  cloud_storage_manual_multinode_test_base) {
+    const model::topic topic_name("tapioca");
+    model::ntp ntp(model::kafka_namespace, topic_name, 0);
+
+    auto fx2 = start_second_fixture();
+    tests::cooperative_spin_wait_with_timeout(3s, [this] {
+        return app.controller->get_members_table().local().node_ids().size()
+               == 2;
+    }).get();
+
+    cluster::topic_properties props;
+    props.shadow_indexing = model::shadow_indexing_mode::full;
+    props.cleanup_policy_bitflags = model::cleanup_policy_bitflags::deletion;
+    props.segment_size = 64_KiB;
+    props.retention_bytes = tristate<size_t>(1);
+    props.retention_local_target_bytes = tristate<size_t>(1);
+    add_topic({model::kafka_namespace, topic_name}, 1, props, 2).get();
+
+    redpanda_thread_fixture* fx_l = nullptr;
+    redpanda_thread_fixture* fx_f = nullptr;
+    const auto wait_for_leader = [&] {
+        tests::cooperative_spin_wait_with_timeout(10s, [&] {
+            cluster::partition* prt_a
+              = app.partition_manager.local().get(ntp).get();
+            cluster::partition* prt_b
+              = fx2->app.partition_manager.local().get(ntp).get();
+            if (!prt_a || !prt_b) {
+                return false;
+            }
+            if (prt_a->is_leader()) {
+                fx_l = this;
+                fx_f = fx2.get();
+                return true;
+            }
+            if (prt_b->is_leader()) {
+                fx_l = fx2.get();
+                fx_f = this;
+                return true;
+            }
+            return false;
+        }).get();
+    };
+    wait_for_leader();
+
+    auto* prt_l = fx_l->app.partition_manager.local().get(ntp).get();
+    auto* log_l = dynamic_cast<storage::disk_log_impl*>(prt_l->log().get());
+    auto* prt_f = fx_f->app.partition_manager.local().get(ntp).get();
+    auto* log_f = dynamic_cast<storage::disk_log_impl*>(prt_f->log().get());
+
+    storage::gc_config cfg(model::timestamp::now(), 1);
+
+    kafka_produce_transport producer(fx_l->make_kafka_client().get());
+    producer.start().get();
+
+    for (int j = 0; j < 30; j++) {
+        for (int i = 0; i < 100; i++) {
+            producer
+              .produce_to_partition(
+                topic_name,
+                model::partition_id(0),
+                tests::kv_t::sequence(0, 100))
+              .get();
+        }
+
+        ss::sleep(std::chrono::seconds(2)).get();
+
+        log_l->get_reclaimable_offsets(cfg).get();
+        log_f->get_reclaimable_offsets(cfg).get();
+
+        auto report = app.controller->get_health_monitor()
+                        .local()
+                        .get_cluster_health(
+                          cluster::cluster_report_filter{},
+                          cluster::force_refresh::yes,
+                          model::timeout_clock::now() + std::chrono::seconds(2))
+                        .get();
+        if (report.has_value()) {
+            for (auto node_report : report.value().node_reports) {
+                for (auto topic : node_report.topics) {
+                    vlog(e2e_test_log.error, "XXXXXX {}", topic.tp_ns);
+                    for (auto partition : topic.partitions) {
+                        vlog(
+                          e2e_test_log.error,
+                          "    p{} - {}/{}",
+                          partition.id,
+                          partition.size_bytes,
+                          partition.reclaimable_size_bytes);
+                    }
+                }
+            }
+        }
+    }
 }
