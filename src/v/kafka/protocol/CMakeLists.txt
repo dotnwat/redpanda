@@ -1,5 +1,6 @@
 add_subdirectory(schemata)
 
+find_package(Python3 COMPONENTS Interpreter)
 set(message_gen ${CMAKE_CURRENT_SOURCE_DIR}/schemata/generator.py)
 set(message_hdrs)
 set(schema_srcs)
@@ -17,9 +18,9 @@ endforeach()
 
 add_custom_command(
   OUTPUT ${message_hdrs} ${msg_src}
-  COMMAND ${KAFKA_CODEGEN_VENV} ${message_gen}
+  COMMAND Python3::Interpreter ${message_gen}
   ARGS ${schema_srcs} ${message_hdrs} ${msg_src}
-  DEPENDS ${schema_srcs} ${message_gen} ${KAFKA_CODEGEN_VENV}
+  DEPENDS ${schema_srcs} ${message_gen}
   COMMENT "Running kafka request codegen on ${schemata}"
   VERBATIM)
 
