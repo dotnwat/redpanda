@@ -1,10 +1,12 @@
 set(GOPATH ${CMAKE_CURRENT_BINARY_DIR})
 
+find_program(GO go REQUIRED)
+
 function(add_go_dependency NAME MAIN_SRC)
   get_filename_component(MAIN_SRC_ABS ${MAIN_SRC} ABSOLUTE)
   string(REPLACE "-" "_" target_name ${NAME})
   add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
-                    COMMAND env GOPATH=${GOPATH} ${CMAKE_GO_BINARY} build
+                    COMMAND env GOPATH=${GOPATH} ${GO} build
                     -modcacherw -o "${CMAKE_CURRENT_BINARY_DIR}/${NAME}"
                     ${CMAKE_GO_FLAGS} ${MAIN_SRC}
                     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
