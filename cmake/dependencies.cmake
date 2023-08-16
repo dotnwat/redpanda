@@ -33,7 +33,7 @@ fetch_dep(fmt
 set(Seastar_TESTING ON)
 fetch_dep(seastar
   REPO https://github.com/redpanda-data/seastar.git
-  TAG 2fb425e034c453ceff736d6107d187ebe7fdb9c4
+  TAG e5207c456aa181595d6ae68421c36ee318c24fb6
   PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt)
 
 fetch_dep(avro
