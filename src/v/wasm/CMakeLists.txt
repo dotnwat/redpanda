@@ -15,7 +15,7 @@ v_cc_library(
     wasmedge.cc
     work_queue.cc
   DEPS
-    wasmedge
+    wasmedge_shared
     v::storage
     v::model
     v::pandaproxy_schema_registry
