@@ -1097,10 +1097,10 @@ public:
         _parent._cur_rp_offset = header.last_offset() + model::offset{1};
 
         if (header.type == model::record_batch_type::raft_data) {
-            auto next = rp_to_kafka(header.last_offset()) + model::offset(1);
-            if (next > _config.start_offset) {
-                _config.start_offset = kafka::offset_cast(next);
-            }
+            //auto next = rp_to_kafka(header.last_offset()) + model::offset(1);
+            //if (next > _config.start_offset) {
+            //    _config.start_offset = kafka::offset_cast(next);
+            //}
         }
     }
 
@@ -1112,14 +1112,14 @@ public:
           header,
           _parent._cur_delta);
 
-        if (rp_to_kafka(header.base_offset) > _config.max_offset) {
-            vlog(
-              _ctxlog.debug,
-              "accept_batch_start stop parser because {} > {}(kafka offset)",
-              header.base_offset(),
-              _config.max_offset);
-            return batch_consumer::consume_result::stop_parser;
-        }
+        //if (rp_to_kafka(header.base_offset) > _config.max_offset) {
+        //    vlog(
+        //      _ctxlog.debug,
+        //      "accept_batch_start stop parser because {} > {}(kafka offset)",
+        //      header.base_offset(),
+        //      _config.max_offset);
+        //    return batch_consumer::consume_result::stop_parser;
+        //}
 
         // Ignore filter and always return only raft_data since there is only
         // one usecase for this reader and the offset translation logic can only
@@ -1134,18 +1134,18 @@ public:
 
         // The segment can be scanned from the begining so we should skip
         // irrelevant batches.
-        if (unlikely(
-              rp_to_kafka(header.last_offset()) < _config.start_offset)) {
-            vlog(
-              _ctxlog.debug,
-              "accept_batch_start skip because "
-              "last_kafka_offset {} (last_rp_offset: {}) < "
-              "config.start_offset: {}",
-              rp_to_kafka(header.last_offset()),
-              header.last_offset(),
-              _config.start_offset);
-            return batch_consumer::consume_result::skip_batch;
-        }
+        //if (unlikely(
+        //      rp_to_kafka(header.last_offset()) < _config.start_offset)) {
+        //    vlog(
+        //      _ctxlog.debug,
+        //      "accept_batch_start skip because "
+        //      "last_kafka_offset {} (last_rp_offset: {}) < "
+        //      "config.start_offset: {}",
+        //      rp_to_kafka(header.last_offset()),
+        //      header.last_offset(),
+        //      _config.start_offset);
+        //    return batch_consumer::consume_result::skip_batch;
+        //}
 
         if (
           (_config.strict_max_bytes || _config.bytes_consumed)

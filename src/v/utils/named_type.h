@@ -22,6 +22,9 @@ class base_named_type;
 
 template<typename T, typename Tag>
 class base_named_type<T, Tag, std::true_type> {
+    template<typename OtherT, typename OtherTag, typename IsConstexpr>
+    friend class base_named_type;
+
 public:
     using type = T;
     constexpr base_named_type() = default;
@@ -33,24 +36,23 @@ public:
     base_named_type& operator=(base_named_type&& o) noexcept = default;
     base_named_type(const base_named_type& o) noexcept = default;
     base_named_type& operator=(const base_named_type& o) noexcept = default;
-    constexpr bool operator==(const base_named_type& other) const {
+
+    template<typename OtherT, typename OtherTag>
+    constexpr auto operator<=>(
+      const base_named_type<OtherT, OtherTag, std::true_type>& other) const {
+        static_assert(std::is_same_v<OtherT, T>);
+        static_assert(std::is_same_v<OtherTag, Tag>);
+        return _value <=> other._value;
+    }
+
+    template<typename OtherT, typename OtherTag>
+    constexpr bool operator==(
+      const base_named_type<OtherT, OtherTag, std::true_type>& other) const {
+        static_assert(std::is_same_v<OtherT, T>);
+        static_assert(std::is_same_v<OtherTag, Tag>);
         return _value == other._value;
     }
-    constexpr bool operator!=(const base_named_type& other) const {
-        return _value != other._value;
-    }
-    constexpr bool operator<(const base_named_type& other) const {
-        return _value < other._value;
-    }
-    constexpr bool operator>(const base_named_type& other) const {
-        return _value > other._value;
-    }
-    constexpr bool operator<=(const base_named_type& other) const {
-        return _value <= other._value;
-    }
-    constexpr bool operator>=(const base_named_type& other) const {
-        return _value >= other._value;
-    }
+
     constexpr base_named_type& operator++() {
         ++_value;
         return *this;

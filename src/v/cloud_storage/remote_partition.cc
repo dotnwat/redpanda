@@ -121,11 +121,11 @@ remote_partition::borrow_result_t remote_partition::borrow_next_segment_reader(
             // this case we want to start scanning from the begining of the
             // partition if the start of the manifest is contained by the scan
             // range.
-            auto so = manifest.get_start_kafka_offset().value_or(
-              kafka::offset::min());
-            if (config.start_offset < so && config.max_offset > so) {
-                mit = manifest.begin();
-            }
+            //auto so = manifest.get_start_kafka_offset().value_or(
+            //  kafka::offset::min());
+            //if (config.start_offset < so && config.max_offset > so) {
+            //    mit = manifest.begin();
+            //}
         }
     } else {
         mit = manifest.segment_containing(hint);
@@ -802,9 +802,9 @@ ss::future<std::vector<model::tx_range>>
 remote_partition::aborted_transactions(offset_range offsets) {
     gate_guard guard(_gate);
     const auto& stm_manifest = _manifest_view->stm_manifest();
-    const auto so = stm_manifest.get_start_offset();
+    //const auto so = stm_manifest.get_start_offset();
     std::vector<model::tx_range> result;
-    if (so.has_value() && offsets.begin > so.value()) {
+    if (true) {//so.has_value() && offsets.begin > so.value()) {
         // Here we have to use kafka offsets to locate the segments and
         // redpanda offsets to extract aborted transactions metadata because
         // tx-manifests contains redpanda offsets.
