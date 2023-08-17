@@ -319,3 +319,40 @@ endfunction()
 #     ],
 #     "ABSL_RANDOM_HWAES_MSVC_X64_FLAGS": [],
 # }
+
+function(rp_cc_library NAME)
+    cmake_parse_arguments(rp_cc_library "" "" "HDRS;SRCS;DEPS" ${ARGN})
+    set(_NAME "rp_${NAME}")
+
+    cmake_path(GET CMAKE_CURRENT_LIST_DIR STEM include_prefix)
+    cmake_path(APPEND include_path ${CMAKE_CURRENT_BINARY_DIR} ${NAME} ${include_prefix})
+
+    set(manifest "${CMAKE_CURRENT_BINARY_DIR}/${NAME}.manifest")
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/manifest.in ${manifest} @ONLY)
+
+    set(stamp "${manifest}.stamp")
+    add_custom_command(
+        OUTPUT ${stamp}
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${include_path}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${include_path}
+        COMMAND ${CMAKE_COMMAND} -E touch ${stamp}
+        DEPENDS ${manifest})
+
+    set(staged_headers)
+    foreach(header ${rp_cc_library_HDRS})
+        set(source_header ${CMAKE_CURRENT_LIST_DIR}/${header})
+        set(staged_header ${include_path}/${header})
+        list(APPEND staged_headers ${staged_header})
+        add_custom_command(
+            OUTPUT ${staged_header}
+            COMMAND ${CMAKE_COMMAND} -E create_symlink ${source_header} ${staged_header}
+            DEPENDS_EXPLICIT_ONLY
+            DEPENDS ${stamp})
+    endforeach()
+
+    add_library(${_NAME} ${rp_cc_library_SRCS} ${staged_headers})
+    target_link_libraries(${_NAME} PUBLIC ${rp_cc_library_DEPS})
+    target_include_directories(${_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/${NAME})
+
+    add_library("v::${NAME}" ALIAS ${_NAME})
+endfunction()

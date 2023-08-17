@@ -1,9 +1,21 @@
-v_cc_library(
-  NAME
-    bytes
+rp_cc_library(bytes
+  HDRS
+    hash.h
+    iobuf.h
+    bytes.h
+    iobuf_parser.h
+    iostream.h
+    scattered_message.h
+    streambuf.h
+    details/io_allocation_size.h
+    details/io_byte_iterator.h
+    details/io_fragment.h
+    details/out_of_range.h
+    details/io_iterator_consumer.h
+    details/io_placeholder.h
   SRCS
-    "iobuf.cc"
+    iobuf.cc
   DEPS
-    Seastar::seastar
-  )
+    Seastar::seastar)
+
 add_subdirectory(tests)
