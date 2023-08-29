@@ -1,4 +1,6 @@
 #pragma once
+#include "storage/v2/io_scheduler.h"
+
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/temporary_buffer.hh>
@@ -7,8 +9,6 @@
 
 #include <deque>
 #include <filesystem>
-
-class segment;
 
 /*
  *
@@ -28,35 +28,6 @@ public:
 private:
     seastar::temporary_buffer<char> data_;
     std::vector<seastar::promise<>> waiters_;
-};
-
-/*
- *
- */
-class io_scheduler {
-public:
-    struct request {
-        segment* segment;
-        uint64_t offset;
-        seastar::temporary_buffer<char> buf;
-    };
-
-    io_scheduler()
-      : drainer_(seastar::make_ready_future<>()) {}
-
-    void start();
-    seastar::future<> stop();
-
-    void submit_request(request);
-
-private:
-    std::deque<request> requests_;
-    seastar::condition_variable cond_;
-
-    seastar::future<> drainer_;
-    seastar::future<> drain();
-
-    bool stop_{false};
 };
 
 /*

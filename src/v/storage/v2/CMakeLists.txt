@@ -3,6 +3,7 @@ v_cc_library(
   SRCS
     segment.cc
     paging_input_stream.cc
+    io_scheduler.cc
   DEPS
     Seastar::seastar
     absl::btree
