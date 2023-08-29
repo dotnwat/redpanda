@@ -57,6 +57,7 @@ v_cc_library(
 
 add_subdirectory(tests)
 add_subdirectory(opfuzz)
+add_subdirectory(v2)
 
 set_source_files_properties(
     disk_log_impl.cc # too big => negative impact on minimal rebuilds for unity
