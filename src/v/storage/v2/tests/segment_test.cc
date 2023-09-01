@@ -40,6 +40,7 @@ TEST_CORO(Foo, Bar) {
         }
 
         ASSERT_EQ_CORO(total, size);
+        break;
     }
 
     co_await io.stop();

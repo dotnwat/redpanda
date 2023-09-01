@@ -1,6 +1,7 @@
 #include "storage/v2/segment.h"
 
 #include "storage/v2/paging_input_stream.h"
+#include "vlog.h"
 
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/file.hh>
@@ -8,6 +9,8 @@
 #include <seastar/core/seastar.hh>
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>
+
+static seastar::logger lg("storage");
 
 seastar::future<segment>
 segment::open(std::filesystem::path path, io_scheduler* io_sched) {
@@ -20,9 +23,13 @@ segment::open(std::filesystem::path path, io_scheduler* io_sched) {
 
     // defer logging so close errors are printed last
     auto close = co_await seastar::coroutine::as_future(file.close());
-    auto defer = seastar::defer([close = std::move(close)]() mutable {
+    auto defer = seastar::defer([path, close = std::move(close)]() mutable {
         if (close.failed()) {
-            close.get_exception();
+            vlog(
+              lg.info,
+              "recoverable error ocurred closing segment {}: {}",
+              path,
+              close.get_exception());
         }
     });
 
