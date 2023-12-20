@@ -131,6 +131,7 @@
 #include <seastar/util/defer.hh>
 #include <seastar/util/log.hh>
 
+#include <sys/prctl.h>
 #include <sys/resource.h>
 #include <sys/utsname.h>
 
@@ -378,6 +379,19 @@ Twitter: https://twitter.com/redpandadata - All the latest Redpanda news!
 
 int application::run(int ac, char** av) {
     std::setvbuf(stdout, nullptr, _IOLBF, 1024);
+
+    std::cout << "Current process dumpable attribute: "
+              // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+              << ::prctl(PR_GET_DUMPABLE) << std::endl;
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+    int r = ::prctl(PR_SET_DUMPABLE, 1);
+    if (r == 0) {
+        std::cout << "Set dumpable process attribute" << std::endl;
+    } else {
+        std::cerr << "Unable to set dumpable process attribute: "
+                  << std::strerror(errno) << std::endl;
+    }
+
     ss::app_template app(setup_app_config());
     app.add_options()("version", po::bool_switch(), "print version and exit");
     app.add_options()(
