@@ -64,7 +64,7 @@ struct produce_partition_fixture : redpanda_thread_fixture {
     }
 };
 
-PERF_TEST_F(produce_partition_fixture, test_produce_partition) {
+PERF_TEST_C(produce_partition_fixture, test_produce_partition) {
     // make the fetch topic
     //    kafka::fetch_topic ft;
     //    ft.name = t;
@@ -125,7 +125,19 @@ PERF_TEST_F(produce_partition_fixture, test_produce_partition) {
       .key = kafka::produce_handler::api::key,
       .version = kafka::produce_handler::max_supported};
 
-    auto rctx = make_request_context(produce_req, header, conn);
+    // const-correctness is definitely lacking from these apis. here,
+    // make_request_context, if you follow down into the encode method, you can
+    // see that it steals data from the input request and the header.
+    //
+    // the salient thing for this test is that it was stealing the record batch
+    // data when it created the request encoding into iobuf. but we don't need
+    // that--we are going to shove a fully constructed batch through the produce
+    // macineary.
+    //
+    // instead here i just give it a fake request so we can still get a request
+    // context object.
+    kafka::produce_request fake_req;
+    auto rctx = make_request_context(fake_req, header, conn);
 
     // add all partitions to fetch metadata
     //    auto& mdc = rctx.get_fetch_metadata_cache();
@@ -146,10 +158,12 @@ PERF_TEST_F(produce_partition_fixture, test_produce_partition) {
 
     BOOST_TEST_CHECKPOINT("HERE");
 
-    constexpr size_t iters = 10000; // 0000000U;
+    // see note below about this change
+    constexpr size_t iters = 1; // 10000; // 0000000U;
 
     kafka::produce_ctx pctx{
       std::move(rctx),
+      // now this produce_req won't have had its batch data stolen!
       std::move(produce_req),
       kafka::produce_response{},
       ss::default_smp_service_group()};
@@ -169,16 +183,40 @@ PERF_TEST_F(produce_partition_fixture, test_produce_partition) {
           topic.partitions.size());
         auto& partition = topic.partitions.front();
 
+        // I changed the `iters = 1` above, but I think this will also give you
+        // problems if you bump that to be greater than 1 because I suspect that
+        // this produce_single_partition method will steal from its input and
+        // that input is shared across loop iterations.
         auto stages = kafka::testing::produce_single_partition(
           pctx, topic, partition);
         perf_tests::do_not_optimize(stages);
 
+        // finally, teh kafka server serialies produce requests according to
+        // completion of the dispatched future. the `produced` future / second
+        // stage futures can complete in any order.
+        //
+        // i realize here that you are circumventing a lot of the kafka server
+        // bits, so it might not matter, but its something to keep in mind if
+        // you run into issues increasing load/concurrency.
         dispatched.push_back(std::move(stages.dispatched));
         produced.push_back(std::move(stages.produced));
     }
     perf_tests::stop_measuring_time();
 
-    return ss::when_all_succeed(dispatched.begin(), dispatched.end())
+    /*
+     * before, when this was "return ss::when.." that return happened
+     * immediately which meant that any references contained anywhere in the
+     * fibers rooted at the dispatch or produced futures could be accessing
+     * freed data from the stack.
+     *
+     * maybe all of the produce machinery carefully keeps data alive, but the
+     * handlers in the kafka server are generally written to minimize copies and
+     * assume the caller will keep everything alive, so i wouldn't be surprised
+     * if there was na issue there.
+     *
+     * co_await turns this into a coroutine and will keep the stack alive.
+     */
+    co_await ss::when_all_succeed(dispatched.begin(), dispatched.end())
       .then_wrapped([produced = std::move(produced)](ss::future<> f) mutable {
           try {
               f.get();
