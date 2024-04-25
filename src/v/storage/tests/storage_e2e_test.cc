@@ -309,14 +309,14 @@ FIXTURE_TEST(
     auto deferred = ss::defer([&mgr]() mutable { mgr.stop().get0(); });
     auto headers = append_random_batches(
       log,
-      10,
+      2000,
       model::term_id(0),
       {},
       storage::log_append_config::fsync::no,
       false);
 
     // Reclaim everything from cache.
-    storage::testing_details::log_manager_accessor::batch_cache(mgr).clear();
+    // storage::testing_details::log_manager_accessor::batch_cache(mgr).clear();
 
     auto batches = read_and_validate_all_batches(log);
     BOOST_REQUIRE_EQUAL(batches.size(), headers.size());

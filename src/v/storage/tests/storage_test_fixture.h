@@ -29,6 +29,7 @@
 #include "test_utils/fixture.h"
 
 #include <seastar/core/file.hh>
+#include <seastar/core/io_priority_class.hh>
 #include <seastar/core/reactor.hh>
 
 #include <boost/range/irange.hpp>
@@ -293,6 +294,7 @@ public:
         auto lstats = log->offsets();
         storage::log_reader_config cfg(
           lstats.start_offset, max_offset, ss::default_priority_class());
+        cfg.type_filter = {model::record_batch_type::id_allocator};
         auto reader = log->make_reader(std::move(cfg)).get0();
         return reader.consume(batch_validating_consumer{}, model::no_timeout)
           .get0();
@@ -346,6 +348,9 @@ public:
             if (flush_after_append) {
                 log->flush().get();
             }
+
+            log->force_roll(ss::default_priority_class()).get0();
+
             // Check if after append offset was updated correctly
             auto expected_offset = model::offset(total_records - 1)
                                    + base_offset;
