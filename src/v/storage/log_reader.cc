@@ -381,8 +381,14 @@ void log_reader::maybe_log_load_slice_depth_warning(
 
 ss::future<log_reader::storage_t>
 log_reader::do_load_slice(model::timeout_clock::time_point timeout) {
-    _load_slice_depth = 0;
-    return load_slice(timeout);
+    while (true) {
+        _load_slice_depth = 0;
+        _try_load_slice_again = false;
+        auto ret = co_await load_slice(timeout);
+        if (!_try_load_slice_again) {
+            co_return ret;
+        }
+    }
 }
 
 ss::future<log_reader::storage_t>
@@ -461,6 +467,10 @@ log_reader::load_slice(model::timeout_clock::time_point timeout) {
                * end of stream.
                */
               maybe_log_load_slice_depth_warning("load next slice");
+              if (_load_slice_depth >= 50) {
+                  _try_load_slice_again = true;
+                  return ss::make_ready_future<storage_t>();
+              }
               return load_slice(timeout);
           }
           // Update the probe without the ghost batches.

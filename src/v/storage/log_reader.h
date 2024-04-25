@@ -237,6 +237,7 @@ private:
 
     ss::future<storage_t> load_slice(model::timeout_clock::time_point);
     unsigned _load_slice_depth{0};
+    bool _try_load_slice_again{false};
     bool log_load_slice_depth_warning() const;
     void maybe_log_load_slice_depth_warning(std::string_view) const;
 
