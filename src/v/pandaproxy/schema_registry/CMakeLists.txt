@@ -5,9 +5,6 @@ seastar_generate_swagger(
   OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/../api/api-doc/
 )
 
-find_package(Protobuf REQUIRED)
-find_package(Avro)
-
 v_cc_library(
   NAME pandaproxy_schema_registry
   SRCS

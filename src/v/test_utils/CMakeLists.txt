@@ -3,8 +3,6 @@ v_cc_library(
   SRCS seastar_testing_main.cc
   DEPS Seastar::seastar_testing v::random v::bytes_random)
 
-find_package(GTest)
-
 v_cc_library(
   NAME gtest_main
   SRCS

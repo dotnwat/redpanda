@@ -1,8 +1,3 @@
-find_package(Zstd REQUIRED)
-find_package(LZ4 REQUIRED)
-find_package(Snappy REQUIRED)
-find_package(ZLIB REQUIRED)
-
 v_cc_library(
   NAME
     compression
@@ -18,8 +13,8 @@ v_cc_library(
   DEPS
     v::bytes
     v::ssx
-    Zstd::zstd
-    LZ4::LZ4
+    zstd::libzstd_static
+    lz4::lz4
     Snappy::snappy
     ZLIB::ZLIB
   DEFINES

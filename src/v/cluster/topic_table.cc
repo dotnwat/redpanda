@@ -265,7 +265,7 @@ ss::future<std::error_code> topic_table::do_apply(
     change_partition_replicas(
       std::move(cmd_data.ntp),
       cmd_data.replicas,
-      *current_assignment_it,
+      const_cast<partition_assignment&>(*current_assignment_it),
       o,
       false,
       cmd_data.policy);
@@ -415,7 +415,7 @@ topic_table::apply(cancel_moving_partition_replicas_cmd cmd, model::offset o) {
 
     auto replicas = current_assignment_it->replicas;
     // replace replica set with set from in progress operation
-    current_assignment_it->replicas
+    const_cast<partition_assignment&>(*current_assignment_it).replicas
       = in_progress_it->second.get_previous_replicas();
 
     _topics_map_revision++;
@@ -469,7 +469,7 @@ topic_table::apply(revert_cancel_partition_move_cmd cmd, model::offset o) {
     }
 
     // revert replica set update
-    current_assignment_it->replicas
+    const_cast<partition_assignment&>(*current_assignment_it).replicas
       = in_progress_it->second.get_target_replicas();
 
     partition_assignment delta_assignment{
@@ -559,7 +559,7 @@ topic_table::apply(move_topic_replicas_cmd cmd, model::offset o) {
         change_partition_replicas(
           model::ntp(cmd.key.ns, cmd.key.tp, partition_id),
           new_replicas,
-          *assignment,
+          const_cast<partition_assignment&>(*assignment),
           o,
           false,
           // for up replication we use a default reconfiguration policy
@@ -600,7 +600,7 @@ topic_table::apply(force_partition_reconfiguration_cmd cmd, model::offset o) {
     change_partition_replicas(
       cmd.key,
       cmd.value.replicas,
-      *current_assignment_it,
+      const_cast<partition_assignment&>(*current_assignment_it),
       o,
       true,
       /**
@@ -1104,9 +1104,9 @@ public:
         // info in the snapshot about an in-progress update, we'll have to
         // update replicas later in this function.
         partition_assignment& cur_assignment
-          = *md_item.get_assignments()
+          = const_cast<partition_assignment&>(*md_item.get_assignments()
                .emplace(partition.group, p_id, partition.replicas)
-               .first;
+               .first);
 
         md_item.partitions[p_id] = partition_meta{
           .replicas_revisions = partition.replicas_revisions,

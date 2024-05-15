@@ -43,6 +43,7 @@ v_cc_library(
     raft_rpc
     v::finjector
     v::model
+    absl::debugging_internal
   )
 add_subdirectory(tests)
 

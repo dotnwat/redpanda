@@ -25,7 +25,7 @@ v_cc_library(
     v::http
     v::model
     v::utils
-    ada
+    ada::ada
 )
 
 add_subdirectory(tests)

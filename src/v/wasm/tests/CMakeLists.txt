@@ -13,8 +13,6 @@ v_cc_library(
 
 set(TESTDATA_DIR "${CMAKE_BINARY_DIR}/src/transform-sdk/go/transform/internal/testdata")
 
-find_package(Avro)
-
 rp_test(
   UNIT_TEST
   GTEST

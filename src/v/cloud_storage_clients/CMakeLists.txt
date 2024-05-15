@@ -1,6 +1,3 @@
-
-find_package(LibXml2 REQUIRED)
-
 v_cc_library(
   NAME cloud_storage_clients
   SRCS

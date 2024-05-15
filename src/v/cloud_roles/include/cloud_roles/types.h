@@ -34,7 +34,9 @@ static constexpr auto retryable_http_status = std::to_array({
   boost::beast::http::status::bad_gateway,
   boost::beast::http::status::service_unavailable,
   boost::beast::http::status::internal_server_error,
-  boost::beast::http::status::network_connect_timeout_error,
+  boost::beast::http::status::request_timeout,
+  // boost::beast::http::status::network_connect_timeout_error, 599 non standard
+    // removed
 });
 
 bool is_retryable(boost::beast::http::status status);

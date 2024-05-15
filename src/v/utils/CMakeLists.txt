@@ -1,5 +1,3 @@
-find_package(Hdrhistogram)
-find_package(Base64)
 v_cc_library(
   NAME utils
   SRCS

@@ -14,8 +14,8 @@ v_cc_library(
     v::json
     v::model
     v::security_config
-    boost_filesystem
+    Boost::filesystem
     absl::node_hash_set
-    yaml-cpp
+    yaml-cpp::yaml-cpp
 )
 add_subdirectory(tests)

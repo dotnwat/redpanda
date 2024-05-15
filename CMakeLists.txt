@@ -42,7 +42,56 @@ endif()
 # isn't a valid value.
 add_compile_options(-Wno-enum-constexpr-conversion)
 
+
+find_package(absl CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(ada CONFIG REQUIRED)
+find_package(Boost CONFIG REQUIRED
+  COMPONENTS filesystem iostreams unit_test_framework)
+find_package(Crc32c CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(LibXml2 CONFIG REQUIRED)
+if (RP_OPENSSL_VERSION)
+  find_package(OpenSSL CONFIG ${RP_OPENSSL_VERSION} EXACT REQUIRED)
+else()
+  find_package(OpenSSL CONFIG 3.0.0 REQUIRED)
+endif()
+find_package(Roaring CONFIG REQUIRED)
+find_package(Snappy CONFIG REQUIRED)
+find_package(zstd CONFIG REQUIRED)
+find_package(cryptopp CONFIG REQUIRED)
+find_package(Protobuf CONFIG REQUIRED)
+find_package(RapidJSON CONFIG REQUIRED)
+find_package(re2 CONFIG REQUIRED)
+find_package(xxHash CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(lz4 CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
+
+#find_package(GnuTLS REQUIRED)
+# find_package(c-ares CONFIG REQUIRED)
+# TODO gmp pkg-config
+# TODO hwloc pkg-config
+
 include(dependencies)
+
+find_package(Seastar REQUIRED)
+find_package(Avro REQUIRED)
+find_package(Hdrhistogram REQUIRED)
+find_package(Base64 REQUIRED)
+find_package(unordered_dense REQUIRED)
+find_program(GO_PROGRAM go REQUIRED)
+
+# normalize the name of the gnutls dependency. when seastar is imported via a
+# normal installation arrange for the library name given by seastar's find
+# module to match the name from the system cmake find module for gnutls.
+#if (TARGET GnuTLS::gnutls)
+#  add_library(GnuTLS::GnuTLS ALIAS GnuTLS::gnutls)
+#else()
+find_package(GnuTLS REQUIRED)
+#endif()
+
+
 include(v_library)
 include(testing)
 

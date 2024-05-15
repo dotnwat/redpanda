@@ -8,7 +8,8 @@
       "generator": "Ninja",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_TOOLCHAIN_FILE": "/home/nwatkins/src/vcpkg/scripts/buildsystems/vcpkg.cmake"
       }
     },
     {

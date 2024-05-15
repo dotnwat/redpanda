@@ -4,7 +4,7 @@ v_cc_library(
     json.cc
   DEPS
     Seastar::seastar
-    RapidJSON::rapidjson
+    rapidjson
     v::hashing
 )
 

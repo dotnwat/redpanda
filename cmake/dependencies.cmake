@@ -22,14 +22,14 @@ function(fetch_dep NAME)
     ${fetch_dep_args_UNPARSED_ARGUMENTS})
 endfunction()
 
-set(ABSL_PROPAGATE_CXX_STD ON)
-fetch_dep(absl
-  REPO https://github.com/abseil/abseil-cpp
-  TAG 20230802.1)
+#set(ABSL_PROPAGATE_CXX_STD ON)
+#fetch_dep(absl
+#  REPO https://github.com/abseil/abseil-cpp
+#  TAG 20230802.1)
 
-fetch_dep(fmt
-  REPO https://github.com/fmtlib/fmt.git
-  TAG 8.1.1)
+#fetch_dep(fmt
+#  REPO https://github.com/fmtlib/fmt.git
+#  TAG 8.1.1)
 
 # CMakeLists.txt is patched to avoid registering tests. We still want the
 # Seastar testing library to be built, but we don't want the tests to run. This
@@ -43,6 +43,7 @@ set(CMAKE_CXX_STANDARD
   CACHE
   STRING
   "C++ standard to build with.")
+set(Seastar_LOGGER_COMPILE_TIME_FMT OFF CACHE BOOL "" FORCE)
 fetch_dep(seastar
   REPO https://github.com/redpanda-data/seastar.git
   TAG v24.2.x
@@ -53,23 +54,23 @@ fetch_dep(avro
   TAG release-1.11.1-redpanda
   SOURCE_SUBDIR redpanda_build)
 
-fetch_dep(rapidjson
-  REPO https://github.com/redpanda-data/rapidjson.git
-  TAG 14a5dd756e9bef26f9b53d3b4eb1b73c6a1794d5
-  SOURCE_SUBDIR redpanda_build)
+#fetch_dep(rapidjson
+#  REPO https://github.com/redpanda-data/rapidjson.git
+#  TAG 14a5dd756e9bef26f9b53d3b4eb1b73c6a1794d5
+#  SOURCE_SUBDIR redpanda_build)
 
 fetch_dep(unordered_dense
   REPO https://github.com/redpanda-data/unordered_dense
   TAG 9338f301522a965309ecec58ce61f54a52fb5c22
 )
 
-set(CRC32C_BUILD_TESTS OFF)
-set(CRC32C_BUILD_BENCHMARKS OFF)
-set(CRC32C_USE_GLOG OFF)
-set(CRC32C_INSTALL OFF)
-fetch_dep(crc32c
-  REPO https://github.com/google/crc32c.git
-  TAG 1.1.2)
+#set(CRC32C_BUILD_TESTS OFF)
+#set(CRC32C_BUILD_BENCHMARKS OFF)
+#set(CRC32C_USE_GLOG OFF)
+#set(CRC32C_INSTALL OFF)
+#fetch_dep(crc32c
+#  REPO https://github.com/google/crc32c.git
+#  TAG 1.1.2)
 
 set(BASE64_BUILD_CLI OFF)
 set(BASE64_BUILD_TESTS OFF)
@@ -77,21 +78,21 @@ fetch_dep(base64
   REPO https://github.com/aklomp/base64.git
   TAG v0.5.0)
 
-fetch_dep(roaring
-  REPO https://github.com/redpanda-data/CRoaring.git
-  TAG redpanda
-  SOURCE_SUBDIR redpanda_build)
+#fetch_dep(roaring
+#  REPO https://github.com/redpanda-data/CRoaring.git
+#  TAG redpanda
+#  SOURCE_SUBDIR redpanda_build)
+#
+#fetch_dep(GTest
+#  REPO https://github.com/google/googletest
+#  TAG v1.14.0)
 
-fetch_dep(GTest
-  REPO https://github.com/google/googletest
-  TAG v1.14.0)
-
-set(ADA_TESTING OFF)
-set(ADA_TOOLS OFF)
-set(ADA_BENCHMARKS OFF)
-fetch_dep(ada
-  REPO https://github.com/ada-url/ada
-  TAG v2.7.3)
+#set(ADA_TESTING OFF)
+#set(ADA_TOOLS OFF)
+#set(ADA_BENCHMARKS OFF)
+#fetch_dep(ada
+#  REPO https://github.com/ada-url/ada
+#  TAG v2.7.3)
 
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
   set(TINYGO_TARBALL "tinygo-linux-amd64.tar.gz")
@@ -128,22 +129,22 @@ FetchContent_Declare(
   SOURCE_SUBDIR crates/c-api)
 
 FetchContent_MakeAvailable(
-    absl
-    fmt
-    rapidjson
+  #absl
+    #fmt
+    #rapidjson
     seastar
-    GTest
-    crc32c
+    #GTest
+    #crc32c
     base64
-    roaring
+    #roaring
     avro
     tinygo
     wasmtime
     hdrhistogram
-    ada
+    #ada
     unordered_dense)
 
-add_library(Crc32c::crc32c ALIAS crc32c)
+  #add_library(Crc32c::crc32c ALIAS crc32c)
 add_library(aklomp::base64 ALIAS base64)
 add_library(Hdrhistogram::hdr_histogram ALIAS hdr_histogram)
 

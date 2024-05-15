@@ -1,4 +1,3 @@
-find_package(Roaring REQUIRED)
 include(rpcgen)
 rpcgen(
   TARGET bootstrap_rpc
@@ -229,7 +228,7 @@ v_cc_library(
     topic_recovery_status_rpc
     tx_manager_migrator_rpc
     v::raft
-    Roaring::roaring
+    roaring::roaring
     absl::flat_hash_map
     v::security
     v::model

@@ -6,8 +6,8 @@ v_cc_library(
   DEPS
     v::json
     Seastar::seastar
-    re2
-    ada
+    re2::re2
+    ada::ada
 )
 
 v_cc_library(
@@ -42,7 +42,9 @@ v_cc_library(
     v::rpc
     absl::flat_hash_map
     absl::flat_hash_set
-    re2
+    absl::hash
+    absl::debugging_internal
+    re2::re2
     gssapi_krb5
     krb5
     v::crypto

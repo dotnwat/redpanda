@@ -1,0 +1,36 @@
+{
+  "dependencies": [
+    "ada-url",
+    "boost",
+    "gtest",
+    "c-ares",
+    "crc32c",
+    "cryptopp",
+    "fmt",
+    "gmp",
+    "hwloc",
+    "krb5",
+    "libgnutls",
+    "libxml2",
+    "lz4",
+    "nettle",
+    "numactl",
+    "openssl",
+    "protobuf",
+    "re2",
+    "snappy",
+    "xxhash",
+    "yaml-cpp",
+    "zlib",
+    "zstd",
+    "abseil",
+    "roaring",
+    "rapidjson"
+  ],
+  "overrides": [
+    { 
+      "name": "fmt", 
+      "version": "8.1.1"
+    }
+  ]
+}

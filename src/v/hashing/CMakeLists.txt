@@ -1,6 +1,3 @@
-find_package(xxHash REQUIRED)
-find_package(Crc32c REQUIRED)
-
 v_cc_library(
   NAME hashing
   SRCS murmur.cc
