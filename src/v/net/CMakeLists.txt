@@ -11,7 +11,6 @@ v_cc_library(
     tls.cc
   DEPS
     Seastar::seastar
-    GnuTLS::GnuTLS
     absl::node_hash_map
     v::config
     v::metrics

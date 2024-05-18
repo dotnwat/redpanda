@@ -75,12 +75,37 @@ find_package(ZLIB REQUIRED)
 
 include(dependencies)
 
-find_package(Seastar REQUIRED)
+find_package(Seastar CONFIG REQUIRED)
 find_package(Avro REQUIRED)
 find_package(Hdrhistogram REQUIRED)
 find_package(Base64 REQUIRED)
 find_package(unordered_dense REQUIRED)
 find_program(GO_PROGRAM go REQUIRED)
+find_program(SEASTAR_JSON2CODE seastar-json2code.py REQUIRED)
+
+function (seastar_generate_swagger)
+  set (one_value_args TARGET VAR IN_FILE OUT_DIR)
+  cmake_parse_arguments (args "" "${one_value_args}" "" ${ARGN})
+  get_filename_component (in_file_name ${args_IN_FILE} NAME)
+  set (generator ${SEASTAR_JSON2CODE})
+  set (header_out ${args_OUT_DIR}/${in_file_name}.hh)
+  set (source_out ${args_OUT_DIR}/${in_file_name}.cc)
+
+  add_custom_command (
+    DEPENDS
+      ${args_IN_FILE}
+      ${generator}
+    OUTPUT ${header_out} ${source_out}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${args_OUT_DIR}
+    COMMAND ${generator} --create-cc -f ${args_IN_FILE} -o ${header_out})
+
+  add_custom_target (${args_TARGET}
+    DEPENDS
+      ${header_out}
+      ${source_out})
+
+  set (${args_VAR} ${header_out} ${source_out} PARENT_SCOPE)
+endfunction ()
 
 # normalize the name of the gnutls dependency. when seastar is imported via a
 # normal installation arrange for the library name given by seastar's find
@@ -88,7 +113,7 @@ find_program(GO_PROGRAM go REQUIRED)
 #if (TARGET GnuTLS::gnutls)
 #  add_library(GnuTLS::GnuTLS ALIAS GnuTLS::gnutls)
 #else()
-find_package(GnuTLS REQUIRED)
+#find_package(GnuTLS REQUIRED)
 #endif()
 
 

@@ -35,19 +35,19 @@ endfunction()
 # Seastar testing library to be built, but we don't want the tests to run. This
 # could be accomplished with Seastar_INSTALL=ON, but this doesn't play nice with
 # the add_subdirectory method of using Seastar.
-set(Seastar_TESTING ON CACHE BOOL "" FORCE)
-set(Seastar_API_LEVEL 6 CACHE STRING "" FORCE)
-set(Seastar_CXX_FLAGS -Wno-error)
-set(CMAKE_CXX_STANDARD
-  "${CMAKE_CXX_STANDARD}"
-  CACHE
-  STRING
-  "C++ standard to build with.")
-set(Seastar_LOGGER_COMPILE_TIME_FMT OFF CACHE BOOL "" FORCE)
-fetch_dep(seastar
-  REPO https://github.com/redpanda-data/seastar.git
-  TAG v24.2.x
-  PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt)
+#set(Seastar_TESTING ON CACHE BOOL "" FORCE)
+#set(Seastar_API_LEVEL 6 CACHE STRING "" FORCE)
+#set(Seastar_CXX_FLAGS -Wno-error)
+#set(CMAKE_CXX_STANDARD
+#  "${CMAKE_CXX_STANDARD}"
+#  CACHE
+#  STRING
+#  "C++ standard to build with.")
+#set(Seastar_LOGGER_COMPILE_TIME_FMT OFF CACHE BOOL "" FORCE)
+#fetch_dep(seastar
+#  REPO https://github.com/redpanda-data/seastar.git
+#  TAG v24.2.x
+#  PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt)
 
 fetch_dep(avro
   REPO https://github.com/redpanda-data/avro
@@ -132,7 +132,7 @@ FetchContent_MakeAvailable(
   #absl
     #fmt
     #rapidjson
-    seastar
+    #seastar
     #GTest
     #crc32c
     base64

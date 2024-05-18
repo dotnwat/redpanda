@@ -1,31 +1,26 @@
 {
   "dependencies": [
+    "abseil",
     "ada-url",
     "boost",
-    "gtest",
-    "c-ares",
     "crc32c",
     "cryptopp",
     "fmt",
-    "gmp",
-    "hwloc",
+    "gtest",
     "krb5",
     "libgnutls",
-    "libxml2",
     "lz4",
-    "nettle",
-    "numactl",
     "openssl",
     "protobuf",
     "re2",
+    "seastar",
     "snappy",
+    "rapidjson",
+    "roaring",
     "xxhash",
     "yaml-cpp",
     "zlib",
-    "zstd",
-    "abseil",
-    "roaring",
-    "rapidjson"
+    "zstd"
   ],
   "overrides": [
     { 

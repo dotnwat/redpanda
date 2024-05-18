@@ -1,0 +1,31 @@
+{
+  "name": "seastar",
+  "version": "24.2",
+  "homepage": "https://github.com/redpanda-data/seastar",
+  "description": "Redpanda's Seastar overlay port",
+  "dependencies": [
+    {
+      "name" : "vcpkg-cmake",
+      "host" : true
+    },
+    {
+      "name" : "vcpkg-cmake-config",
+      "host" : true
+    },
+    "boost",
+    "c-ares",
+    "hwloc",
+    "libgnutls",
+    "lz4",
+    "numactl",
+    "protobuf",
+    "yaml-cpp",
+    "fmt"
+  ],
+  "overrides": [
+    { 
+      "name": "fmt", 
+      "version": "8.1.1"
+    }
+  ]
+}

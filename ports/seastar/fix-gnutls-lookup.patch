@@ -1,0 +1,84 @@
+diff --git a/cmake/FindGnuTLS.cmake b/cmake/FindGnuTLS.cmake
+index 79e38dd..f526d00 100644
+--- a/cmake/FindGnuTLS.cmake
++++ b/cmake/FindGnuTLS.cmake
+@@ -22,41 +22,43 @@
+ 
+ find_package (PkgConfig REQUIRED)
+ 
+-pkg_check_modules (PC_GnuTLS QUIET gnutls)
++pkg_check_modules (PC_GnuTLS REQUIRED IMPORTED_TARGET gnutls)
+ 
+-find_library (GnuTLS_LIBRARY
+-  NAMES gnutls
+-  HINTS
+-    ${PC_GnuTLS_LIBDIR}
+-    ${PC_GnuTLS_LIBRARY_DIRS})
++add_library(GnuTLS::gnutls ALIAS PkgConfig::PC_GnuTLS)
+ 
+-find_path (GnuTLS_INCLUDE_DIR
+-  NAMES gnutls/gnutls.h
+-  HINTS
+-    ${PC_GnuTLS_INCLUDEDIR}
+-    ${PC_GnuTLS_INCLUDE_DIRS})
+-
+-mark_as_advanced (
+-  GnuTLS_LIBRARY
+-  GnuTLS_INCLUDE_DIR)
+-
+-include (FindPackageHandleStandardArgs)
+-
+-find_package_handle_standard_args (GnuTLS
+-  REQUIRED_VARS
+-    GnuTLS_LIBRARY
+-    GnuTLS_INCLUDE_DIR
+-  VERSION_VAR PC_GnuTLS_VERSION)
+-
+-if (GnuTLS_FOUND)
+-  set (GnuTLS_LIBRARIES ${GnuTLS_LIBRARY})
+-  set (GnuTLS_INCLUDE_DIRS ${GnuTLS_INCLUDE_DIR})
+-  if (NOT (TARGET GnuTLS::gnutls))
+-    add_library (GnuTLS::gnutls UNKNOWN IMPORTED)
+-
+-    set_target_properties (GnuTLS::gnutls
+-      PROPERTIES
+-        IMPORTED_LOCATION ${GnuTLS_LIBRARY}
+-        INTERFACE_INCLUDE_DIRECTORIES ${GnuTLS_INCLUDE_DIRS})
+-  endif ()
+-endif ()
++#find_library (GnuTLS_LIBRARY
++#  NAMES gnutls
++#  HINTS
++#    ${PC_GnuTLS_LIBDIR}
++#    ${PC_GnuTLS_LIBRARY_DIRS})
++#
++#find_path (GnuTLS_INCLUDE_DIR
++#  NAMES gnutls/gnutls.h
++#  HINTS
++#    ${PC_GnuTLS_INCLUDEDIR}
++#    ${PC_GnuTLS_INCLUDE_DIRS})
++#
++#mark_as_advanced (
++#  GnuTLS_LIBRARY
++#  GnuTLS_INCLUDE_DIR)
++#
++#include (FindPackageHandleStandardArgs)
++#
++#find_package_handle_standard_args (GnuTLS
++#  REQUIRED_VARS
++#    GnuTLS_LIBRARY
++#    GnuTLS_INCLUDE_DIR
++#  VERSION_VAR PC_GnuTLS_VERSION)
++#
++#if (GnuTLS_FOUND)
++#  set (GnuTLS_LIBRARIES ${GnuTLS_STATIC_LIBRARIES})
++#  set (GnuTLS_INCLUDE_DIRS ${GnuTLS_STATIC_INCLUDE_DIRS})
++#  if (NOT (TARGET GnuTLS::gnutls))
++#    add_library (GnuTLS::gnutls UNKNOWN IMPORTED)
++#
++#    set_target_properties (GnuTLS::gnutls
++#      PROPERTIES
++#        IMPORTED_LOCATION ${GnuTLS_LIBRARY}
++#        INTERFACE_INCLUDE_DIRECTORIES ${GnuTLS_INCLUDE_DIRS})
++#  endif ()
++#endif ()

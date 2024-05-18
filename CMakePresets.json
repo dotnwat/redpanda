@@ -9,7 +9,9 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_TOOLCHAIN_FILE": "/home/nwatkins/src/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "/home/nwatkins/src/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_TRIPLETS": "triplets",
+        "VCPKG_TARGET_TRIPLET": "x64-clang"
       }
     },
     {
