@@ -72,11 +72,12 @@ fetch_dep(unordered_dense
 #  REPO https://github.com/google/crc32c.git
 #  TAG 1.1.2)
 
-set(BASE64_BUILD_CLI OFF)
-set(BASE64_BUILD_TESTS OFF)
-fetch_dep(base64
-  REPO https://github.com/aklomp/base64.git
-  TAG v0.5.0)
+# TODO --- already seems to be in vcpkg
+#set(BASE64_BUILD_CLI OFF)
+#set(BASE64_BUILD_TESTS OFF)
+#fetch_dep(base64
+#  REPO https://github.com/aklomp/base64.git
+#  TAG v0.5.0)
 
 #fetch_dep(roaring
 #  REPO https://github.com/redpanda-data/CRoaring.git
@@ -135,7 +136,7 @@ FetchContent_MakeAvailable(
     #seastar
     #GTest
     #crc32c
-    base64
+    #base64
     #roaring
     #avro
     tinygo
@@ -145,7 +146,7 @@ FetchContent_MakeAvailable(
     unordered_dense)
 
   #add_library(Crc32c::crc32c ALIAS crc32c)
-add_library(aklomp::base64 ALIAS base64)
+  #add_library(aklomp::base64 ALIAS base64)
 add_library(Hdrhistogram::hdr_histogram ALIAS hdr_histogram)
 
 list(APPEND CMAKE_PROGRAM_PATH ${tinygo_SOURCE_DIR}/bin)

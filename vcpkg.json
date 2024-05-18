@@ -2,6 +2,7 @@
   "dependencies": [
     "abseil",
     "ada-url",
+    "aklomp-base64",
     "avro",
     "boost",
     "crc32c",
