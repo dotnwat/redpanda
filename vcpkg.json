@@ -2,6 +2,7 @@
   "dependencies": [
     "abseil",
     "ada-url",
+    "avro",
     "boost",
     "crc32c",
     "cryptopp",
@@ -20,7 +21,8 @@
     "xxhash",
     "yaml-cpp",
     "zlib",
-    "zstd"
+    "zstd",
+    "libxml2"
   ],
   "overrides": [
     { 

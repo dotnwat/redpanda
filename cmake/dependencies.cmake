@@ -49,10 +49,10 @@ endfunction()
 #  TAG v24.2.x
 #  PATCH_COMMAND sed -i "s/add_subdirectory (tests/# add_subdirectory (tests/g" CMakeLists.txt)
 
-fetch_dep(avro
-  REPO https://github.com/redpanda-data/avro
-  TAG release-1.11.1-redpanda
-  SOURCE_SUBDIR redpanda_build)
+#fetch_dep(avro
+#  REPO https://github.com/redpanda-data/avro
+#  TAG release-1.11.1-redpanda
+#  SOURCE_SUBDIR redpanda_build)
 
 #fetch_dep(rapidjson
 #  REPO https://github.com/redpanda-data/rapidjson.git
@@ -137,7 +137,7 @@ FetchContent_MakeAvailable(
     #crc32c
     base64
     #roaring
-    avro
+    #avro
     tinygo
     wasmtime
     hdrhistogram

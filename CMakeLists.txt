@@ -66,6 +66,7 @@ find_package(re2 CONFIG REQUIRED)
 find_package(xxHash CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(lz4 CONFIG REQUIRED)
+find_package(Avro CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 
 #find_package(GnuTLS REQUIRED)
