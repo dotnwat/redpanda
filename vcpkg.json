@@ -21,6 +21,7 @@
     "roaring",
     "seastar",
     "snappy",
+    "tinygo",
     "unordered-dense",
     "xxhash",
     "yaml-cpp",

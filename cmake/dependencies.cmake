@@ -95,19 +95,19 @@ endfunction()
 #  REPO https://github.com/ada-url/ada
 #  TAG v2.7.3)
 
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-  set(TINYGO_TARBALL "tinygo-linux-amd64.tar.gz")
-  set(TINYGO_MD5 "e3ca01e1012df48bbe1c913fe1de5cfb")
-elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-  set(TINYGO_TARBALL "tinygo-linux-arm64.tar.gz")
-  set(TINYGO_MD5 "b7223641fbe05b9e23e24e39338fb965")
-endif()
-
-FetchContent_Declare(tinygo
-  URL https://github.com/redpanda-data/tinygo/releases/download/v0.31.0-rpk2/${TINYGO_TARBALL}
-  URL_HASH MD5=${TINYGO_MD5}
-  DOWNLOAD_EXTRACT_TIMESTAMP ON)
-FetchContent_GetProperties(tinygo)
+#if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+#  set(TINYGO_TARBALL "tinygo-linux-amd64.tar.gz")
+#  set(TINYGO_MD5 "e3ca01e1012df48bbe1c913fe1de5cfb")
+#elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+#  set(TINYGO_TARBALL "tinygo-linux-arm64.tar.gz")
+#  set(TINYGO_MD5 "b7223641fbe05b9e23e24e39338fb965")
+#endif()
+#
+#FetchContent_Declare(tinygo
+#  URL https://github.com/redpanda-data/tinygo/releases/download/v0.31.0-rpk2/${TINYGO_TARBALL}
+#  URL_HASH MD5=${TINYGO_MD5}
+#  DOWNLOAD_EXTRACT_TIMESTAMP ON)
+#FetchContent_GetProperties(tinygo)
 
 #fetch_dep(hdrhistogram
 #  REPO https://github.com/HdrHistogram/HdrHistogram_c
@@ -139,7 +139,7 @@ FetchContent_MakeAvailable(
     #base64
     #roaring
     #avro
-    tinygo
+    #tinygo
     wasmtime)
     #hdrhistogram
     #ada
@@ -149,4 +149,4 @@ FetchContent_MakeAvailable(
   #add_library(aklomp::base64 ALIAS base64)
   #add_library(Hdrhistogram::hdr_histogram ALIAS hdr_histogram)
 
-list(APPEND CMAKE_PROGRAM_PATH ${tinygo_SOURCE_DIR}/bin)
+  #list(APPEND CMAKE_PROGRAM_PATH ${tinygo_SOURCE_DIR}/bin)
