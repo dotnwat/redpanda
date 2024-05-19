@@ -9,6 +9,7 @@
     "cryptopp",
     "fmt",
     "gtest",
+    "hdrhistogram",
     "krb5",
     "libgnutls",
     "lz4",

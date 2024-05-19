@@ -15,7 +15,7 @@ v_cc_library(
     xid.cc
   DEPS
     Seastar::seastar
-    Hdrhistogram::hdr_histogram
+    hdr_histogram::hdr_histogram_static
     aklomp::base64
     absl::hash
     absl::random_seed_sequences

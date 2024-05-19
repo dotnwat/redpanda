@@ -109,9 +109,9 @@ FetchContent_Declare(tinygo
   DOWNLOAD_EXTRACT_TIMESTAMP ON)
 FetchContent_GetProperties(tinygo)
 
-fetch_dep(hdrhistogram
-  REPO https://github.com/HdrHistogram/HdrHistogram_c
-  TAG 0.11.5)
+#fetch_dep(hdrhistogram
+#  REPO https://github.com/HdrHistogram/HdrHistogram_c
+#  TAG 0.11.5)
 
 list(APPEND WASMTIME_USER_CARGO_BUILD_OPTIONS --no-default-features)
 list(APPEND WASMTIME_USER_CARGO_BUILD_OPTIONS --features=async)
@@ -141,12 +141,12 @@ FetchContent_MakeAvailable(
     #avro
     tinygo
     wasmtime
-    hdrhistogram
+    #hdrhistogram
     #ada
     unordered_dense)
 
   #add_library(Crc32c::crc32c ALIAS crc32c)
   #add_library(aklomp::base64 ALIAS base64)
-add_library(Hdrhistogram::hdr_histogram ALIAS hdr_histogram)
+  #add_library(Hdrhistogram::hdr_histogram ALIAS hdr_histogram)
 
 list(APPEND CMAKE_PROGRAM_PATH ${tinygo_SOURCE_DIR}/bin)
