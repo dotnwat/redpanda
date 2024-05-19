@@ -1,0 +1,16 @@
+{
+  "name": "unordered-dense",
+  "version": "0.0.1",
+  "homepage": "https://github.com/redpanda-data/unordered_dense",
+  "description": "Redpanda's unordered dense fork",
+  "dependencies": [
+    {
+      "name" : "vcpkg-cmake",
+      "host" : true
+    },
+    {
+      "name" : "vcpkg-cmake-config",
+      "host" : true
+    }
+  ]
+}

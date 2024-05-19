@@ -70,6 +70,7 @@ find_package(Avro CONFIG REQUIRED)
 find_package(Base64 CONFIG REQUIRED)
 find_package(Avro CONFIG REQUIRED)
 find_package(hdr_histogram CONFIG REQUIRED)
+find_package(unordered_dense CONFIG REQUIRED)
 
 find_package(ZLIB REQUIRED)
 
@@ -81,7 +82,6 @@ find_package(ZLIB REQUIRED)
 include(dependencies)
 
 find_package(Seastar CONFIG REQUIRED)
-find_package(unordered_dense REQUIRED)
 find_program(GO_PROGRAM go REQUIRED)
 find_program(SEASTAR_JSON2CODE seastar-json2code.py REQUIRED)
 

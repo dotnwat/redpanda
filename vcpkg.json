@@ -12,19 +12,20 @@
     "hdrhistogram",
     "krb5",
     "libgnutls",
+    "libxml2",
     "lz4",
     "openssl",
     "protobuf",
+    "rapidjson",
     "re2",
+    "roaring",
     "seastar",
     "snappy",
-    "rapidjson",
-    "roaring",
+    "unordered-dense",
     "xxhash",
     "yaml-cpp",
     "zlib",
-    "zstd",
-    "libxml2"
+    "zstd"
   ],
   "overrides": [
     { 
