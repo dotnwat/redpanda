@@ -18,7 +18,7 @@ rp_test(
   SOURCES
     parser_test.cc
   LIBRARIES 
-    wasmtime
+    Wasmtime::wasmtime
     v::gtest_main
     v::wasm_parser
   ARGS "-- -c 1"

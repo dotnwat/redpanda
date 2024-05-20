@@ -71,7 +71,7 @@ find_package(Base64 CONFIG REQUIRED)
 find_package(Avro CONFIG REQUIRED)
 find_package(hdr_histogram CONFIG REQUIRED)
 find_package(unordered_dense CONFIG REQUIRED)
-
+find_package(Wasmtime REQUIRED)
 find_package(ZLIB REQUIRED)
 
 #find_package(GnuTLS REQUIRED)

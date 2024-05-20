@@ -23,6 +23,7 @@
     "snappy",
     "tinygo",
     "unordered-dense",
+    "wasmtime",
     "xxhash",
     "yaml-cpp",
     "zlib",

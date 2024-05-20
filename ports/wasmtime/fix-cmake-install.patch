@@ -1,0 +1,47 @@
+diff --git a/crates/c-api/CMakeLists.txt b/crates/c-api/CMakeLists.txt
+index 98d104e44..97ae9406e 100644
+--- a/crates/c-api/CMakeLists.txt
++++ b/crates/c-api/CMakeLists.txt
+@@ -54,6 +54,7 @@ if(BUILD_SHARED_LIBS)
+ 		set(WASMTIME_BUILD_PRODUCT
+ 			${CMAKE_CURRENT_SOURCE_DIR}/../../target/${WASMTIME_BUILD_TYPE}/libwasmtime.dylib)
+ 	else()
++		set(WASMTIME_BUILD_FILENAME libwasmtime.so)
+ 		set(WASMTIME_BUILD_PRODUCT
+ 			${CMAKE_CURRENT_SOURCE_DIR}/../../target/${WASMTIME_BUILD_TYPE}/libwasmtime.so)
+ 	endif()
+@@ -65,6 +66,7 @@ else()
+ 		set(WASMTIME_BUILD_PRODUCT
+ 			${CMAKE_CURRENT_SOURCE_DIR}/../../target/${ANDROID_TARGET}/${WASMTIME_BUILD_TYPE}/libwasmtime.a)
+ 	else()
++		set(WASMTIME_BUILD_FILENAME libwasmtime.a)
+ 		set(WASMTIME_BUILD_PRODUCT
+ 			${CMAKE_CURRENT_SOURCE_DIR}/../../target/${WASMTIME_BUILD_TYPE}/libwasmtime.a)
+ 	endif()
+@@ -120,12 +122,18 @@ else()
+ 	elseif(APPLE OR ANDROID)
+ 		target_link_libraries(wasmtime INTERFACE ${WASMTIME_BUILD_PRODUCT})
+ 	else()
+-		target_link_libraries(wasmtime INTERFACE ${WASMTIME_BUILD_PRODUCT}
++		target_link_libraries(wasmtime
++			INTERFACE
++			$<BUILD_INTERFACE:${WASMTIME_BUILD_PRODUCT}>
++			$<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/${WASMTIME_BUILD_FILENAME}>
+ 			pthread dl m)
+ 	endif()
+ endif()
+ 
+-target_include_directories(wasmtime INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
++target_include_directories(wasmtime
++  INTERFACE
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
++    $<INSTALL_INTERFACE:include/>)
+ 
+ include(GNUInstallDirs)
+ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/wasmtime.h
+@@ -138,3 +146,5 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/wasmtime
+ 	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+ install(FILES ${WASMTIME_BUILD_PRODUCT}
+ 	DESTINATION ${CMAKE_INSTALL_LIBDIR})
++install(TARGETS wasmtime EXPORT wasmtime-config)
++install(EXPORT wasmtime-config NAMESPACE Wasmtime:: DESTINATION share/wasmtime)

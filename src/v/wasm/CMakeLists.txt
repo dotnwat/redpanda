@@ -14,7 +14,7 @@ v_cc_library(
     allocator.cc
     engine_probe.cc
   DEPS
-    wasmtime
+    Wasmtime::wasmtime
     v::wasm_parser
     v::storage
     v::model
