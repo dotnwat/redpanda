@@ -43,7 +43,9 @@ cc_library(
         "SEASTAR_API_LEVEL=6",
         "SEASTAR_SSTRING",
         "SEASTAR_SCHEDULING_GROUPS_COUNT=32",
-        "BOOST_TEST_ALTERNATIVE_INIT_API",
+#        "BOOST_TEST_ALTERNATIVE_INIT_API",
+        "BOOST_TEST_DYN_LINK",
+        "BOOST_TEST_NO_LIB",
     ],
     hdrs = glob([
         "include/**/*.hh",

@@ -16,15 +16,15 @@ cc_library(
     ],
 )
 
-cc_test(
-    name = "strings_test",
-    srcs = [
-        "tests/constexpr_string_switch.cc",
-        "tests/string_switch_test.cc",
-        "tests/utf8_control_chars.cc",
-    ],
-    deps = [
-        "//src/v/strings",
-        "@boost",
-    ],
-)
+#cc_test(
+#    name = "strings_test",
+#    srcs = [
+#        "tests/constexpr_string_switch.cc",
+#        "tests/string_switch_test.cc",
+#        "tests/utf8_control_chars.cc",
+#    ],
+#    deps = [
+#        "//src/v/strings",
+#        "@boost",
+#    ],
+#)

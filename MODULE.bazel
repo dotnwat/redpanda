@@ -24,7 +24,6 @@ bazel_dep(name = "protobuf", version = "26.0")
 bazel_dep(name = "fmt", version = "8.1.1")
 bazel_dep(name = "zlib", version = "1.2.13")
 bazel_dep(name = "liburing", version = "2.5")
-bazel_dep(name = "hdrhistogram_c", version = "0.11.2")
 bazel_dep(name = "rapidjson", version = "1.1.0")
 bazel_dep(name = "re2", version = "2021-09-01")
 bazel_dep(name = "lz4", version = "1.9.4")
@@ -145,9 +144,9 @@ http_archive(
 http_archive(
     name = "boost",
     build_file = "@//thirdparty:boost.BUILD",
-    sha256 = "be0d91732d5b0cc6fbb275c7939974457e79b54d6f07ce2e3dfdd68bef883b0b",
-    strip_prefix = "boost_1_85_0",
-    url = "https://boostorg.jfrog.io/artifactory/main/release/1.85.0/source/boost_1_85_0.tar.gz",
+    sha256 = "b62bd839ea6c28265af9a1f68393eda37fab3611425d3b28882d8e424535ec9d",
+    strip_prefix = "boost-1.82.0",
+    url = "https://github.com/boostorg/boost/releases/download/boost-1.82.0/boost-1.82.0.tar.gz", 
 )
 
 http_archive(
@@ -196,4 +195,12 @@ http_archive(
     sha256 = "166ac9f38ac5f7e900d8f9c892afaaa7c8d9909b0dd4b6315bcb335f50ddf728",
     strip_prefix = "seastar-16a722bc0a8792daa20c165dabc07e4b1e5dff26",
     url = "https://github.com/redpanda-data/seastar/archive/16a722bc0a8792daa20c165dabc07e4b1e5dff26.tar.gz",
+)
+
+http_archive(
+    name = "hdrhistogram",
+    build_file = "@//thirdparty:hdrhistogram.BUILD",
+    sha256 = "f81a192b62ae25bcebe63c9f3c74f371d04f88a74c1867532ec8a0012a9e482c",
+    strip_prefix = "HdrHistogram_c-0.11.5",
+    url = "https://vectorized-public.s3.amazonaws.com/dependencies/HdrHistogram_c-0.11.5.tar.gz",
 )

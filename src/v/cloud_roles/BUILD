@@ -43,6 +43,7 @@ cc_library(
         "//src/v/base",
         "//src/v/bytes",
         "//src/v/metrics",
+        "//src/v/config",
         "@seastar//:libseastar",
     ],
 )

@@ -14,6 +14,6 @@ cc_library(
     include_prefix = "utils",
     visibility = ["//visibility:public"],
     deps = [
-        "@hdrhistogram_c",
+        "@hdrhistogram//:libhdrhistogram",
     ],
 )

@@ -8,3 +8,6 @@ build --host_action_env=CXXFLAGS=-Wno-int-conversion
 build --action_env=CXXFLAGS=-Wno-int-conversion
 build --host_action_env=CFLAGS=-Wno-int-conversion
 build --action_env=CFLAGS=-Wno-int-conversion
+
+common --registry=https://raw.githubusercontent.com/bazelboost/registry/main
+common --registry=https://bcr.bazel.build
