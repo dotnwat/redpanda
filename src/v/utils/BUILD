@@ -8,6 +8,12 @@ cc_library(
         "mutex.h",
         "named_type.h",
         "static_deleter_fn.h",
+        "vint.h",
+        "type_traits.h",
+        "tristate.h",
+        "uuid.h",
+        "unresolved_address.h",
+        "xid.h",
     ],
     copts = [
     ],

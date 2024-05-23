@@ -44,6 +44,7 @@ cc_library(
         "//src/v/bytes",
         "//src/v/metrics",
         "//src/v/config",
+        "//src/v/http",
         "@seastar//:libseastar",
     ],
 )
