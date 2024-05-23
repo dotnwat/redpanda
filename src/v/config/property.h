@@ -18,7 +18,6 @@
 #include "json/stringbuffer.h"
 #include "json/writer.h"
 #include "pandaproxy/schema_registry/schema_id_validation.h"
-#include "pandaproxy/schema_registry/subject_name_strategy.h"
 #include "utils/to_string.h"
 
 #include <seastar/util/noncopyable_function.hh>
@@ -639,11 +638,6 @@ consteval std::string_view property_type_name() {
     } else if constexpr (std::is_same_v<
                            type,
                            model::cloud_storage_chunk_eviction_strategy>) {
-        return "string";
-    } else if constexpr (std::is_same_v<
-                           type,
-                           pandaproxy::schema_registry::
-                             subject_name_strategy>) {
         return "string";
     } else if constexpr (std::is_same_v<
                            type,
