@@ -1,9 +1,9 @@
 cc_library(
     name = "http",
     srcs = [
-        "iobuf_body.cc",
         "chunk_encoding.cc",
         "client.cc",
+        "iobuf_body.cc",
         "logger.cc",
     ],
     hdrs = [
@@ -16,10 +16,10 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "@seastar//:libseastar",
-        "//src/v/base:base",
-        "//src/v/bytes:bytes",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "@seastar//:libseastar",
+    ],
 )

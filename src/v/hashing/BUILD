@@ -18,8 +18,8 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "//src/v/base:base",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+    ],
 )

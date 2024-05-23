@@ -5,28 +5,28 @@ cc_library(
     ],
     hdrs = [
         "include/bytes/bytes.h",
-        "include/bytes/hash.h",
-        "include/bytes/iobuf.h",
-        "include/bytes/iobuf_parser.h",
-        "include/bytes/iostream.h",
-        "include/bytes/scattered_message.h",
-        "include/bytes/streambuf.h",
         "include/bytes/details/io_allocation_size.h",
         "include/bytes/details/io_byte_iterator.h",
         "include/bytes/details/io_fragment.h",
         "include/bytes/details/io_iterator_consumer.h",
         "include/bytes/details/io_placeholder.h",
         "include/bytes/details/out_of_range.h",
+        "include/bytes/hash.h",
+        "include/bytes/iobuf.h",
+        "include/bytes/iobuf_parser.h",
+        "include/bytes/iostream.h",
+        "include/bytes/scattered_message.h",
+        "include/bytes/streambuf.h",
     ],
     includes = [
         "include",
     ],
-    deps = [
-        "@seastar//:libseastar",
-        "//src/v/base:base",
-        "//src/v/container:container",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/container",
+        "@seastar//:libseastar",
+    ],
 )
 
 cc_library(
@@ -40,11 +40,11 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "@seastar//:libseastar",
-        "//src/v/base:base",
-        "//src/v/bytes:bytes",
-        "//src/v/random:random",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "//src/v/random",
+        "@seastar//:libseastar",
+    ],
 )

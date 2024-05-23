@@ -7,9 +7,9 @@ cc_library(
         "metrics_registry.h",
     ],
     include_prefix = "metrics",
-    deps = [
-        "//src/v/ssx:ssx",
-        "//src/v/utils:utils",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/ssx",
+        "//src/v/utils",
+    ],
 )

@@ -22,10 +22,10 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "@seastar//:libseastar",
-        "//src/v/base:base",
-        "//src/v/utils:utils",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/utils",
+        "@seastar//:libseastar",
+    ],
 )

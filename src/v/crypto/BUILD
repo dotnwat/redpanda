@@ -4,13 +4,13 @@ cc_library(
         "crypto.cc",
         "digest.cc",
         "hmac.cc",
+        "internal.h",
         "key.cc",
+        "key.h",
+        "ossl_context_service.cc",
         "random.cc",
         "signature.cc",
         "ssl_utils.cc",
-        "ossl_context_service.cc",
-        "internal.h",
-        "key.h",
         "ssl_utils.h",
     ],
     hdrs = [
@@ -22,10 +22,10 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "//src/v/base:base",
-        "//src/v/bytes:bytes",
-        "//src/v/ssx:ssx",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "//src/v/ssx",
+    ],
 )

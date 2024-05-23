@@ -6,7 +6,7 @@ cc_library(
         "configuration.h",
     ],
     include_prefix = "config",
+    visibility = ["//visibility:public"],
     deps = [
     ],
-    visibility = ["//visibility:public"],
 )

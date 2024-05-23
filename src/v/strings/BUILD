@@ -10,10 +10,10 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "//src/v/base:base",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+    ],
 )
 
 cc_test(
@@ -24,7 +24,7 @@ cc_test(
         "tests/utf8_control_chars.cc",
     ],
     deps = [
-        "//src/v/strings:strings",
-        "@boost//:boost",
+        "//src/v/strings",
+        "@boost",
     ],
 )

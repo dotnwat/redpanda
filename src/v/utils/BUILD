@@ -4,16 +4,16 @@ cc_library(
     ],
     hdrs = [
         "functional.h",
-        "mutex.h",
         "hdr_hist.h",
+        "mutex.h",
         "named_type.h",
         "static_deleter_fn.h",
     ],
-    include_prefix = "utils",
-    deps = [
-        "@hdrhistogram_c//:hdrhistogram_c",
-    ],
     copts = [
     ],
+    include_prefix = "utils",
     visibility = ["//visibility:public"],
+    deps = [
+        "@hdrhistogram_c",
+    ],
 )

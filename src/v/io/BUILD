@@ -1,16 +1,16 @@
 cc_library(
     name = "io",
     srcs = [
-        "persistence.cc",
-        "page.cc",
-        "page_set.cc",
-        "logger.cc",
         "io_queue.cc",
-        "scheduler.cc",
+        "logger.cc",
+        "logger.h",
+        "page.cc",
         "page_cache.cc",
+        "page_set.cc",
         "pager.cc",
         "paging_data_source.cc",
-        "logger.h",
+        "persistence.cc",
+        "scheduler.cc",
     ],
     hdrs = [
         "include/io/cache.h",
@@ -28,11 +28,11 @@ cc_library(
     includes = [
         "include",
     ],
-    deps = [
-        "@seastar//:libseastar",
-        "//src/v/base:base",
-        "//src/v/container:container",
-        "//src/v/ssx:ssx",
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/container",
+        "//src/v/ssx",
+        "@seastar//:libseastar",
+    ],
 )
