@@ -14,6 +14,7 @@ cc_library(
         "uuid.h",
         "unresolved_address.h",
         "xid.h",
+        "to_string.h",
     ],
     copts = [
     ],

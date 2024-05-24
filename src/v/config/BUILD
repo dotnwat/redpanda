@@ -30,6 +30,8 @@ cc_library(
         "node_config.h",
         "validators.h",
         "config_store.h",
+        "from_string_view.h",
+        "seed_server.h",
     ],
     include_prefix = "config",
     visibility = ["//visibility:public"],
