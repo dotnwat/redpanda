@@ -9,9 +9,9 @@
 
 #pragma once
 
+#include "base/type_traits.h"
 #include "serde/logger.h"
 #include "serde/rw/rw.h"
-#include "utils/type_traits.h"
 
 #include <chrono>
 
