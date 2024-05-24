@@ -41,5 +41,6 @@ cc_library(
         "//src/v/base:base",
         "//src/v/utils:utils",
         "//src/v/model:model",
+        "//src/v/reflection:reflection",
     ],
 )

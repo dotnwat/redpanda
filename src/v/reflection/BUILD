@@ -5,6 +5,7 @@ cc_library(
     hdrs = [
         "arity.h",
         "to_tuple.h",
+        "type_traits.h",
     ],
     copts = [
     ],
