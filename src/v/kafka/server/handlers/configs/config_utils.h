@@ -25,7 +25,6 @@
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "model/namespace.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "pandaproxy/schema_registry/subject_name_strategy.h"
 #include "security/acl.h"
 
@@ -655,7 +654,7 @@ public:
 
         auto matcher = string_switch<std::optional<property_t>>(cfg.name);
         switch (config::shard_local_cfg().enable_schema_id_validation()) {
-        case pandaproxy::schema_registry::schema_id_validation_mode::compat:
+        case config::schema_id_validation_mode::compat:
             matcher
               .match(
                 topic_property_record_key_schema_id_validation_compat,
@@ -670,7 +669,7 @@ public:
                 topic_property_record_value_subject_name_strategy_compat,
                 &props.record_value_subject_name_strategy_compat);
             [[fallthrough]];
-        case pandaproxy::schema_registry::schema_id_validation_mode::redpanda:
+        case config::schema_id_validation_mode::redpanda:
             matcher
               .match(
                 topic_property_record_key_schema_id_validation,
@@ -685,7 +684,7 @@ public:
                 topic_property_record_value_subject_name_strategy,
                 &props.record_value_subject_name_strategy);
             [[fallthrough]];
-        case pandaproxy::schema_registry::schema_id_validation_mode::none:
+        case config::schema_id_validation_mode::none:
             break;
         }
         auto prop = matcher.default_match(std::nullopt);

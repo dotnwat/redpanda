@@ -3065,10 +3065,10 @@ configuration::configuration()
       "enable_schema_id_validation",
       "Enable Server Side Schema ID Validation.",
       {.needs_restart = needs_restart::no, .visibility = visibility::user},
-      pandaproxy::schema_registry::schema_id_validation_mode::none,
-      {pandaproxy::schema_registry::schema_id_validation_mode::none,
-       pandaproxy::schema_registry::schema_id_validation_mode::redpanda,
-       pandaproxy::schema_registry::schema_id_validation_mode::compat})
+      schema_id_validation_mode::none,
+      {schema_id_validation_mode::none,
+       schema_id_validation_mode::redpanda,
+       schema_id_validation_mode::compat})
   , kafka_schema_id_validation_cache_capacity(
       *this,
       "kafka_schema_id_validation_cache_capacity",

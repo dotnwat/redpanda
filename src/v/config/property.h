@@ -639,10 +639,8 @@ consteval std::string_view property_type_name() {
                            type,
                            model::cloud_storage_chunk_eviction_strategy>) {
         return "string";
-    } else if constexpr (std::is_same_v<
-                           type,
-                           pandaproxy::schema_registry::
-                             schema_id_validation_mode>) {
+    } else if constexpr (std::
+                           is_same_v<type, config::schema_id_validation_mode>) {
         return "string";
     } else if constexpr (std::is_same_v<type, model::fetch_read_strategy>) {
         return "string";

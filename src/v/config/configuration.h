@@ -26,7 +26,6 @@
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "model/timestamp.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "utils/unresolved_address.h"
 
 #include <seastar/core/sstring.hh>
@@ -561,8 +560,7 @@ struct configuration final : public config_store {
     property<std::chrono::seconds> legacy_unsafe_log_warning_interval_sec;
 
     // schema id validation
-    enum_property<pandaproxy::schema_registry::schema_id_validation_mode>
-      enable_schema_id_validation;
+    enum_property<schema_id_validation_mode> enable_schema_id_validation;
     config::property<size_t> kafka_schema_id_validation_cache_capacity;
 
     property<std::optional<uint32_t>> pp_sr_smp_max_non_local_requests;

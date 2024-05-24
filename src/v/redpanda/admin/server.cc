@@ -1664,7 +1664,7 @@ void config_multi_property_validation(
 
     if (
       updated_config.enable_schema_id_validation
-        != pandaproxy::schema_registry::schema_id_validation_mode::none
+        != config::schema_id_validation_mode::none
       && !schema_registry) {
         auto name = updated_config.enable_schema_id_validation.name();
         errors[ss::sstring(name)] = ssx::sformat(

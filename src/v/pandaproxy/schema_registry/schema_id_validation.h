@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include "config/types.h"
 #include "strings/string_switch.h"
 
 #include <seastar/core/sstring.hh>
@@ -57,6 +58,18 @@ inline std::istream& operator>>(std::istream& i, schema_id_validation_mode& m) {
             to_string_view(schema_id_validation_mode::compat),
             schema_id_validation_mode::compat);
     return i;
+}
+
+inline schema_id_validation_mode
+from_config(config::schema_id_validation_mode mode) {
+    switch (mode) {
+    case config::schema_id_validation_mode::none:
+        return schema_id_validation_mode::none;
+    case config::schema_id_validation_mode::redpanda:
+        return schema_id_validation_mode::redpanda;
+    case config::schema_id_validation_mode::compat:
+        return schema_id_validation_mode::compat;
+    }
 }
 
 } // namespace pandaproxy::schema_registry

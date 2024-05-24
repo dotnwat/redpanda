@@ -750,7 +750,7 @@ config_response_container_t make_topic_configs(
     constexpr bool validation_hide_default_override = true;
 
     switch (config::shard_local_cfg().enable_schema_id_validation()) {
-    case pandaproxy::schema_registry::schema_id_validation_mode::compat: {
+    case config::schema_id_validation_mode::compat: {
         add_topic_config_if_requested(
           config_keys,
           result,
@@ -808,7 +808,7 @@ config_response_container_t make_topic_configs(
           validation_hide_default_override);
         [[fallthrough]];
     }
-    case pandaproxy::schema_registry::schema_id_validation_mode::redpanda: {
+    case config::schema_id_validation_mode::redpanda: {
         add_topic_config_if_requested(
           config_keys,
           result,
@@ -868,7 +868,7 @@ config_response_container_t make_topic_configs(
           validation_hide_default_override);
         [[fallthrough]];
     }
-    case pandaproxy::schema_registry::schema_id_validation_mode::none: {
+    case config::schema_id_validation_mode::none: {
         break;
     }
     }

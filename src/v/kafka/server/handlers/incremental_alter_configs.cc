@@ -262,7 +262,7 @@ create_topic_properties_update(
             }
             if (
               config::shard_local_cfg().enable_schema_id_validation()
-              != pandaproxy::schema_registry::schema_id_validation_mode::none) {
+              != config::schema_id_validation_mode::none) {
                 if (schema_id_validation_config_parser(cfg, op)) {
                     continue;
                 }

@@ -370,7 +370,7 @@ public:
         }
         if (
           config::shard_local_cfg().enable_schema_id_validation()
-          == pandaproxy::schema_registry::schema_id_validation_mode::none) {
+          == config::schema_id_validation_mode::none) {
             co_return std::move(rbr);
         }
 
@@ -451,7 +451,8 @@ std::optional<schema_id_validator> maybe_make_schema_id_validator(
   const std::unique_ptr<api>& api,
   const model::topic& topic,
   const cluster::topic_properties& props) {
-    auto mode = config::shard_local_cfg().enable_schema_id_validation();
+    auto mode = from_config(
+      config::shard_local_cfg().enable_schema_id_validation());
     if (should_validate_schema_id(props, mode)) {
         if (!api) {
             vlog(
