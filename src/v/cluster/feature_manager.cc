@@ -24,7 +24,6 @@
 #include "features/feature_state.h"
 #include "features/feature_table.h"
 #include "model/timeout_clock.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "raft/group_manager.h"
 #include "security/role_store.h"
 #include "security/types.h"
@@ -225,8 +224,7 @@ ss::future<> feature_manager::maybe_log_license_check_info() {
         };
         auto has_schma_id_validation = [&cfg]() {
             return cfg.enable_schema_id_validation()
-                   != pandaproxy::schema_registry::schema_id_validation_mode::
-                     none;
+                   != config::schema_id_validation_mode::none;
         };
         auto n_roles = _role_store.local().size();
         auto has_non_default_roles

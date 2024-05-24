@@ -20,7 +20,6 @@
 #include "json/json.h"
 #include "json/stringbuffer.h"
 #include "json/writer.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 
 #include <seastar/core/sstring.hh>
 
@@ -87,10 +86,6 @@ void rjson_serialize(
 void rjson_serialize(
   json::Writer<json::StringBuffer>& w,
   const model::cloud_storage_chunk_eviction_strategy& v);
-
-void rjson_serialize(
-  json::Writer<json::StringBuffer>& w,
-  const pandaproxy::schema_registry::schema_id_validation_mode& v);
 
 void rjson_serialize(
   json::Writer<json::StringBuffer>&, const model::broker_endpoint&);

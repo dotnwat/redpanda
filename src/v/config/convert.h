@@ -16,7 +16,6 @@
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "model/timestamp.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "strings/string_switch.h"
 
 #include <boost/lexical_cast.hpp>
@@ -475,8 +474,8 @@ struct convert<model::cloud_storage_chunk_eviction_strategy> {
 };
 
 template<>
-struct convert<pandaproxy::schema_registry::schema_id_validation_mode> {
-    using type = pandaproxy::schema_registry::schema_id_validation_mode;
+struct convert<config::schema_id_validation_mode> {
+    using type = config::schema_id_validation_mode;
 
     static constexpr auto acceptable_values = std::to_array(
       {to_string_view(type::none),
