@@ -15,6 +15,7 @@ cc_library(
         "xid.h",
         "to_string.h",
         "inet_address_wrapper.h",
+        "log_hist.h",
     ],
     copts = [
     ],
