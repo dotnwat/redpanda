@@ -16,7 +16,6 @@
 #include "container/intrusive_list_helpers.h"
 #include "json/stringbuffer.h"
 #include "json/writer.h"
-#include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "reflection/type_traits.h"
 #include "utils/to_string.h"
 
