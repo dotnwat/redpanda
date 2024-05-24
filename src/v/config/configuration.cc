@@ -2975,7 +2975,8 @@ configuration::configuration()
       "balancer, in milliseconds",
       {.needs_restart = needs_restart::no, .visibility = visibility::user},
       5000ms,
-      {.min = 1ms, .max = std::numeric_limits<int32_t>::max()})
+      {.min = 1ms,
+       .max = std::chrono::milliseconds(std::numeric_limits<int32_t>::max())})
   , kafka_quota_balancer_node_period(
       *this,
       "kafka_quota_balancer_node_period_ms",
