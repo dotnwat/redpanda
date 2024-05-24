@@ -11,6 +11,7 @@
 
 #pragma once
 #include "base/oncore.h"
+#include "base/type_traits.h"
 #include "config/base_property.h"
 #include "config/rjson_serialization.h"
 #include "container/intrusive_list_helpers.h"
@@ -18,7 +19,6 @@
 #include "json/writer.h"
 #include "pandaproxy/schema_registry/schema_id_validation.h"
 #include "pandaproxy/schema_registry/subject_name_strategy.h"
-#include "reflection/type_traits.h"
 #include "utils/to_string.h"
 
 #include <seastar/util/noncopyable_function.hh>
