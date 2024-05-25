@@ -24,7 +24,6 @@ bazel_dep(name = "protobuf", version = "26.0")
 bazel_dep(name = "fmt", version = "8.1.1")
 bazel_dep(name = "zlib", version = "1.2.13")
 bazel_dep(name = "liburing", version = "2.5")
-bazel_dep(name = "rapidjson", version = "1.1.0")
 bazel_dep(name = "re2", version = "2021-09-01")
 bazel_dep(name = "lz4", version = "1.9.4")
 bazel_dep(name = "rules_proto", version = "4.0.0")
@@ -187,6 +186,14 @@ http_archive(
     sha256 = "a7f989b170d109696b928b4b3d1ec1d930064af7df47178e1341bd96e5c34465",
     strip_prefix = "wasmtime-9e1084ffac08b1bf9c82de40c0efc1baff14b9ad",
     url = "https://github.com/bytecodealliance/wasmtime/archive/9e1084ffac08b1bf9c82de40c0efc1baff14b9ad.tar.gz",
+)
+
+http_archive(
+    name = "rapidjson",
+    build_file = "@//thirdparty:rapidjson.BUILD",
+    sha256 = "d085ef6d175d9b20800958c695c7767d65f9c1985a73d172150e57e84f6cd61c",
+    strip_prefix = "rapidjson-14a5dd756e9bef26f9b53d3b4eb1b73c6a1794d5",
+    url = "https://github.com/redpanda-data/rapidjson/archive/14a5dd756e9bef26f9b53d3b4eb1b73c6a1794d5.tar.gz",
 )
 
 http_archive(

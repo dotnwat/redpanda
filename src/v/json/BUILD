@@ -21,5 +21,6 @@ cc_library(
     include_prefix = "json",
     visibility = ["//visibility:public"],
     deps = [
+        "@rapidjson//:librapidjson",
     ],
 )
