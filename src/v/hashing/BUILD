@@ -21,6 +21,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/base",
-        "@crc32c//:crc32c",
+        "//src/v/crypto",
+        "@crc32c",
     ],
 )

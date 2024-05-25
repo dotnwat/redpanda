@@ -9,10 +9,10 @@ cc_library(
     include_prefix = "serde",
     visibility = ["//visibility:public"],
     deps = [
-        "//src/v/bytes:bytes",
-        "//src/v/hashing:hashing",
-        "//src/v/ssx:ssx",
-        "//src/v/reflection:reflection",
-        "//src/v/utils:utils",
+        "//src/v/bytes",
+        "//src/v/hashing",
+        "//src/v/reflection",
+        "//src/v/ssx",
+        "//src/v/utils",
     ],
 )

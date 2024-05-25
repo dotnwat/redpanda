@@ -13,13 +13,13 @@ cc_library(
     ],
     hdrs = [
         "abs_client.h",
-        "xml_sax_parser.h",
         "client.h",
+        "xml_sax_parser.h",
     ],
     include_prefix = "cloud_storage_clients",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/cloud_roles",
         "@seastar//:libseastar",
-        "//src/v/cloud_roles:cloud_roles",
     ],
 )

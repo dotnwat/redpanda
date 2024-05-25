@@ -146,7 +146,7 @@ http_archive(
     build_file = "@//thirdparty:boost.BUILD",
     sha256 = "b62bd839ea6c28265af9a1f68393eda37fab3611425d3b28882d8e424535ec9d",
     strip_prefix = "boost-1.82.0",
-    url = "https://github.com/boostorg/boost/releases/download/boost-1.82.0/boost-1.82.0.tar.gz", 
+    url = "https://github.com/boostorg/boost/releases/download/boost-1.82.0/boost-1.82.0.tar.gz",
 )
 
 http_archive(

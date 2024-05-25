@@ -25,7 +25,7 @@ cc_library(
     deps = [
         "//src/v/base",
         "//src/v/container",
-        "//src/v/strings:strings",
+        "//src/v/strings",
         "@seastar//:libseastar",
     ],
 )

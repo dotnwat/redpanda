@@ -42,9 +42,10 @@ cc_library(
     deps = [
         "//src/v/base",
         "//src/v/bytes",
-        "//src/v/metrics",
         "//src/v/config",
         "//src/v/http",
+        "//src/v/metrics",
+        "@ada//:libada",
         "@seastar//:libseastar",
     ],
 )

@@ -14,6 +14,7 @@ cmake(
       "ADA_TOOLS": "OFF",
       "ADA_BENCHMARKS": "OFF",
     },
+    out_lib_dir = "lib64",
     out_shared_libs = ["libada.so"],
     visibility = [
         "//visibility:public",
