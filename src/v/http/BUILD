@@ -20,6 +20,8 @@ cc_library(
     deps = [
         "//src/v/base",
         "//src/v/bytes",
+        "//src/v/net",
+        "//src/v/utils",
         "@seastar//:libseastar",
     ],
 )

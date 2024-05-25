@@ -16,6 +16,7 @@ cc_library(
         "to_string.h",
         "inet_address_wrapper.h",
         "log_hist.h",
+        "prefix_logger.h",
     ],
     copts = [
     ],
