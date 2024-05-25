@@ -19,6 +19,7 @@ cc_library(
         "uuid.h",
         "vint.h",
         "xid.h",
+        "stop_signal.h",
     ],
     copts = [
     ],

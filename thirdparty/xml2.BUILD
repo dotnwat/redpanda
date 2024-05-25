@@ -20,6 +20,7 @@ configure_make(
       "--enable-shared",
       "--enable-static",
     ],
+    out_include_dir = "include/libxml2",
     deps = [
         "@zlib",
         "@xz//:libxz",

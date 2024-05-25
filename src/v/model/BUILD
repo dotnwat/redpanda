@@ -9,6 +9,7 @@ cc_library(
         "namespace.h",
         "timestamp.h",
         "validation.h",
+        "timeout_clock.h",
     ],
     copts = [
     ],

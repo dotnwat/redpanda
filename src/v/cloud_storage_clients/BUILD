@@ -23,11 +23,14 @@ cc_library(
         "configuration.h",
         "client_pool.h",
         "xml_sax_parser.h",
+        "logger.h",
     ],
     include_prefix = "cloud_storage_clients",
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/cloud_roles",
         "@seastar//:libseastar",
+        "@xml2//:libxml2",
+        "//src/v/model",
     ],
 )
