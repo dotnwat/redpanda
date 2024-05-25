@@ -12,7 +12,7 @@
 #include "probe.h"
 
 #include "model/transform.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 
 #include <seastar/core/metrics.hh>
 

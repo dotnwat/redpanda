@@ -21,7 +21,7 @@
 #include "model/record.h"
 #include "model/timestamp.h"
 #include "model/transform.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 #include "schema_registry_module.h"
 #include "ssx/thread_worker.h"
 #include "storage/parser_utils.h"

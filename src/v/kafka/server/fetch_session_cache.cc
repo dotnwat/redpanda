@@ -7,7 +7,7 @@
 #include "kafka/types.h"
 #include "model/fundamental.h"
 #include "model/timeout_clock.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 
 #include <seastar/core/metrics.hh>
 

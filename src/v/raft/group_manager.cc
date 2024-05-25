@@ -13,7 +13,7 @@
 #include "config/configuration.h"
 #include "features/feature_table.h"
 #include "model/metadata.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 #include "raft/group_configuration.h"
 #include "raft/rpc_client_protocol.h"
 #include "resource_mgmt/io_priority.h"

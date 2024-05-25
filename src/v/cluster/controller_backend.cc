@@ -30,7 +30,7 @@
 #include "features/feature_table.h"
 #include "model/fundamental.h"
 #include "model/metadata.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 #include "raft/fundamental.h"
 #include "raft/group_configuration.h"
 #include "ssx/event.h"

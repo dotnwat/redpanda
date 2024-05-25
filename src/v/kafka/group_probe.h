@@ -17,7 +17,7 @@
 #include "metrics/metrics.h"
 #include "model/fundamental.h"
 #include "model/namespace.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 
 #include <seastar/core/metrics.hh>
 

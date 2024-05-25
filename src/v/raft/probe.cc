@@ -11,7 +11,7 @@
 
 #include "config/configuration.h"
 #include "model/fundamental.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 
 #include <seastar/core/metrics.hh>
 

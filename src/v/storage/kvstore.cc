@@ -15,7 +15,7 @@
 #include "config/configuration.h"
 #include "model/async_adl_serde.h"
 #include "model/namespace.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 #include "reflection/adl.h"
 #include "ssx/async_algorithm.h"
 #include "storage/parser.h"

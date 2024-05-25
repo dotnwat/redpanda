@@ -20,7 +20,7 @@
 #include "model/fundamental.h"
 #include "model/record.h"
 #include "model/timestamp.h"
-#include "prometheus/prometheus_sanitize.h"
+#include "metrics/prometheus_sanitize.h"
 #include "raft/consensus_utils.h"
 #include "raft/errc.h"
 #include "raft/fundamental.h"
