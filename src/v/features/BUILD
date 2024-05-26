@@ -1,0 +1,21 @@
+cc_library(
+    name = "features",
+    srcs = [
+        "feature_table.cc",
+        "feature_table_snapshot.cc",
+        "logger.cc",
+    ],
+    hdrs = [
+        "feature_state.h",
+        "feature_table.h",
+        "feature_table_snapshot.h",
+        "fwd.h",
+        "logger.h",
+    ],
+    include_prefix = "features",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@seastar//:libseastar",
+        "//src/v/base",
+    ],
+)
