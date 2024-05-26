@@ -20,6 +20,8 @@ cc_library(
         "vint.h",
         "xid.h",
         "stop_signal.h",
+        "retry_chain_node.h",
+        "human.h",
     ],
     copts = [
     ],

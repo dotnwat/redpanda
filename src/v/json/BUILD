@@ -17,6 +17,7 @@ cc_library(
         "stream.h",
         "stringbuffer.h",
         "writer.h",
+        "validator.h",
     ],
     include_prefix = "json",
     visibility = ["//visibility:public"],

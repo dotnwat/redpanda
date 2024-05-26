@@ -10,6 +10,9 @@ cc_library(
         "timestamp.h",
         "validation.h",
         "timeout_clock.h",
+        "record.h",
+        "record_batch_types.h",
+        "record_utils.h",
     ],
     copts = [
     ],
