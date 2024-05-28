@@ -22,6 +22,9 @@ cc_library(
         "stop_signal.h",
         "retry_chain_node.h",
         "human.h",
+        "object_pool.h",
+        "tracking_allocator.h",
+        "waiter_queue.h",
     ],
     copts = [
     ],

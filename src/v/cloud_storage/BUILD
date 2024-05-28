@@ -83,6 +83,7 @@ cc_library(
         "//src/v/json",
         "//src/v/model",
         "//src/v/resource_mgmt",
+        "//src/v/storage",
         "@seastar//:libseastar",
     ],
 )

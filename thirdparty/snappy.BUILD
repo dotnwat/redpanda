@@ -15,6 +15,7 @@ cmake(
       "SNAPPY_BUILD_BENCHMARKS": "OFF",
       "CMAKE_SHARED_LINKER_FLAGS": "-Wno-fuse-ld-path",
     },
+    out_lib_dir = "lib64",
     out_shared_libs = ["libsnappy.so"],
     visibility = [
         "//visibility:public",

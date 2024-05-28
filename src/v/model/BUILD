@@ -13,6 +13,7 @@ cc_library(
         "record.h",
         "record_batch_types.h",
         "record_utils.h",
+        "record_batch_reader.h",
     ],
     copts = [
     ],

@@ -17,5 +17,9 @@ cc_library(
     deps = [
         "@seastar//:libseastar",
         "//src/v/base",
+        "//src/v/cluster:version",
+        "//src/v/security:license",
+        "//src/v/storage:record_batch_builder",
+        "//src/v/config",
     ],
 )

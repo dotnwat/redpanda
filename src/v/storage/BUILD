@@ -8,6 +8,26 @@ cc_library(
 )
 
 cc_library(
+    name = "record_batch_builder",
+    srcs = [
+        "record_batch_builder.cc",
+        "parser_utils.cc",
+    ],
+    hdrs = [
+        "record_batch_builder.h",
+        "parser_utils.h",
+    ],
+    include_prefix = "storage",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "//src/v/model",
+        "//src/v/compression",
+    ],
+)
+
+cc_library(
     name = "storage",
     srcs = [
         "segment_reader.cc",
@@ -38,7 +58,6 @@ cc_library(
         "kvstore.cc",
         "segment_utils.cc",
         "compaction_reducers.cc",
-        "parser_utils.cc",
         "readers_cache.cc",
         "backlog_controller.cc",
         "compaction_controller.cc",
@@ -92,7 +111,6 @@ cc_library(
         "offset_translator_state.h",
         "parser.h",
         "parser_errc.h",
-        "parser_utils.h",
         "probe.h",
         "readers_cache.h",
         "readers_cache_probe.h",
@@ -121,5 +139,7 @@ cc_library(
         "//src/v/model",
         "//src/v/config",
         "//src/v/metrics",
+        "//src/v/compression",
+        "//src/v/features",
     ],
 )
