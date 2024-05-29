@@ -141,5 +141,6 @@ cc_library(
         "//src/v/metrics",
         "//src/v/compression",
         "//src/v/features",
+        "@roaring//:libroaring",
     ],
 )
