@@ -6,6 +6,7 @@ cc_library(
         "io_priority.h",
         "available_memory.h",
         "memory_groups.h",
+        "storage.h",
     ],
     copts = [
     ],

@@ -30,6 +30,10 @@ cc_library(
         "moving_average.h",
         "filtered_lower_bound.h",
         "notification_list.h",
+        "delta_for.h",
+        "token_bucket.h",
+        "absl_sstring_hash.h",
+        "stream_utils.h",
     ],
     copts = [
     ],

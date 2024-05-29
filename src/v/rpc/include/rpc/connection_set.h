@@ -14,7 +14,7 @@
 #include "base/outcome.h"
 #include "config/tls_config.h"
 #include "model/metadata.h"
-#include "outcome_future_utils.h"
+#include "version/outcome_future_utils.h"
 #include "rpc/backoff_policy.h"
 #include "rpc/errc.h"
 #include "rpc/reconnect_transport.h"

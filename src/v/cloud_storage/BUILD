@@ -84,6 +84,8 @@ cc_library(
         "//src/v/model",
         "//src/v/resource_mgmt",
         "//src/v/storage",
+        "//src/v/raft",
+        "//src/v/archival:run_quota",
         "@seastar//:libseastar",
     ],
 )
