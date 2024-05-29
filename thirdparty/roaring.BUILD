@@ -1,21 +1,64 @@
-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
-
-filegroup(
-    name = "roaring_srcs",
-    srcs = glob(["**"]),
-)
-
-cmake(
+cc_library(
     name = "libroaring",
-    lib_source = ":roaring_srcs",
-    cache_entries = {
-      "BUILD_SHARED_LIBS": "ON",
-      "ENABLE_ROARING_TESTS": "OFF",
-      "ROARING_DISABLE_NEON": "ON", # we target -march=westmere which doesn't have avx
-      "ROARING_DISABLE_AVX": "ON", # we target -march=westmere which doesn't have avx
-      "ROARING_DISABLE_NATIVE": "ON",
-    },
-    out_shared_libs = ["libroaring.so"],
+    srcs = [
+        "src/isadetection.c",
+        "src/array_util.c",
+        "src/bitset_util.c",
+        "src/bitset.c",
+        "src/containers/array.c",
+        "src/containers/bitset.c",
+        "src/containers/containers.c",
+        "src/containers/convert.c",
+        "src/containers/mixed_intersection.c",
+        "src/containers/mixed_union.c",
+        "src/containers/mixed_equal.c",
+        "src/containers/mixed_subset.c",
+        "src/containers/mixed_negation.c",
+        "src/containers/mixed_xor.c",
+        "src/containers/mixed_andnot.c",
+        "src/containers/run.c",
+        "src/memory.c",
+        "src/roaring.c",
+        "src/roaring_priority_queue.c",
+        "src/roaring_array.c",
+    ],
+    copts = [
+        "-DDISABLE_NEON=1",
+        "-DROARING_DISABLE_AVX=1",
+    ],
+    hdrs = [
+        "include/roaring/bitset/bitset.h",
+        "include/roaring/containers/array.h",
+        "include/roaring/containers/bitset.h",
+        "include/roaring/containers/container_defs.h",
+        "include/roaring/containers/containers.h",
+        "include/roaring/containers/convert.h",
+        "include/roaring/containers/mixed_andnot.h",
+        "include/roaring/containers/mixed_equal.h",
+        "include/roaring/containers/mixed_intersection.h",
+        "include/roaring/containers/mixed_negation.h",
+        "include/roaring/containers/mixed_subset.h",
+        "include/roaring/containers/mixed_union.h",
+        "include/roaring/containers/mixed_xor.h",
+        "include/roaring/containers/perfparameters.h",
+        "include/roaring/containers/run.h",
+        "include/roaring/misc/configreport.h",
+        "include/roaring/array_util.h",
+        "include/roaring/bitset_util.h",
+        "include/roaring/isadetection.h",
+        "include/roaring/memory.h",
+        "include/roaring/portability.h",
+        "include/roaring/roaring.h",
+        "include/roaring/roaring_array.h",
+        "include/roaring/roaring_types.h",
+        "include/roaring/roaring_version.h",
+        "include/roaring/utilasm.h",
+        "include/roaring/roaring.hh",
+        "include/roaring/roaring64map.hh",
+    ],
+    includes = [
+        "include",
+    ],
     visibility = [
         "//visibility:public",
     ],

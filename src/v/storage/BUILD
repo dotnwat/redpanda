@@ -141,6 +141,11 @@ cc_library(
         "//src/v/metrics",
         "//src/v/compression",
         "//src/v/features",
+        "//src/v/resource_mgmt",
+        "//src/v/reflection",
+        "//src/v/finjector",
+        "@unordered_dense//:libunordered_dense",
+        "//src/v/raft:fundamental",
         "@roaring//:libroaring",
     ],
 )

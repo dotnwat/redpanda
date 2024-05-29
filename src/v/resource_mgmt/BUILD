@@ -4,6 +4,8 @@ cc_library(
     ],
     hdrs = [
         "io_priority.h",
+        "available_memory.h",
+        "memory_groups.h",
     ],
     copts = [
     ],

@@ -15,6 +15,9 @@ cc_library(
         "record_utils.h",
         "record_batch_reader.h",
         "limits.h",
+        "adl_serde.h",
+        "offset_interval.h",
+        "async_adl_serde.h",
     ],
     copts = [
     ],
@@ -24,5 +27,6 @@ cc_library(
         "//src/v/bytes",
         "//src/v/serde",
         "//src/v/utils",
+        "//src/v/reflection",
     ],
 )

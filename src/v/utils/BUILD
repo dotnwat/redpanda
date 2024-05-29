@@ -25,6 +25,11 @@ cc_library(
         "object_pool.h",
         "tracking_allocator.h",
         "waiter_queue.h",
+        "adjustable_semaphore.h",
+        "directory_walker.h",
+        "moving_average.h",
+        "filtered_lower_bound.h",
+        "notification_list.h",
     ],
     copts = [
     ],
