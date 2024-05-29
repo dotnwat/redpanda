@@ -15,6 +15,8 @@
 #include "config/node_config.h"
 #include "features/logger.h"
 #include "version/version.h"
+#include "cluster/features.h"
+#include "config/configuration.h"
 
 #include <seastar/core/abort_source.hh>
 

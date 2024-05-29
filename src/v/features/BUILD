@@ -18,6 +18,7 @@ cc_library(
         "@seastar//:libseastar",
         "//src/v/base",
         "//src/v/cluster:version",
+        "//src/v/cluster:features",
         "//src/v/security:license",
         "//src/v/storage:record_batch_builder",
         "//src/v/config",
