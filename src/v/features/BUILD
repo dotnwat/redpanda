@@ -21,5 +21,6 @@ cc_library(
         "//src/v/security:license",
         "//src/v/storage:record_batch_builder",
         "//src/v/config",
+        "//src/v:version",
     ],
 )
