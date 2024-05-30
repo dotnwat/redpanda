@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "archival/run_quota.h"
+#include "cluster/archival/run_quota.h"
 #include "base/seastarx.h"
 #include "cloud_storage/fwd.h"
 #include "cloud_storage/spillover_manifest.h"
