@@ -1,3 +1,12 @@
+py_binary(
+    name = "rpc_compiler",
+    srcs = ["rpc_compiler.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@my_deps//jinja2",
+    ],
+)
+
 cc_library(
     name = "rpc",
     srcs = [

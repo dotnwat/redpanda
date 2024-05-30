@@ -14,6 +14,7 @@
 #include "cluster/cloud_metadata/cluster_manifest.h"
 #include "cluster/errc.h"
 #include "cluster/fwd.h"
+#include "cluster/snapshots.h"
 #include "cluster/tx_hash_ranges.h"
 #include "cluster/version.h"
 #include "model/adl_serde.h"
@@ -4433,13 +4434,6 @@ std::ostream& operator<<(
       with_assignment.assignments);
     return o;
 }
-
-/// Names of snapshot files used by stm's
-static const ss::sstring archival_stm_snapshot = "archival_metadata.snapshot";
-static const ss::sstring rm_stm_snapshot = "tx.snapshot";
-static const ss::sstring tm_stm_snapshot = "tx.coordinator.snapshot";
-static const ss::sstring id_allocator_snapshot = "id.snapshot";
-static const ss::sstring tx_registry_snapshot = "tx_registry.snapshot";
 
 /**
  * Create/update a (Wasm) plugin.

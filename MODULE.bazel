@@ -12,6 +12,16 @@ git_override(
     remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
 
+bazel_dep(name = "rules_python", version = "0.32.2")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip.parse(
+    hub_name = "my_deps",
+    python_version = "3.11",
+    requirements_lock = "//:requirements.txt",
+)
+use_repo(pip, "my_deps")
+
 bazel_dep(name = "rules_foreign_cc", version = "0.10.1")
 bazel_dep(name = "xxhash", version = "0.8.2")
 bazel_dep(name = "zstd", version = "1.5.6")

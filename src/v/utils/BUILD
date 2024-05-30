@@ -34,6 +34,7 @@ cc_library(
         "token_bucket.h",
         "absl_sstring_hash.h",
         "stream_utils.h",
+        "expiring_promise.h",
     ],
     copts = [
     ],

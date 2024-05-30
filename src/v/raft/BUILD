@@ -10,8 +10,47 @@ cc_library(
     ],
 )
 
+genrule(
+    name = "raftgen",
+    tools = ["//src/v/rpc:rpc_compiler"],
+    srcs = ["raftgen.json"],
+    outs = ["raftgen_service.h"],
+    cmd = "$(location //src/v/rpc:rpc_compiler) --service_file $(SRCS) --output_file $@",
+)
+
 cc_library(
     name = "raft",
+    srcs = [
+        "consensus.cc",
+        "consensus_utils.cc",
+        "heartbeat_manager.cc",
+        "configuration_bootstrap_state.cc",
+        "logger.cc",
+        "types.cc",
+        "replicate_entries_stm.cc",
+        "vote_stm.cc",
+        "recovery_stm.cc",
+        "follower_stats.cc",
+        "replicate_batcher.cc",
+        "rpc_client_protocol.cc",
+        "group_manager.cc",
+        "probe.cc",
+        "offset_monitor.cc",
+        "event_manager.cc",
+        "state_machine.cc",
+        "configuration_manager.cc",
+        "group_configuration.cc",
+        "append_entries_buffer.cc",
+        "follower_queue.cc",
+        "recovery_memory_quota.cc",
+        "coordinated_recovery_throttle.cc",
+        "heartbeats.cc",
+        "state_machine_manager.cc",
+        "state_machine_base.cc",
+        "recovery_scheduler.cc",
+        "persisted_stm.cc",
+        "replication_monitor.cc",
+    ],
     hdrs = [
         "append_entries_buffer.h",
         "configuration_bootstrap_state.h",
@@ -52,10 +91,15 @@ cc_library(
         "transfer_leadership.h",
         "types.h",
         "vote_stm.h",
+        "raftgen_service.h",
     ],
     include_prefix = "raft",
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/rpc",
+        "//src/v/features",
+        "//src/v/storage",
+        "//src/v/cluster:notification",
+        "//src/v/cluster:snapshots",
     ],
 )
