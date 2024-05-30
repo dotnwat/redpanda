@@ -1,3 +1,5 @@
+load("//src/v/rpc:compiler.bzl", "rpc_gen")
+
 cc_library(
     name = "fundamental",
     hdrs = [
@@ -10,13 +12,17 @@ cc_library(
     ],
 )
 
-genrule(
-    name = "raftgen",
-    tools = ["//src/v/rpc:rpc_compiler"],
-    srcs = ["raftgen.json"],
-    outs = ["raftgen_service.h"],
-    cmd = "$(location //src/v/rpc:rpc_compiler) --service_file $(SRCS) --output_file $@",
-)
+rpc_gen("raftgen",
+    src="raftgen.json",
+    out="raftgen_service.h")
+
+#genrule(
+#    name = "raftgen",
+#    tools = ["//src/v/rpc:rpc_compiler"],
+#    srcs = ["raftgen.json"],
+#    outs = ["raftgen_service.h"],
+#    cmd = "$(location //src/v/rpc:rpc_compiler) --service_file $(SRCS) --output_file $@",
+#)
 
 cc_library(
     name = "raft",
