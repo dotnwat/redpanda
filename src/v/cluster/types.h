@@ -13,6 +13,7 @@
 
 #include "cluster/cloud_metadata/cluster_manifest.h"
 #include "cluster/errc.h"
+#include "cluster/features.h"
 #include "cluster/fwd.h"
 #include "cluster/snapshots.h"
 #include "cluster/tx_hash_ranges.h"

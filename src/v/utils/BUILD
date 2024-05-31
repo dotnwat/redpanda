@@ -35,6 +35,13 @@ cc_library(
         "absl_sstring_hash.h",
         "stream_utils.h",
         "expiring_promise.h",
+        "stable_iterator_adaptor.h",
+        "exceptions.h",
+        "move_canary.h",
+        "available_promise.h",
+        "retry.h",
+        "rwlock.h",
+        "auto_fmt.h",
     ],
     copts = [
     ],

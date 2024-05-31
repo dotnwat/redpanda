@@ -18,6 +18,9 @@ cc_library(
         "adl_serde.h",
         "offset_interval.h",
         "async_adl_serde.h",
+        "transform.h",
+        "ktp.h",
+        "errc.h",
     ],
     copts = [
     ],
