@@ -6,6 +6,5 @@ cc_library(
     include_prefix = "kafka",
     visibility = ["//visibility:public"],
     deps = [
-        "//src/v/kafka/protocol",
     ],
 )

@@ -17,6 +17,7 @@
 #include "bytes/iobuf_parser.h"
 #include "kafka/protocol/batch_reader.h"
 #include "kafka/protocol/types.h"
+#include "kafka/types.h"
 #include "strings/utf8.h"
 #include "utils/vint.h"
 

@@ -42,6 +42,7 @@ cc_library(
         "retry.h",
         "rwlock.h",
         "auto_fmt.h",
+        "truncating_logger.h",
     ],
     copts = [
     ],
