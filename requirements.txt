@@ -1,2 +1,5 @@
 Jinja2==3.0.3
 MarkupSafe==2.1.2
+jsonschema==4.17.3
+attrs==22.2.0
+pyrsistent==0.19.3
