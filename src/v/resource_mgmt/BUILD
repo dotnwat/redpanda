@@ -7,6 +7,7 @@ cc_library(
         "available_memory.h",
         "memory_groups.h",
         "storage.h",
+        "rate.h",
     ],
     copts = [
     ],

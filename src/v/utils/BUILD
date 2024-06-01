@@ -43,6 +43,10 @@ cc_library(
         "rwlock.h",
         "auto_fmt.h",
         "truncating_logger.h",
+        "queue_depth_control.h",
+        "ema.h",
+        "remote.h",
+        "bottomless_token_bucket.h",
     ],
     copts = [
     ],

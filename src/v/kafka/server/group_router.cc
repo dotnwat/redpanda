@@ -10,7 +10,7 @@
  */
 #include "kafka/server/group_router.h"
 
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/when_all.hh>

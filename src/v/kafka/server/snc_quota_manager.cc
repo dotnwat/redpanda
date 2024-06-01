@@ -10,7 +10,7 @@
 #include "kafka/server/snc_quota_manager.h"
 
 #include "config/configuration.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "metrics/prometheus_sanitize.h"
 #include "ssx/future-util.h"
 #include "ssx/sharded_ptr.h"

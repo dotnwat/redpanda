@@ -28,7 +28,7 @@
 #include "kafka/protocol/wire.h"
 #include "kafka/server/group_metadata.h"
 #include "kafka/server/group_recovery_consumer.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "model/fundamental.h"
 #include "model/namespace.h"
 #include "model/record.h"

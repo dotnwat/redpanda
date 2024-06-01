@@ -12,7 +12,7 @@
 #pragma once
 #include "base/vlog.h"
 #include "container/fragmented_vector.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "storage/kvstore.h"
 
 #include <seastar/core/gate.hh>

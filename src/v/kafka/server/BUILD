@@ -76,6 +76,7 @@ cc_library(
         "token_bucket_rate_tracker.h",
         "usage_aggregator.h",
         "usage_manager.h",
+        "fetch_metadata_cache.hh",
         "handlers/add_offsets_to_txn.h",
         "handlers/add_partitions_to_txn.h",
         "handlers/alter_client_quotas.h",
@@ -138,7 +139,13 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/base",
+        "//src/v/cluster",
         "//src/v/kafka/protocol",
+        "//src/v/resource_mgmt",
+        "//src/v/security",
+        "//src/v/utils",
+        "//src/v/kafka:types",
+        "//src/v/pandaproxy:schema_registry_interface",
         "@seastar//:libseastar",
     ],
 )

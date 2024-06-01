@@ -13,7 +13,7 @@
 
 #include "kafka/protocol/wire.h"
 #include "kafka/server/group_metadata.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 
 #include <exception>
 

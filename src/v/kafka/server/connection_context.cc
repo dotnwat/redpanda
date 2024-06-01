@@ -23,7 +23,7 @@
 #include "kafka/server/handlers/fetch.h"
 #include "kafka/server/handlers/handler_interface.h"
 #include "kafka/server/handlers/produce.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "kafka/server/protocol_utils.h"
 #include "kafka/server/quota_manager.h"
 #include "kafka/server/request_context.h"

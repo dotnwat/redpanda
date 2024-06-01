@@ -30,7 +30,7 @@
 #include "kafka/protocol/wire.h"
 #include "kafka/server/group_metadata.h"
 #include "kafka/server/group_stm.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "kafka/server/member.h"
 #include "kafka/types.h"
 #include "model/fundamental.h"
