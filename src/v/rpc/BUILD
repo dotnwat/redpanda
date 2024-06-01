@@ -10,14 +10,14 @@ py_binary(
 cc_library(
     name = "rpc",
     srcs = [
-        "types.cc",
-        "netbuf.cc",
-        "transport.cc",
-        "reconnect_transport.cc",
         "connection_cache.cc",
         "connection_set.cc",
+        "netbuf.cc",
+        "reconnect_transport.cc",
         "rpc_server.cc",
         "rpc_utils.cc",
+        "transport.cc",
+        "types.cc",
     ],
     hdrs = [
         "include/rpc/backoff_policy.h",
@@ -41,13 +41,13 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v:version",
         "//src/v/base",
         "//src/v/bytes",
-        "//src/v/ssx",
+        "//src/v/compression",
         "//src/v/config",
         "//src/v/metrics",
         "//src/v/net",
-        "//src/v/compression",
-        "//src/v:version",
+        "//src/v/ssx",
     ],
 )

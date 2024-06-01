@@ -3,11 +3,16 @@ cc_library(
     srcs = [
     ],
     hdrs = [
-        "io_priority.h",
         "available_memory.h",
+        "cpu_profiler.h",
+        "cpu_scheduling.h",
+        "io_priority.h",
         "memory_groups.h",
-        "storage.h",
+        "memory_sampling.h",
         "rate.h",
+        "scheduling_groups_probe.h",
+        "storage.h",
+        "smp_groups.h",
     ],
     copts = [
     ],

@@ -19,6 +19,7 @@ cc_library(
         "include/net/connection_rate_counter.h",
         "include/net/dns.h",
         "include/net/exceptions.h",
+        "include/net/fwd.h",
         "include/net/server.h",
         "include/net/server_probe.h",
         "include/net/tls.h",

@@ -3,8 +3,8 @@ cc_library(
     srcs = [
     ],
     hdrs = [
-        "version.h",
         "outcome_future_utils.h",
+        "version.h",
         "vformat.h",
     ],
     include_prefix = "version",

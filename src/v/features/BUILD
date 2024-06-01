@@ -15,13 +15,13 @@ cc_library(
     include_prefix = "features",
     visibility = ["//visibility:public"],
     deps = [
-        "@seastar//:libseastar",
+        "//src/v:version",
         "//src/v/base",
-        "//src/v/cluster:version",
         "//src/v/cluster:features",
+        "//src/v/cluster:version",
+        "//src/v/config",
         "//src/v/security:license",
         "//src/v/storage:record_batch_builder",
-        "//src/v/config",
-        "//src/v:version",
+        "@seastar//:libseastar",
     ],
 )

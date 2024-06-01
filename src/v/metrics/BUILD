@@ -3,6 +3,7 @@ cc_library(
     srcs = [
     ],
     hdrs = [
+        "aggregate_metrics_watcher.h",
         "metrics.h",
         "metrics_registry.h",
         "prometheus_sanitize.h",

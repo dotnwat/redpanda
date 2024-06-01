@@ -3,12 +3,12 @@ cc_library(
     srcs = [
     ],
     hdrs = [
+        "adl.h",
         "arity.h",
+        "async_adl.h",
+        "for_each_field.h",
         "to_tuple.h",
         "type_traits.h",
-        "adl.h",
-        "for_each_field.h",
-        "async_adl.h",
     ],
     copts = [
     ],

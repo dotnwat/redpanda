@@ -11,9 +11,21 @@ cc_library(
 cc_library(
     name = "schema_registry_interface",
     hdrs = [
-        "schema_registry/fwd.h",
         "schema_registry/api.h",
+        "schema_registry/configuration.h",
+        "schema_registry/fwd.h",
         "schema_registry/validation.h",
+    ],
+    include_prefix = "pandaproxy",
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "pandaproxy",
+    hdrs = [
+        "fwd.h",
+        "rest/configuration.h",
+        "rest/fwd.h",
     ],
     include_prefix = "pandaproxy",
     visibility = ["//visibility:public"],
