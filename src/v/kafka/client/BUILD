@@ -30,5 +30,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/net",
+        "//src/v/cluster",
+        "//src/v/config",
+        "//src/v/kafka/server:requests",
     ],
 )

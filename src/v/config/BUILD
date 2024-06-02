@@ -33,6 +33,7 @@ cc_library(
         "types.h",
         "validation_error.h",
         "validators.h",
+        "fwd.h",
     ],
     include_prefix = "config",
     visibility = ["//visibility:public"],

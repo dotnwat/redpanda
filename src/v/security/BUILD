@@ -27,6 +27,20 @@ cc_library(
 )
 
 cc_library(
+    name = "audit_log_manager",
+    srcs = [
+    ],
+    hdrs = [
+        "audit/audit_log_manager.h",
+    ],
+    include_prefix = "security",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/kafka/client",
+    ],
+)
+
+cc_library(
     name = "security",
     srcs = [
     ],
@@ -34,7 +48,6 @@ cc_library(
         "acl.h",
         "acl_entry_set.h",
         "acl_store.h",
-        "audit/audit_log_manager.h",
         "audit/client_probe.h",
         "audit/logger.h",
         "audit/probe.h",
@@ -73,7 +86,6 @@ cc_library(
         "//src/v/base",
         "//src/v/bytes:bytes_random",
         "//src/v/json",
-        "//src/v/kafka/client",
         "//src/v/serde",
     ],
 )

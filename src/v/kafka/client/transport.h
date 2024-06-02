@@ -24,6 +24,7 @@
 //#include "kafka/server/protocol_utils.h"
 #include "kafka/types.h"
 #include "net/transport.h"
+#include "kafka/protocol/fetch.h"
 
 #include <seastar/core/future.hh>
 #include <seastar/core/iostream.hh>
