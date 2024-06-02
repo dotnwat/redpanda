@@ -12,6 +12,7 @@ cmake(
     cache_entries = {
         "WASMTIME_USER_CARGO_BUILD_OPTIONS": "--no-default-features;--features=async;--features=addr2line;--features=wat",
     },
+    out_lib_dir = "lib64",
     out_static_libs = ["libwasmtime.a"],
     visibility = [
         "//visibility:public",

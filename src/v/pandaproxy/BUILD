@@ -14,10 +14,16 @@ cc_library(
         "schema_registry/api.h",
         "schema_registry/configuration.h",
         "schema_registry/fwd.h",
+        "schema_registry/types.h",
         "schema_registry/validation.h",
+        "schema_registry/seq_writer.h",
     ],
     include_prefix = "pandaproxy",
     visibility = ["//visibility:public"],
+    deps = [
+        "@avro//:libavro",
+        "//src/v/kafka/client",
+    ],
 )
 
 cc_library(

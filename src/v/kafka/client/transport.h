@@ -19,8 +19,9 @@
 #include "kafka/protocol/delete_records.h"
 #include "kafka/protocol/flex_versions.h"
 #include "kafka/protocol/fwd.h"
+#include "kafka/protocol/wire.h"
 #include "kafka/protocol/offset_for_leader_epoch.h"
-#include "kafka/server/protocol_utils.h"
+//#include "kafka/server/protocol_utils.h"
 #include "kafka/types.h"
 #include "net/transport.h"
 

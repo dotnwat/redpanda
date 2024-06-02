@@ -33,7 +33,11 @@ cc_library(
       "lang/c++/impl/parsing/*.hh",
     ]),
     defines = ["AVRO_VERSION=1"],
-    strip_include_prefix = "lang/c++/include/avro/",
+    #strip_include_prefix = "lang/c++/include/avro/",
+    includes = [
+        "lang/c++/include/avro",
+        "lang/c++/include",
+    ],
     hdrs = glob([
         "lang/c++/include/avro/*.hh",
         "lang/c++/include/avro/buffer/*.hh",

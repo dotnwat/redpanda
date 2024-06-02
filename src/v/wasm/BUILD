@@ -1,0 +1,68 @@
+cc_library(
+    name = "parser",
+    srcs = ["parser/parser.cc",
+        "parser/leb128.h",
+    ],
+    hdrs = ["parser/include/wasm/parser/parser.h",],
+    includes = [
+        "parser/include",
+    ],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "//src/v/utils",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+
+cc_library(
+    name = "wasm",
+    srcs = [
+        "api.cc",
+        "ffi.cc",
+        "logger.cc",
+        "transform_probe.cc",
+        "schema_registry.cc",
+        "schema_registry_module.cc",
+        "transform_module.cc",
+        "wasi.cc",
+        "wasmtime.cc",
+        "cache.cc",
+        "allocator.cc",
+        "engine_probe.cc",
+        "allocator.h",
+        "engine_probe.h",
+        "ffi.h",
+        "logger.h",
+        "schema_registry.h",
+        "schema_registry_module.h",
+        "transform_module.h",
+        "wasi.h",
+        "wasmtime.h",
+    ],
+    hdrs = [
+        "include/wasm/api.h",
+        "include/wasm/cache.h",
+        "include/wasm/errc.h",
+        "include/wasm/fwd.h",
+        "include/wasm/transform_probe.h",
+    ],
+    includes = [
+        "include",
+    ],
+    deps = [
+        "//src/v/base",
+        "//src/v/model",
+        "//src/v/metrics",
+        "//src/v/config",
+        "//src/v/pandaproxy:schema_registry_interface",
+        "//src/v/kafka/client",
+        "//src/v/kafka/protocol",
+        "//src/v/security",
+        "@seastar//:libseastar",
+        ":parser",
+        "@wasmtime//:libwasmtime",
+    ],
+    visibility = ["//visibility:public"],
+)
