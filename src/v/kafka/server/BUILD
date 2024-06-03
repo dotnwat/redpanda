@@ -155,6 +155,7 @@ cc_library(
         "//src/v/pandaproxy:schema_registry_interface",
         "//src/v/resource_mgmt",
         "//src/v/security",
+        "//src/v/security:audit_log_manager",
         "//src/v/utils",
         ":requests",
         "@seastar//:libseastar",
