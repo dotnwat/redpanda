@@ -11,8 +11,8 @@ cc_library(
         "memory_sampling.h",
         "rate.h",
         "scheduling_groups_probe.h",
-        "storage.h",
         "smp_groups.h",
+        "storage.h",
     ],
     copts = [
     ],

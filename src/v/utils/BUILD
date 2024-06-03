@@ -16,6 +16,7 @@ cc_library(
         "expiring_promise.h",
         "file_io.h",
         "filtered_lower_bound.h",
+        "fixed_string.h",
         "functional.h",
         "hdr_hist.h",
         "human.h",
@@ -47,7 +48,6 @@ cc_library(
         "vint.h",
         "waiter_queue.h",
         "xid.h",
-        "fixed_string.h",
     ],
     copts = [
     ],
