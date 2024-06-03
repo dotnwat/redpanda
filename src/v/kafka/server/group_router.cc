@@ -224,7 +224,7 @@ ss::future<described_group> group_router::describe_group(kafka::group_id g) {
     auto m = shard_for(g);
     if (!m) {
         return ss::make_ready_future<described_group>(
-          describe_groups_response::make_empty_described_group(
+          make_empty_described_group(
             std::move(g), error_code::not_coordinator));
     }
     return with_scheduling_group(

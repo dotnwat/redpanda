@@ -36,6 +36,27 @@ cc_library(
         "//src/v/kafka/server:kafka",
         "//src/v/storage:record_batch_builder",
         "@seastar//:libseastar",
+        ":stm",
+    ],
+)
+
+cc_library(
+    name = "stm",
+    srcs = [
+        "stm/transform_offsets_stm.cc",
+    ],
+    hdrs = [
+        "stm/include/transform/stm/transform_offsets_stm.h",
+    ],
+    includes = [
+        "stm/include",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/model",
+        "//src/v/cluster",
+        "@seastar//:libseastar",
     ],
 )
 
@@ -111,5 +132,6 @@ cc_library(
         "//src/v/kafka/server:kafka",
         "//src/v/wasm",
         "@seastar//:libseastar",
+        ":logging",
     ],
 )

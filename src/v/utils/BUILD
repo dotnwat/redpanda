@@ -47,6 +47,7 @@ cc_library(
         "vint.h",
         "waiter_queue.h",
         "xid.h",
+        "fixed_string.h",
     ],
     copts = [
     ],
