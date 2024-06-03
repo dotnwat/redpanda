@@ -1,6 +1,14 @@
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
+py_binary(
+    name = "seastar-json2code",
+    srcs = ["scripts/seastar-json2code.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+    ],
+)
+
 genrule(
     name = "http_request_parser",
     srcs = ["src/http/request_parser.rl"],
