@@ -41,8 +41,39 @@ cc_library(
 )
 
 cc_library(
+    name = "request_auth",
+    srcs = [
+        "request_auth.cc",
+    ],
+    hdrs = [
+        "request_auth.h",
+    ],
+    include_prefix = "security",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/cluster",
+    ],
+)
+
+cc_library(
     name = "security",
     srcs = [
+        "acl.cc",
+        "authorizer.cc",
+        "credential.cc",
+        "gssapi_authenticator.cc",
+        "gssapi_principal_mapper.cc",
+        "jwt.cc",
+        "krb5.cc",
+        "krb5_configurator.cc",
+        "mtls.cc",
+        "oidc_authenticator.cc",
+        "oidc_principal_mapping.cc",
+        "oidc_service.cc",
+        "role.cc",
+        "scram_algorithm.cc",
+        "scram_authenticator.cc",
     ],
     hdrs = [
         "acl.h",
@@ -67,11 +98,12 @@ cc_library(
         "fwd.h",
         "gssapi_authenticator.h",
         "krb5_configurator.h",
+        "krb5.h",
         "logger.h",
         "mtls.h",
+        "jwt.h",
         "oidc_authenticator.h",
         "oidc_service.h",
-        "request_auth.h",
         "role.h",
         "role_store.h",
         "sasl_authentication.h",
@@ -79,13 +111,21 @@ cc_library(
         "scram_authenticator.h",
         "scram_credential.h",
         "types.h",
+        "oidc_principal_mapping.h",
+        "oidc_error.h",
+        "gssapi.h",
     ],
     include_prefix = "security",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v:version",
         "//src/v/base",
         "//src/v/bytes:bytes_random",
         "//src/v/json",
+        "//src/v/net",
+        "//src/v/http",
         "//src/v/serde",
+        "//src/v/config",
+        "//src/v/kafka:types",
     ],
 )

@@ -35,6 +35,7 @@ cmake(
         "BASE64_WITH_OpenMP": "OFF",
         "BASE64_WERROR": "OFF",
     },
+    out_lib_dir = "lib64",
     out_static_libs = ["libbase64.a"],
     visibility = [
         "//visibility:public",

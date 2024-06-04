@@ -188,6 +188,17 @@ genrule(
 )
 
 cc_library(
+    name = "types",
+    hdrs = [
+        "types.h",
+    ],
+    include_prefix = "kafka/protocol",
+    visibility = ["//visibility:public"],
+    deps = [
+    ],
+)
+
+cc_library(
     name = "protocol",
     srcs = [
         "batch_reader.cc",
@@ -334,7 +345,6 @@ cc_library(
         "sync_group.h",
         "timeout.h",
         "txn_offset_commit.h",
-        "types.h",
         "wire.h",
     ],
     include_prefix = "kafka/protocol",
@@ -348,6 +358,7 @@ cc_library(
         "//src/v/storage:record_batch_builder",
         "//src/v/utils",
         "@seastar//:libseastar",
+        ":types",
     ],
 )
 

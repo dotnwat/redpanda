@@ -1,6 +1,12 @@
 cc_library(
     name = "resource_mgmt",
     srcs = [
+        "memory_groups.cc",
+        "available_memory.cc",
+        "memory_sampling.cc",
+        "cpu_profiler.cc",
+        "logger.cc",
+        "smp_groups.cc",
     ],
     hdrs = [
         "available_memory.h",
@@ -13,11 +19,18 @@ cc_library(
         "scheduling_groups_probe.h",
         "smp_groups.h",
         "storage.h",
+        "logger.h",
     ],
     copts = [
     ],
     include_prefix = "resource_mgmt",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/base",
+        "//src/v/container",
+        "//src/v/config",
+        "//src/v/metrics",
+        "//src/v/random",
+        "@seastar//:libseastar",
     ],
 )

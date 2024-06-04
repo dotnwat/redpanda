@@ -86,6 +86,7 @@ cc_library(
         "//src/v/raft",
         "//src/v/resource_mgmt",
         "//src/v/storage",
+        "//src/v/utils:retry_chain_node",
         "@seastar//:libseastar",
     ],
 )

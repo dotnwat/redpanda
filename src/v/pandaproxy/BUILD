@@ -51,6 +51,9 @@ cc_library(
     ],
     include_prefix = "pandaproxy",
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/security:request_auth",
+    ],
 )
 
 cc_library(
@@ -60,6 +63,7 @@ cc_library(
         "json/types.h",
         "kafka_client_cache.h",
         "rest/configuration.h",
+        "rest/api.h",
         "rest/fwd.h",
         "types.h",
         "util.h",

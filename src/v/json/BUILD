@@ -18,10 +18,12 @@ cc_library(
         "stringbuffer.h",
         "validator.h",
         "writer.h",
+        "pointer.h",
     ],
     include_prefix = "json",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/utils:unresolved_address",
         "@rapidjson//:librapidjson",
     ],
 )

@@ -31,5 +31,7 @@ cc_library(
         "//src/v/reflection",
         "//src/v/serde",
         "//src/v/utils",
+        "//src/v/utils:xid",
+        "//src/v/utils:unresolved_address",
     ],
 )

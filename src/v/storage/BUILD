@@ -145,6 +145,8 @@ cc_library(
         "//src/v/raft:fundamental",
         "//src/v/reflection",
         "//src/v/resource_mgmt",
+        "//src/v/syschecks",
+        "//src/v/utils:tracking_allocator",
         "@roaring//:libroaring",
         "@unordered_dense//:libunordered_dense",
     ],
