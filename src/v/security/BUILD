@@ -1,12 +1,18 @@
 cc_library(
     name = "config",
+    srcs = [
+        "config_bsl.cc",
+        "config_rcl.cc",
+    ],
     hdrs = [
         "config.h",
-        "gssapi_principal_mapper.h",
         "oidc_url_parser.h",
     ],
     include_prefix = "security",
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+    ],
 )
 
 cc_library(
@@ -79,6 +85,7 @@ cc_library(
         "acl.h",
         "acl_entry_set.h",
         "acl_store.h",
+        "gssapi_principal_mapper.h",
         "audit/client_probe.h",
         "audit/logger.h",
         "audit/probe.h",

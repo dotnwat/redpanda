@@ -1,6 +1,7 @@
 cc_library(
     name = "json",
     srcs = [
+        "json.cc",
     ],
     hdrs = [
         "_include_first.h",
@@ -19,6 +20,7 @@ cc_library(
         "validator.h",
         "writer.h",
         "pointer.h",
+        "types.h",
     ],
     include_prefix = "json",
     visibility = ["//visibility:public"],

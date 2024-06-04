@@ -9,7 +9,7 @@ configure_make(
     name = "libopenssl",
     lib_source = ":openssl_srcs",
     out_lib_dir = "lib64",
-    out_shared_libs = ["libssl.so"],
+    out_shared_libs = ["libssl.so", "libcrypto.so"],
     configure_command = "Configure",
     configure_options = [
         "enable-fips",

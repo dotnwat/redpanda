@@ -9,6 +9,7 @@ cc_library(
         "for_each_field.h",
         "to_tuple.h",
         "type_traits.h",
+        "seastar/circular_buffer.h",
     ],
     copts = [
     ],

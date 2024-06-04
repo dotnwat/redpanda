@@ -27,5 +27,6 @@ cc_library(
         "//src/v/base",
         "//src/v/bytes",
         "//src/v/ssx",
+        "@openssl//:libopenssl",
     ],
 )

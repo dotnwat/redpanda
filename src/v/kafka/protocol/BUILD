@@ -189,8 +189,12 @@ genrule(
 
 cc_library(
     name = "types",
+    srcs = [
+        "errors.cc",
+    ],
     hdrs = [
         "types.h",
+        "errors.h",
     ],
     include_prefix = "kafka/protocol",
     visibility = ["//visibility:public"],
@@ -202,7 +206,6 @@ cc_library(
     name = "protocol",
     srcs = [
         "batch_reader.cc",
-        "errors.cc",
         "kafka_batch_adapter.cc",
         "logger.cc",
         "protocol.cc",
@@ -232,7 +235,6 @@ cc_library(
         "describe_producers.h",
         "describe_transactions.h",
         "end_txn.h",
-        "errors.h",
         "exceptions.h",
         "fetch.h",
         "find_coordinator.h",

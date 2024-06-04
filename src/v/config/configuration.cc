@@ -17,7 +17,7 @@
 #include "model/metadata.h"
 #include "model/namespace.h"
 #include "security/config.h"
-#include "security/gssapi_principal_mapper.h"
+//#include "security/gssapi_principal_mapper.h"
 #include "security/oidc_url_parser.h"
 #include "ssx/sformat.h"
 #include "storage/config.h"
