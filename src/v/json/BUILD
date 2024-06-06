@@ -1,0 +1,31 @@
+cc_library(
+    name = "json",
+    srcs = [
+        "json.cc",
+    ],
+    hdrs = [
+        "_include_first.h",
+        "allocator.h",
+        "document.h",
+        "encodings.h",
+        "istreamwrapper.h",
+        "json.h",
+        "logger.h",
+        "ostreamwrapper.h",
+        "prettywriter.h",
+        "reader.h",
+        "schema.h",
+        "stream.h",
+        "stringbuffer.h",
+        "validator.h",
+        "writer.h",
+        "pointer.h",
+        "types.h",
+    ],
+    include_prefix = "json",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/utils:unresolved_address",
+        "@rapidjson//:librapidjson",
+    ],
+)

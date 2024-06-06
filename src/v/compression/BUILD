@@ -1,0 +1,42 @@
+cc_library(
+    name = "compression",
+    srcs = [
+        "async_stream_zstd.cc",
+        "compression.cc",
+        "internal/gzip_compressor.cc",
+        "internal/lz4_frame_compressor.cc",
+        "internal/snappy_java_compressor.cc",
+        "lz4_decompression_buffers.cc",
+        "snappy_standard_compressor.cc",
+        "stream_zstd.cc",
+    ],
+    hdrs = [
+        "include/compression/async_stream_zstd.h",
+        "include/compression/compression.h",
+        "include/compression/internal/gzip_compressor.h",
+        "include/compression/internal/lz4_frame_compressor.h",
+        "include/compression/internal/snappy_java_compressor.h",
+        "include/compression/internal/zstd_compressor.h",
+        "include/compression/lz4_decompression_buffers.h",
+        "include/compression/snappy_standard_compressor.h",
+        "include/compression/stream_zstd.h",
+    ],
+    copts = [
+        "-DZSTD_STATIC_LINKING_ONLY",
+    ],
+    includes = [
+        "include",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/base",
+        "//src/v/bytes",
+        "//src/v/model",
+        "//src/v/utils",
+        "@lz4",
+        "@seastar//:libseastar",
+        "@snappy//:libsnappy",
+        "@zlib",
+        "@zstd",
+    ],
+)
