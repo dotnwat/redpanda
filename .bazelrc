@@ -1,0 +1,26 @@
+# use a compiler name that doesn't symlink to ccache
+build --action_env=CC=clang-16 --host_action_env=CC=clang-16
+build --action_env=CXX=clang++-16 --host_action_env=CXX=clang++-16
+build --action_env=BAZEL_COMPILER=clang
+build --cxxopt=-std=c++20 --host_cxxopt=-std=c++20
+build --linkopt -fuse-ld=lld
+
+# https://github.com/bazelbuild/rules_foreign_cc/issues/1065
+# https://github.com/bazelbuild/rules_foreign_cc/issues/1186#issuecomment-2053550487
+build --host_action_env=CXXFLAGS=-Wno-int-conversion
+build --action_env=CXXFLAGS=-Wno-int-conversion
+build --host_action_env=CFLAGS=-Wno-int-conversion
+build --action_env=CFLAGS=-Wno-int-conversion
+
+# https://github.com/bazelbuild/bazel/issues/19915
+# https://github.com/bazelbuild/bazel/issues/20886
+build --noincompatible_sandbox_hermetic_tmp
+
+common --registry=https://raw.githubusercontent.com/bazelboost/registry/main
+common --registry=https://bcr.bazel.build
+
+build:sanitizer --copt -fsanitize=address,undefined,vptr,function
+build:sanitizer --linkopt -fsanitize=address,undefined,vptr,function
+build:sanitizer --linkopt --rtlib=compiler-rt
+build:sanitizer --linkopt -fsanitize-link-c++-runtime
+build:sanitizer --copt -O1
