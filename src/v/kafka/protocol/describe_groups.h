@@ -13,7 +13,6 @@
 #include "kafka/protocol/errors.h"
 #include "kafka/protocol/schemata/describe_groups_request.h"
 #include "kafka/protocol/schemata/describe_groups_response.h"
-#include "kafka/server/group.h"
 #include "kafka/types.h"
 
 #include <seastar/core/future.hh>
@@ -50,27 +49,6 @@ struct describe_groups_response final {
 
     void decode(iobuf buf, api_version version) {
         data.decode(std::move(buf), version);
-    }
-
-    static described_group
-    make_empty_described_group(group_id g, error_code e) {
-        return described_group{
-          .error_code = e,
-          .group_id = std::move(g),
-          .group_state = "",
-          .protocol_type = kafka::protocol_type(),
-          .protocol_data = "",
-        };
-    }
-
-    static described_group make_dead_described_group(group_id g) {
-        return described_group{
-          .error_code = error_code::none,
-          .group_id = std::move(g),
-          .group_state = group_state_to_kafka_name(group_state::dead),
-          .protocol_type = kafka::protocol_type(),
-          .protocol_data = "",
-        };
     }
 
     friend std::ostream&

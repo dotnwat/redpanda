@@ -1735,7 +1735,7 @@ ss::future<std::error_code> topics_frontend::decrease_replication_factor(
       metadata_ref.get_assignments(),
       32,
       [&new_assignments, &error, topic, new_replication_factor](
-        partition_assignment& assignment) {
+        const partition_assignment& assignment) {
           if (error) {
               return ss::now();
           }

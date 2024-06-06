@@ -16,7 +16,7 @@
 #include "model/metadata.h"
 #include "model/timeout_clock.h"
 #include "rpc/connection_cache.h"
-#include "vformat.h"
+#include "version/vformat.h"
 
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/coroutine.hh>

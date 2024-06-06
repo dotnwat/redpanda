@@ -9,12 +9,12 @@
 
 #include "redpanda/application.h"
 
-#include "archival/archival_metadata_stm.h"
-#include "archival/archiver_manager.h"
-#include "archival/ntp_archiver_service.h"
-#include "archival/purger.h"
-#include "archival/upload_controller.h"
-#include "archival/upload_housekeeping_service.h"
+#include "cluster/archival/archival_metadata_stm.h"
+#include "cluster/archival/archiver_manager.h"
+#include "cluster/archival/ntp_archiver_service.h"
+#include "cluster/archival/purger.h"
+#include "cluster/archival/upload_controller.h"
+#include "cluster/archival/upload_housekeeping_service.h"
 #include "base/vlog.h"
 #include "cli_parser.h"
 #include "cloud_storage/cache_service.h"
@@ -125,7 +125,7 @@
 #include "utils/file_io.h"
 #include "utils/human.h"
 #include "utils/uuid.h"
-#include "version.h"
+#include "version/version.h"
 #include "wasm/api.h"
 #include "wasm/cache.h"
 

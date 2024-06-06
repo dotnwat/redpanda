@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "cluster/types.h"
+#include "cluster/version.h"
 #include "feature_state.h"
 #include "model/fundamental.h"
 #include "security/license.h"

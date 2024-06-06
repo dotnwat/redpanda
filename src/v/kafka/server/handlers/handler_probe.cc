@@ -15,7 +15,7 @@
 #include "kafka/protocol/schemata/fetch_request.h"
 #include "kafka/protocol/schemata/produce_request.h"
 #include "kafka/server/handlers/handler_interface.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "metrics/prometheus_sanitize.h"
 
 #include <seastar/core/lowres_clock.hh>

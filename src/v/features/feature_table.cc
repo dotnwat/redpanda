@@ -11,10 +11,12 @@
 
 #include "feature_table.h"
 
-#include "cluster/types.h"
+#include "cluster/version.h"
 #include "config/node_config.h"
 #include "features/logger.h"
-#include "version.h"
+#include "version/version.h"
+#include "cluster/features.h"
+#include "config/configuration.h"
 
 #include <seastar/core/abort_source.hh>
 

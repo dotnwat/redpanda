@@ -10,7 +10,7 @@
  */
 
 #pragma once
-#include "archival/types.h"
+#include "cluster/archival/types.h"
 #include "cloud_roles/types.h"
 #include "cloud_storage/configuration.h"
 #include "cloud_storage/tests/s3_imposter.h"

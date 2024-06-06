@@ -20,7 +20,7 @@
 #include "kafka/server/connection_context.h"
 #include "kafka/server/fetch_session_cache.h"
 #include "kafka/server/handlers/handler_interface.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "kafka/server/response.h"
 #include "kafka/server/server.h"
 #include "kafka/server/usage_manager.h"

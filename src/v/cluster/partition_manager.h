@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "archival/fwd.h"
+#include "cluster/archival/fwd.h"
 #include "cloud_storage/fwd.h"
 #include "cluster/fwd.h"
 #include "cluster/ntp_callbacks.h"

@@ -15,7 +15,7 @@
 #include "cluster/rm_stm.h"
 #include "kafka/protocol/errors.h"
 #include "kafka/server/errors.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "kafka/types.h"
 #include "model/fundamental.h"
 #include "model/timeout_clock.h"

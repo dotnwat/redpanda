@@ -45,7 +45,7 @@
 #include "kafka/server/handlers/sasl_authenticate.h"
 #include "kafka/server/handlers/sasl_handshake.h"
 #include "kafka/server/handlers/sync_group.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 #include "kafka/server/quota_manager.h"
 #include "kafka/server/request_context.h"
 #include "kafka/server/response.h"

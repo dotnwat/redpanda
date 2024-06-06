@@ -11,7 +11,7 @@
 
 #include "base/vlog.h"
 #include "bytes/bytes.h"
-#include "kafka/protocol/wire.h"
+//#include "kafka/protocol/wire.h"
 #include "security/acl.h"
 #include "security/errc.h"
 #include "security/gssapi.h"

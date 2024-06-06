@@ -11,7 +11,7 @@
 
 #include "base/vlog.h"
 #include "config/configuration.h"
-#include "kafka/server/logger.h"
+#include "kafka/protocol/logger.h"
 
 #include <fmt/chrono.h>
 

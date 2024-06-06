@@ -15,7 +15,7 @@
 #include "features/feature_table.h"
 #include "model/metadata.h"
 #include "model/timeout_clock.h"
-#include "outcome_future_utils.h"
+#include "version/outcome_future_utils.h"
 #include "raft/consensus_client_protocol.h"
 #include "raft/errc.h"
 #include "raft/group_configuration.h"

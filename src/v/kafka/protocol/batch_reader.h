@@ -13,7 +13,7 @@
 
 #include "bytes/iobuf.h"
 #include "kafka/protocol/kafka_batch_adapter.h"
-#include "kafka/types.h"
+//#include "kafka/types.h"
 #include "model/fundamental.h"
 
 #include <optional>

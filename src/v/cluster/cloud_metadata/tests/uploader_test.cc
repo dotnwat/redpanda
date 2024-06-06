@@ -8,7 +8,7 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "archival/ntp_archiver_service.h"
+#include "cluster/archival/ntp_archiver_service.h"
 #include "cloud_storage/remote.h"
 #include "cloud_storage/remote_file.h"
 #include "cloud_storage/tests/s3_imposter.h"

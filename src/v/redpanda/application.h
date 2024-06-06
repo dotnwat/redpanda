@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "archival/fwd.h"
+#include "cluster/archival/fwd.h"
 #include "base/seastarx.h"
 #include "cloud_storage/fwd.h"
 #include "cloud_storage_clients/client_pool.h"
