@@ -1,0 +1,57 @@
+# Copyright 2024 Redpanda Data, Inc.
+#
+# Use of this software is governed by the Business Source License
+# included in the file licenses/BSL.md
+#
+# As of the Change Date specified in that file, in accordance with
+# the Business Source License, use of this software will be governed
+# by the Apache License, Version 2.0
+
+name: build-bazel
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths:
+      - 'src/v/**'
+      - 'bazel/**'
+      - 'MODULE.bazel'
+      - '.bazelrc'
+      - '.bazelversion'
+      - 'BUILD'
+      - '.github/workflows/build-bazel.yml'
+
+jobs:
+  build:
+    name: build redpanda
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: ["fedora:38"]
+    container:
+      image: ${{ matrix.os }}
+    steps:
+        - name: checkout
+          uses: actions/checkout@v4
+        - name: setup user bazelrc
+          run: |
+            echo ${{ secrets.KEY_TEST }} | base64 --decode > ${HOME}/gcp.key.json
+            echo build --remote_cache=${{ secrets.BUCKET_URL }} > user.bazelrc
+            echo build --google_credentials=${HOME}/gcp.key.json >> user.bazelrc
+        - name: dependencies
+          run: bazel/install-deps.sh
+        - name: install baselisk
+          run: |
+            dnf install -y wget
+            wget -O /usr/local/bin/bazel https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64
+            chmod +x /usr/local/bin/bazel
+        - name: build
+          run: |
+            bazel build //... @ada @avro @base64 @c-ares @hdrhistogram \
+            @hwloc @krb5 @libpciaccess @libxml2 @lksctp @numactl @openssl \
+            @openssl-fips @rapidjson @roaring @seastar @snappy \
+            @unordered_dense @wasmtime @xz
