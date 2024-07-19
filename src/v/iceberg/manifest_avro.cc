@@ -12,6 +12,7 @@
 #include "bytes/iobuf.h"
 #include "iceberg/avro_utils.h"
 #include "iceberg/datatypes_json.h"
+#include "iceberg/json_utils.h"
 #include "iceberg/manifest.h"
 #include "iceberg/schema.h"
 #include "iceberg/schema_json.h"
@@ -68,12 +69,17 @@ struct partition_spec_strs {
 };
 partition_spec partition_spec_from_str(const partition_spec_strs& strs) {
     auto spec_id = std::stoi(strs.spec_id_str);
-    json::Document parsed_schema;
-    parsed_schema.Parse(strs.fields_str);
-    if (parsed_schema.IsArray()) {
+    json::Document parsed_spec;
+    parsed_spec.Parse(strs.fields_str);
+    if (!parsed_spec.IsObject()) {
         throw std::invalid_argument(fmt::format(
-          "'partition-spec' metadata has type '{}' instead of array",
-          parsed_schema.GetType()));
+          "'partition-spec' metadata has type '{}' instead of object",
+          parsed_spec.GetType()));
+    }
+    auto spec_spec_id = parse_required_i32(parsed_spec, "spec-id");
+    if (spec_spec_id != spec_id) {
+        throw std::invalid_argument(
+          fmt::format("Mismatched partition spec id {} vs {}", spec_id, spec_spec_id));
     }
     return partition_spec{
       .spec_id = partition_spec::id_t{spec_id},
@@ -85,7 +91,7 @@ partition_spec_strs partition_spec_to_str(const partition_spec& spec) {
     partition_spec_strs strs;
     strs.spec_id_str = fmt::format("{}", spec.spec_id());
     // TODO: implement me!
-    strs.fields_str = "[]";
+    strs.fields_str = fmt::format("{{\"spec-id\":{},\"fields\":[]}}", spec.spec_id());
     return strs;
 }
 
