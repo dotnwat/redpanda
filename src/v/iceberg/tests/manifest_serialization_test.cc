@@ -10,10 +10,14 @@
 #include "base/units.h"
 #include "bytes/iobuf.h"
 #include "iceberg/avro_utils.h"
+#include "iceberg/manifest.h"
+#include "iceberg/manifest_avro.h"
 #include "iceberg/manifest_entry.h"
 #include "iceberg/manifest_file.h"
+#include "iceberg/schema_json.h"
 
 #include <seastar/core/temporary_buffer.hh>
+#include <seastar/util/file.hh>
 
 #include <avro/DataFile.hh>
 #include <avro/Stream.hh>
@@ -153,4 +157,12 @@ TEST(ManifestSerializationTest, TestManifestAvroReaderWriter) {
     EXPECT_EQ(manifest.added_rows_count, dmanifest.added_rows_count);
     EXPECT_EQ(manifest.existing_rows_count, dmanifest.existing_rows_count);
     EXPECT_EQ(manifest.deleted_rows_count, dmanifest.deleted_rows_count);
+}
+
+TEST(ManifestSerializationTest, TestSerializeManifestData) {
+    auto test_buf = iobuf{
+      ss::util::read_entire_file("iceberg_manifest.avro").get0()};
+    auto m = parse_manifest(std::move(test_buf));
+    ASSERT_EQ(10, m.entries.size());
+    ASSERT_EQ(m.metadata.manifest_content_type, manifest_content_type::data);
 }

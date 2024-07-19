@@ -1,5 +1,7 @@
 find_package(Avro)
 
+set(TESTDATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/testdata")
+
 rp_test(
   UNIT_TEST
   GTEST
@@ -17,5 +19,7 @@ rp_test(
     v::bytes
     v::gtest_main
     v::iceberg
+  INPUT_FILES
+    "${TESTDATA_DIR}/iceberg_manifest.avro"
   ARGS "-- -c1"
 )
