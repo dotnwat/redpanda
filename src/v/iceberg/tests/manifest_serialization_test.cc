@@ -161,7 +161,7 @@ TEST(ManifestSerializationTest, TestManifestAvroReaderWriter) {
 
 TEST(ManifestSerializationTest, TestSerializeManifestData) {
     auto test_buf = iobuf{
-      ss::util::read_entire_file("iceberg_manifest.avro").get0()};
+      ss::util::read_entire_file("nested_manifest.avro").get0()};
     auto m = parse_manifest(std::move(test_buf));
     ASSERT_EQ(10, m.entries.size());
     ASSERT_EQ(m.metadata.manifest_content_type, manifest_content_type::data);

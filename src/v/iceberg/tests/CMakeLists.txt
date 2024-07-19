@@ -1,6 +1,6 @@
 find_package(Avro)
 
-set(test_data ${CMAKE_CURRENT_BINARY_DIR}/iceberg_manifest.avro)
+set(test_data ${CMAKE_CURRENT_BINARY_DIR}/nested_manifest.avro)
 
 rp_test(
   UNIT_TEST
