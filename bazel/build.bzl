@@ -13,10 +13,12 @@ def redpanda_cc_library(
         srcs = [],
         hdrs = [],
         defines = [],
+        features = ["layering_check"],
         local_defines = [],
         strip_include_prefix = None,
         visibility = None,
         include_prefix = None,
+        implementation_deps = [],
         copts = [],
         deps = []):
     """
@@ -34,9 +36,8 @@ def redpanda_cc_library(
         strip_include_prefix = strip_include_prefix,
         deps = deps,
         copts = redpanda_copts() + copts,
-        features = [
-            "layering_check",
-        ],
+        implementation_deps = implementation_deps,
+        features = features,
     )
 
 # buildifier: disable=function-docstring-args

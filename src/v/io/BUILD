@@ -1,5 +1,28 @@
 load("//bazel:build.bzl", "redpanda_cc_library")
 
+package(
+    default_visibility = [
+        "//src/v/io/tests:__pkg__",
+    ],
+)
+
+redpanda_cc_library(
+    name = "persistence",
+    srcs = [
+        "persistence.cc",
+    ],
+    hdrs = [
+        "persistence.h",
+    ],
+    include_prefix = "io",
+    deps = [
+        "//src/v/base",
+        "@abseil-cpp//absl/container:btree",
+        "@abseil-cpp//absl/container:flat_hash_map",
+        "@seastar",
+    ],
+)
+
 redpanda_cc_library(
     name = "io",
     srcs = [
@@ -11,7 +34,6 @@ redpanda_cc_library(
         "page_set.cc",
         "pager.cc",
         "paging_data_source.cc",
-        "persistence.cc",
         "scheduler.cc",
     ],
     hdrs = [
@@ -23,11 +45,13 @@ redpanda_cc_library(
         "page_set.h",
         "pager.h",
         "paging_data_source.h",
-        "persistence.h",
         "scheduler.h",
     ],
     include_prefix = "io",
     visibility = ["//visibility:public"],
+    implementation_deps = [
+        ":persistence",
+    ],
     deps = [
         "//src/v/base",
         "//src/v/container:intrusive",

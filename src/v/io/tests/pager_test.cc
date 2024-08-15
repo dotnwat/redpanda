@@ -12,7 +12,7 @@
 #include "io/page_cache.h"
 #include "io/pager.h"
 #include "io/paging_data_source.h"
-#include "io/persistence.h"
+//#include "io/persistence.h"
 #include "io/scheduler.h"
 #include "io/tests/common.h"
 #include "test_utils/test.h"

@@ -59,6 +59,7 @@ redpanda_cc_gtest(
         ":testing",
         "//src/v/base",
         "//src/v/io",
+        "//src/v/io:persistence",
         "//src/v/test_utils:gtest",
         "@seastar",
     ],

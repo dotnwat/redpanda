@@ -21,9 +21,13 @@ redpanda_cc_library(
         "ossl_context_service.h",
         "types.h",
     ],
+    features = [
+        "-layering_check",
+    ],
     include_prefix = "crypto",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/io",
         "//src/v/base",
         "//src/v/bytes",
         "//src/v/ssx:thread_worker",

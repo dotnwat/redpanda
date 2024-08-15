@@ -13,6 +13,8 @@
 #include "internal.h"
 #include "ssl_utils.h"
 #include "thirdparty/openssl/evp.h"
+#include "io/scheduler.h"
+#include "io/persistence.h"
 
 #include <type_traits>
 
