@@ -37,7 +37,6 @@ redpanda_cc_library(
     deps = [
         ":iobuf",
         "//src/v/base",
-        "@abseil-cpp//absl/hash",
         "@seastar",
     ],
 )

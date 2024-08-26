@@ -16,22 +16,194 @@
 
 #include <seastar/core/sstring.hh>
 
-#include <absl/hash/hash.h>
-
+#include <algorithm>
 #include <cstdint>
 #include <iosfwd>
 #include <span>
 
-// cannot be a `std::byte` because that's not sizeof(char)
-constexpr size_t bytes_inline_size = 31;
-using bytes = ss::basic_sstring<
-  uint8_t,  // Must be different from char to not leak to std::string_view
-  uint32_t, // size type - 4 bytes - 4GB max - don't use a size_t or any 64-bit
-  bytes_inline_size, // short string optimization size
-  false              // not null terminated
-  >;
+class bytes_view;
 
-using bytes_view = std::basic_string_view<uint8_t>;
+constexpr size_t bytes_inline_size = 31;
+
+class bytes {
+    using container_type
+      = ss::basic_sstring<char, uint32_t, bytes_inline_size, false>;
+
+public:
+    using value_type = uint8_t;
+    using size_type = uint32_t;
+    using iterator = value_type*;
+    using const_iterator = const value_type*;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+
+    bytes() = default;
+    bytes(const bytes&) = default;
+    bytes& operator=(const bytes&) = default;
+    bytes(bytes&&) noexcept = default;
+    bytes& operator=(bytes&&) noexcept = default;
+    ~bytes() = default;
+
+    bytes(const char* s)
+      : data_(
+        // NOLINTNEXTLINE
+        reinterpret_cast<const value_type*>(s),
+        // NOLINTNEXTLINE
+        reinterpret_cast<const value_type*>(s) + std::strlen(s)) {}
+
+    bytes(size_type size, value_type v)
+      : data_(size, v) {}
+
+    bytes(const value_type* data, size_t size)
+      // NOLINTNEXTLINE
+      : data_(data, data + size) {}
+
+    bytes(const value_type* begin, const value_type* end)
+      : data_(begin, end) {}
+
+    bytes(std::initializer_list<uint8_t> x)
+      : bytes(x.begin(), x.end() - x.begin()) {}
+
+    template<typename It>
+    bytes(It begin, It end)
+      : data_(begin, end) {}
+
+    struct initialized_later {};
+    bytes(initialized_later, size_type size)
+      : data_(container_type::initialized_later{}, size) {}
+
+    explicit bytes(bytes_view);
+
+    reference operator[](size_type pos) noexcept { return *cast(&data_[pos]); }
+    const_reference operator[](size_type pos) const noexcept {
+        return *cast(&data_[pos]);
+    }
+
+    pointer data() noexcept { return cast(data_.data()); }
+    const_pointer data() const noexcept { return cast(data_.data()); }
+
+    iterator begin() noexcept { return cast(data_.begin()); }
+    const_iterator begin() const noexcept { return cast(data_.begin()); }
+    const_iterator cbegin() const noexcept { return cast(data_.cbegin()); }
+
+    iterator end() noexcept { return cast(data_.end()); }
+    const_iterator end() const noexcept { return cast(data_.end()); }
+    const_iterator cend() const noexcept { return cast(data_.cend()); }
+
+    size_type size() const noexcept { return data_.size(); }
+    bool empty() const noexcept { return data_.empty(); }
+
+    void resize(size_type size) { data_.resize(size); }
+
+    void append(const_pointer s, size_t n) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        data_.append(reinterpret_cast<const char*>(s), n);
+    }
+
+    void append(std::string_view v) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        data_.append(reinterpret_cast<const char*>(v.data()), v.size());
+    }
+
+    bytes& operator+=(const bytes& v) {
+        append(v.data(), v.size());
+        return *this;
+    }
+
+    friend bool operator==(const bytes&, const bytes&) = default;
+
+    friend bool operator<(const bytes& a, const bytes& b) {
+        return a.data_ < b.data_;
+    }
+
+private:
+    friend class bytes_view;
+
+    static value_type* cast(char* p) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return reinterpret_cast<value_type*>(p);
+    }
+
+    static const value_type* cast(const char* p) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return reinterpret_cast<const value_type*>(p);
+    }
+
+    container_type data_;
+};
+
+class bytes_view {
+    using container_type = std::string_view;
+
+public:
+    using value_type = bytes::value_type;
+    using const_pointer = const value_type*;
+
+    bytes_view() = default;
+    bytes_view(const bytes_view&) = default;
+    bytes_view& operator=(const bytes_view&) = default;
+    bytes_view(bytes_view&&) noexcept = default;
+    bytes_view& operator=(bytes_view&&) noexcept = default;
+    ~bytes_view() = default;
+
+    bytes_view(const bytes& bytes)
+      : data_(bytes.data_) {}
+
+    bytes_view(const uint8_t* data, size_t size)
+      : data_(reinterpret_cast<const char*>(data), size) {}
+
+    const_pointer data() const noexcept { return cast(data_.data()); }
+    auto size() const noexcept { return data_.size(); }
+
+    const_pointer begin() const noexcept { return cast(data_.begin()); }
+    const_pointer cbegin() const noexcept { return cast(data_.begin()); }
+
+    const_pointer end() const noexcept { return cast(data_.end()); }
+    const_pointer cend() const noexcept { return cast(data_.end()); }
+
+    friend bool operator==(const bytes_view& a, const bytes_view& b) = default;
+
+    friend bool operator<(const bytes_view& a, const bytes_view& b) {
+        return std::lexicographical_compare(
+          a.begin(), a.end(), b.begin(), b.end());
+    }
+
+    const value_type& operator[](size_t pos) const noexcept {
+        return *cast(&data_[pos]);
+    }
+
+    bool starts_with(bytes_view v) const noexcept {
+        return data_.starts_with(v.data_);
+    }
+
+    bytes_view substr(size_t offset) const {
+        return bytes_view(data_.substr(offset));
+    }
+
+    bool empty() const noexcept { return data_.empty(); }
+
+private:
+    explicit bytes_view(container_type data)
+      : data_(data) {}
+
+    static value_type* cast(char* p) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return reinterpret_cast<value_type*>(p);
+    }
+
+    static const value_type* cast(const char* p) {
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return reinterpret_cast<const value_type*>(p);
+    }
+
+    container_type data_;
+};
+
+inline bytes::bytes(bytes_view v)
+  : data_(v.begin(), v.end()) {}
+
 template<std::size_t Extent = std::dynamic_extent>
 using bytes_span = std::span<bytes::value_type, Extent>;
 
@@ -104,6 +276,11 @@ struct hash<bytes_view> {
           // NOLINTNEXTLINE
           {reinterpret_cast<const char*>(v.data()), v.size()});
     }
+};
+
+template<>
+struct hash<bytes> {
+    size_t operator()(const bytes& v) const { return hash<bytes_view>()(v); }
 };
 } // namespace std
 
