@@ -43,6 +43,8 @@ struct is_string_viewable<
   ss::basic_sstring<CharT, Size, max_size, NulTerminate>> : std::true_type {};
 template<typename CharT>
 struct is_string_viewable<std::basic_string_view<CharT>> : std::true_type {};
+template<>
+struct is_string_viewable<bytes> : std::true_type {};
 template<typename T>
 concept string_viewable = detail::is_string_viewable<T>::value;
 
@@ -537,7 +539,10 @@ public:
         auto second_dot = jose_enc[0].length() + 1 + jose_enc[1].length();
         auto msg = sv.substr(0, second_dot);
         if (!verifier->second.verify(
-              detail::char_view_cast<bytes_view::value_type>(msg), signature)) {
+              bytes_view(
+                reinterpret_cast<const bytes_view::value_type*>(msg.data()),
+                msg.size()),
+              signature)) {
             return errc::jws_invalid_sig;
         }
 
