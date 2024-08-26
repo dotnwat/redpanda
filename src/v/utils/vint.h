@@ -108,7 +108,7 @@ inline bytes to_bytes(uint32_t value) noexcept {
     // at the start of the returned buffer
     auto sz = size(static_cast<uint64_t>(value));
     bytes out(bytes::initialized_later{}, sz);
-    serialize(value, out.begin());
+    serialize(value, out.data());
     return out;
 }
 
@@ -163,7 +163,7 @@ inline bytes to_bytes(int64_t value) noexcept {
     // start of the returned buffer
     auto sz = vint_size(value);
     bytes out(bytes::initialized_later{}, sz);
-    serialize(value, out.begin());
+    serialize(value, out.data());
     return out;
 }
 
