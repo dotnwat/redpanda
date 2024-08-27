@@ -14,7 +14,7 @@
 #include "base/seastarx.h"
 #include "bytes/iobuf.h"
 
-#include <seastar/core/sstring.hh>
+#include <absl/container/inlined_vector.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -26,18 +26,17 @@ class bytes_view;
 constexpr size_t bytes_inline_size = 31;
 
 class bytes {
-    using container_type
-      = ss::basic_sstring<char, uint32_t, bytes_inline_size, false>;
+    using container_type = absl::InlinedVector<uint8_t, bytes_inline_size>;
 
 public:
-    using value_type = uint8_t;
-    using size_type = uint32_t;
-    using iterator = value_type*;
-    using const_iterator = const value_type*;
-    using pointer = value_type*;
-    using const_pointer = const value_type*;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    using value_type = container_type::value_type;
+    using size_type = container_type::size_type;
+    using iterator = container_type::iterator;
+    using const_iterator = container_type::const_iterator;
+    using pointer = container_type::pointer;
+    using const_pointer = container_type::const_pointer;
+    using reference = container_type::reference;
+    using const_reference = container_type::const_reference;
 
     bytes() = default;
     bytes(const bytes&) = default;
@@ -48,10 +47,10 @@ public:
 
     bytes(const char* s)
       : data_(
-        // NOLINTNEXTLINE
-        reinterpret_cast<const value_type*>(s),
-        // NOLINTNEXTLINE
-        reinterpret_cast<const value_type*>(s) + std::strlen(s)) {}
+          // NOLINTNEXTLINE
+          reinterpret_cast<const value_type*>(s),
+          // NOLINTNEXTLINE
+          reinterpret_cast<const value_type*>(s) + std::strlen(s)) {}
 
     bytes(size_type size, value_type v)
       : data_(size, v) {}
@@ -72,25 +71,25 @@ public:
 
     struct initialized_later {};
     bytes(initialized_later, size_type size)
-      : data_(container_type::initialized_later{}, size) {}
+      : data_(size) {}
 
     explicit bytes(bytes_view);
 
-    reference operator[](size_type pos) noexcept { return *cast(&data_[pos]); }
+    reference operator[](size_type pos) noexcept { return data_[pos]; }
     const_reference operator[](size_type pos) const noexcept {
-        return *cast(&data_[pos]);
+        return data_[pos];
     }
 
-    pointer data() noexcept { return cast(data_.data()); }
-    const_pointer data() const noexcept { return cast(data_.data()); }
+    pointer data() noexcept { return data_.data(); }
+    const_pointer data() const noexcept { return data_.data(); }
 
-    iterator begin() noexcept { return cast(data_.begin()); }
-    const_iterator begin() const noexcept { return cast(data_.begin()); }
-    const_iterator cbegin() const noexcept { return cast(data_.cbegin()); }
+    iterator begin() noexcept { return data_.begin(); }
+    const_iterator begin() const noexcept { return data_.begin(); }
+    const_iterator cbegin() const noexcept { return data_.cbegin(); }
 
-    iterator end() noexcept { return cast(data_.end()); }
-    const_iterator end() const noexcept { return cast(data_.end()); }
-    const_iterator cend() const noexcept { return cast(data_.cend()); }
+    iterator end() noexcept { return data_.end(); }
+    const_iterator end() const noexcept { return data_.end(); }
+    const_iterator cend() const noexcept { return data_.cend(); }
 
     size_type size() const noexcept { return data_.size(); }
     bool empty() const noexcept { return data_.empty(); }
@@ -98,17 +97,15 @@ public:
     void resize(size_type size) { data_.resize(size); }
 
     void append(const_pointer s, size_t n) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        data_.append(reinterpret_cast<const char*>(s), n);
+        std::copy(s, s + n, std::back_inserter(data_));
     }
 
     void append(std::string_view v) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        data_.append(reinterpret_cast<const char*>(v.data()), v.size());
+        std::copy(v.begin(), v.end(), std::back_inserter(data_));
     }
 
     bytes& operator+=(const bytes& v) {
-        append(v.data(), v.size());
+        std::copy(v.begin(), v.end(), std::back_inserter(data_));
         return *this;
     }
 
@@ -121,27 +118,17 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const bytes& b);
 
 private:
-    friend class bytes_view;
-
-    static value_type* cast(char* p) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return reinterpret_cast<value_type*>(p);
-    }
-
-    static const value_type* cast(const char* p) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return reinterpret_cast<const value_type*>(p);
-    }
-
     container_type data_;
 };
 
 class bytes_view {
-    using container_type = std::string_view;
+    using container_type = std::span<const uint8_t>;
 
 public:
-    using value_type = bytes::value_type;
-    using const_pointer = const value_type*;
+    using value_type = container_type::value_type;
+    using size_type = container_type::size_type;
+    using pointer = container_type::pointer;
+    using iterator = container_type::iterator;
 
     bytes_view() = default;
     bytes_view(const bytes_view&) = default;
@@ -151,19 +138,19 @@ public:
     ~bytes_view() = default;
 
     bytes_view(const bytes& bytes)
-      : data_(bytes.data_) {}
+      : data_(bytes.begin(), bytes.end()) {}
 
     bytes_view(const uint8_t* data, size_t size)
-      : data_(reinterpret_cast<const char*>(data), size) {}
+      : data_(data, size) {}
 
-    const_pointer data() const noexcept { return cast(data_.data()); }
-    auto size() const noexcept { return data_.size(); }
+    pointer data() const noexcept { return data_.data(); }
+    size_type size() const noexcept { return data_.size(); }
 
-    const_pointer begin() const noexcept { return cast(data_.begin()); }
-    const_pointer cbegin() const noexcept { return cast(data_.begin()); }
+    iterator begin() const noexcept { return data_.begin(); }
+    iterator cbegin() const noexcept { return data_.begin(); }
 
-    const_pointer end() const noexcept { return cast(data_.end()); }
-    const_pointer cend() const noexcept { return cast(data_.end()); }
+    iterator end() const noexcept { return data_.end(); }
+    iterator cend() const noexcept { return data_.end(); }
 
     friend bool operator==(const bytes_view& a, const bytes_view& b) = default;
 
@@ -173,7 +160,7 @@ public:
     }
 
     const value_type& operator[](size_t pos) const noexcept {
-        return *cast(&data_[pos]);
+        return data_[pos];
     }
 
     bool starts_with(bytes_view v) const noexcept {
@@ -181,7 +168,7 @@ public:
     }
 
     bytes_view substr(size_t offset) const {
-        return bytes_view(data_.substr(offset));
+        return bytes_view(data_.subspan(offset));
     }
 
     bool empty() const noexcept { return data_.empty(); }
@@ -191,16 +178,6 @@ public:
 private:
     explicit bytes_view(container_type data)
       : data_(data) {}
-
-    static value_type* cast(char* p) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return reinterpret_cast<value_type*>(p);
-    }
-
-    static const value_type* cast(const char* p) {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return reinterpret_cast<const value_type*>(p);
-    }
 
     container_type data_;
 };
