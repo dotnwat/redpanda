@@ -144,7 +144,6 @@ public:
       : data_(data, size) {}
 
     pointer data() const noexcept { return data_.data(); }
-    size_type size() const noexcept { return data_.size(); }
 
     iterator begin() const noexcept { return data_.begin(); }
     iterator cbegin() const noexcept { return data_.begin(); }
@@ -152,12 +151,8 @@ public:
     iterator end() const noexcept { return data_.end(); }
     iterator cend() const noexcept { return data_.end(); }
 
-    friend bool operator==(const bytes_view& a, const bytes_view& b) = default;
-
-    friend bool operator<(const bytes_view& a, const bytes_view& b) {
-        return std::lexicographical_compare(
-          a.begin(), a.end(), b.begin(), b.end());
-    }
+    size_type size() const noexcept { return data_.size(); }
+    bool empty() const noexcept { return data_.empty(); }
 
     const value_type& operator[](size_t pos) const noexcept {
         return data_[pos];
@@ -171,7 +166,14 @@ public:
         return bytes_view(data_.subspan(offset));
     }
 
-    bool empty() const noexcept { return data_.empty(); }
+    friend bool operator==(const bytes_view& a, const bytes_view& b) {
+        return std::equal(a.begin(), a.end(), b.begin(), b.end());
+    }
+
+    friend bool operator<(const bytes_view& a, const bytes_view& b) {
+        return std::lexicographical_compare(
+          a.begin(), a.end(), b.begin(), b.end());
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const bytes_view& b);
 
