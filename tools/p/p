@@ -18,5 +18,7 @@ ${docker} build -t ${image} ${this_dir}
 ${docker} run \
   --volume ${PWD}:${PWD}:rw,z \
   --workdir ${PWD} \
+  --rm \
+  --tty \
   ${image} \
   p ${*}
