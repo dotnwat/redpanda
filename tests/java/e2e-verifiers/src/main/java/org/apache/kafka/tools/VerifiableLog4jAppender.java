@@ -56,8 +56,8 @@ public class VerifiableLog4jAppender {
     ArgumentParser parser
         = ArgumentParsers.newArgumentParser("verifiable-log4j-appender")
               .defaultHelp(true)
-              .description(
-                  "This tool produces increasing integers to the specified topic using KafkaLog4jAppender.");
+              .description("This tool produces increasing integers to the "
+                           + "specified topic using KafkaLog4jAppender.");
 
     parser.addArgument("--topic")
         .action(store())
@@ -72,8 +72,8 @@ public class VerifiableLog4jAppender {
         .type(String.class)
         .metavar("HOST1:PORT1[,HOST2:PORT2[...]]")
         .dest("brokerList")
-        .help(
-            "Comma-separated list of Kafka brokers in the form HOST1:PORT1,HOST2:PORT2,...");
+        .help("Comma-separated list of Kafka brokers in the form "
+              + "HOST1:PORT1,HOST2:PORT2,...");
 
     parser.addArgument("--max-messages")
         .action(store())
@@ -82,8 +82,8 @@ public class VerifiableLog4jAppender {
         .type(Integer.class)
         .metavar("MAX-MESSAGES")
         .dest("maxMessages")
-        .help(
-            "Produce this many messages. If -1, produce messages until the process is killed externally.");
+        .help("Produce this many messages. If -1, produce messages until the "
+              + "process is killed externally.");
 
     parser.addArgument("--acks")
         .action(store())
@@ -92,8 +92,8 @@ public class VerifiableLog4jAppender {
         .type(String.class)
         .choices("0", "1", "-1")
         .metavar("ACKS")
-        .help(
-            "Acks required on each produced message. See Kafka docs on request.required.acks for details.");
+        .help("Acks required on each produced message. See Kafka docs on "
+              + "request.required.acks for details.");
 
     parser.addArgument("--security-protocol")
         .action(store())
@@ -103,8 +103,8 @@ public class VerifiableLog4jAppender {
         .choices("PLAINTEXT", "SSL", "SASL_PLAINTEXT", "SASL_SSL")
         .metavar("SECURITY-PROTOCOL")
         .dest("securityProtocol")
-        .help(
-            "Security protocol to be used while communicating with Kafka brokers.");
+        .help("Security protocol to be used while communicating with Kafka "
+              + "brokers.");
 
     parser.addArgument("--ssl-truststore-location")
         .action(store())
