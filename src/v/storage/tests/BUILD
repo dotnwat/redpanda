@@ -6,6 +6,7 @@ redpanda_test_cc_library(
         "kvstore_fixture.h",
     ],
     include_prefix = "storage/tests",
+    visibility = ["//visibility:public"],
     deps = [
         "//src/v/config",
         "//src/v/features",
