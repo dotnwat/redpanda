@@ -485,6 +485,7 @@ scheduling::translation_status partition_translator::status() const {
       .target_lag = _lag_tracking->target_lag(),
       .next_checkpoint_deadline = _lag_tracking->next_checkpoint_deadline(),
       .memory_bytes_reserved = _translation_ctx->buffered_bytes(),
+      .disk_bytes_flushed = _translation_ctx->flushed_bytes(),
       .translation_backlog = _lag_tracking->translation_backlog(),
     };
 }
