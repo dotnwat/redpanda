@@ -239,6 +239,12 @@ partition_translator::run_one_translation_iteration(
         co_await _ready_to_translate.wait(
           [this] { return _inflight_translation_state.has_value(); });
         auto& as = _inflight_translation_state->as;
+        /*
+         * if this translator were scheduled for immediate finish, then check
+         * for that signal before going to the trouble of building a log reader
+         * and starting translation only to immediately shut that down.
+         */
+        as.check();
         auto reader = co_await _data_source->make_log_reader(
           begin_offset, datalake_priority(), as);
         if (!reader) {

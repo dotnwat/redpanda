@@ -141,14 +141,24 @@ fair_scheduling_policy::choose_random_translator_group() const {
 
 ss::future<> fair_scheduling_policy::schedule_one_translation(
   executor& executor, const reservations_tracker& mem_tracker) {
-    // Wait until an empty slot frees up.
+    // Wait until an empty slot frees up or control should yield back to the
+    // scheduling loop because, for example, resource exhaustion needs to be
+    // attended to.
+    //
+    // TODO: note that the polling interval here is 1s which is quite
+    // responsive. However, if it longer then one should consider not using a
+    // sleep here because it would degrade responsiveness to _state_changed_cvar
+    // signals.
     while (!executor.as.abort_requested() && !executor.waiting.empty()
            && !mem_tracker.memory_exhausted()
+           && executor.translators_for_immediate_finish.empty()
            && executor.running.size() >= _max_concurrent_translations()) {
         co_await ss::sleep_abortable(polling_interval, executor.as);
     }
 
-    if (executor.as.abort_requested() || mem_tracker.memory_exhausted()) {
+    if (
+      executor.as.abort_requested() || mem_tracker.memory_exhausted()
+      || !executor.translators_for_immediate_finish.empty()) {
         co_return;
     }
 
@@ -289,8 +299,147 @@ ss::future<> fair_scheduling_policy::schedule_one_translation(
     }
 }
 
+/*
+ * when resource exhaustion is reported we seek to stop and/or finish
+ * translators in order to free up memory or disk usage.
+ *
+ * disk usage
+ * ==========
+ * this case is indicated below by a non-empty set of translators that have been
+ * requested to immediately finish (see datalake_manager::disk_space_monitor).
+ * in this case the translator with the most usage is selected to be finished
+ * immediately so that it will upload and delete its on disk staging data. there
+ * are three scenarios depending on the state of the translator:
+ *
+ * 1) running
+ *
+ * currently we prioritize translators in the running state (even over
+ * those with larger usages that are non-running) under the assumption that they
+ * are (a) in the requested set and (b) have the potential to make the situation
+ * worse since they are actively translating data.
+ *
+ * there are arguments against this policy. for instance, finishing a running
+ * translator may make the situation worse still because its in-memory state
+ * will be flushed to disk as part of the finishing process.
+ *
+ * 2) waiting
+ *
+ * when the translator is in the waiting state we start the translator, and
+ * arrange for it to immediately stop itself and finish (without building a
+ * reader or poking the translator context).
+ *
+ * 3) neither running nor waiting
+ *
+ * TODO: this case is not yet handled, and corresponds to a translator that is
+ * waiting on new offsets to translate. the case is virtually identical to (2)
+ * but requires a higher level preemption signal that doesn't exist yet.
+ *
+ * memory usage
+ * ============
+ *
+ * stop the running translator (if any exist) with the highest reported memory
+ * usage.
+ */
 ss::future<> fair_scheduling_policy::on_resource_exhaustion(
   executor& executor, const reservations_tracker& mem_tracker) {
+    if (!executor.translators_for_immediate_finish.empty()) {
+        /*
+         * state maintained for eviction policy
+         *
+         * elem.first: stable iterator into executor.translators
+         * elem.second: key into translators_for_immediate_finish
+         * elem.third (other) true if on waiting list
+         */
+        std::optional<std::pair<translators::iterator, size_t>> first_running;
+        std::optional<std::tuple<translators::iterator, size_t, bool>>
+          first_other;
+
+        auto& finish = executor.translators_for_immediate_finish;
+        for (auto it = finish.begin(); it != finish.end();) {
+            // map translator_id -> translator_executable
+            auto eit = executor.translators.find(it->second);
+            if (eit == executor.translators.end()) {
+                it = finish.erase(it);
+                continue;
+            }
+
+            // first choice is running translator
+            if (eit->second._running_hook.is_linked()) {
+                first_running = std::make_pair(eit, it->first);
+                break;
+            }
+
+            // backup choice is highest usage non-running trnaslator
+            if (!first_other.has_value()) {
+                first_other = std::make_tuple(
+                  eit, it->first, eit->second._waiting_hook.is_linked());
+                // keep looking for a running translator
+            }
+
+            ++it;
+        }
+
+        vassert(
+          first_running.has_value() || first_other.has_value()
+            || finish.empty(),
+          "Expected a choice to be made from non-empty set");
+
+        // stopped is the key in finish set (if any)
+        // status is only valid if stopped contains a value
+        std::optional<size_t> stopped;
+        std::string_view status;
+
+        if (first_running.has_value()) {
+            auto& choice = first_running.value();
+            auto& executable = choice.first->second;
+            executable.translator_ptr()->finish_translation();
+            executor.stop_translation(executable);
+            stopped = choice.second;
+            status = "running";
+
+        } else if (first_other.has_value()) {
+            auto& choice = first_other.value();
+            auto& executable = std::get<0>(choice)->second;
+            auto& waiting = std::get<2>(choice);
+            executable.translator_ptr()->finish_translation();
+            if (waiting) {
+                // this sets up the translator state such that when it starts it
+                // will immediately stop itself and finish. we piggy back on the
+                // out-of-memory exception which has "immediate finish"
+                // semantics rather than adding completely new states.
+                executor.start_translation(executable, _translation_time_quota);
+                executor.stop_translation(executable);
+                status = "waiting";
+            } else {
+                status = "idle";
+            }
+            stopped = std::get<1>(choice);
+        }
+
+        /*
+         * TODO: currently we schedule one immediate finish task at a time, but
+         * there should not be any fundamental reason why it cannot be more.
+         */
+        if (stopped.has_value()) {
+            auto it = finish.find(stopped.value());
+            vassert(it != finish.end(), "translator not found in finish set");
+            vlog(
+              datalake_log.info,
+              "Finishing {} translator {}",
+              status,
+              it->second);
+            finish.erase(it);
+
+            auto num_running = executor.running.size();
+            while (!executor.as.abort_requested()
+                   && executor.running.size() == num_running) {
+                co_await ss::sleep_abortable(polling_interval, executor.as);
+            }
+        }
+
+        // fall through to handle memory resources if necessary
+    }
+
     if (!mem_tracker.memory_exhausted() || executor.running.empty()) {
         co_return;
     }
