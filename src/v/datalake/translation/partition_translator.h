@@ -96,6 +96,8 @@ public:
 
     void reconcile_properties() noexcept final;
 
+    void finish_translation() final;
+
 private:
     /**
      * inflight_translation_state
@@ -203,5 +205,8 @@ private:
     // scheduler calls start_translation, waking up translate_when_notified as a
     // result.
     ss::condition_variable _ready_to_translate;
+
+    // todo
+    bool _finish_translation_requested{false};
 };
 } // namespace datalake::translation
