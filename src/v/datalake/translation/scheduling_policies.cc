@@ -348,9 +348,11 @@ ss::future<> fair_scheduling_policy::on_resource_exhaustion(
          *
          * elem.first: stable iterator into executor.translators
          * elem.second: key into translators_for_immediate_finish
+         * elem.third (other) true if on waiting list
          */
         std::optional<std::pair<translators::iterator, size_t>> first_running;
-        std::optional<std::pair<translators::iterator, size_t>> first_waiting;
+        std::optional<std::tuple<translators::iterator, size_t, bool>>
+          first_other;
 
         auto& finish = executor.translators_for_immediate_finish;
         for (auto it = finish.begin(); it != finish.end();) {
@@ -367,38 +369,51 @@ ss::future<> fair_scheduling_policy::on_resource_exhaustion(
                 break;
             }
 
-            // backup choice is highest usage waiting translator
-            if (
-              !first_waiting.has_value()
-              && eit->second._waiting_hook.is_linked()) {
-                first_waiting = std::make_pair(eit, it->first);
+            // backup choice is highest usage non-running trnaslator
+            if (!first_other.has_value()) {
+                first_other = std::make_tuple(
+                  eit, it->first, eit->second._waiting_hook.is_linked());
                 // keep looking for a running translator
-                ++it;
-                continue;
             }
 
-            // TODO we can't handle this one, yet, so remove it so that we don't
-            // spin
-            it = finish.erase(it);
+            ++it;
         }
 
+        vassert(
+          first_running.has_value() || first_other.has_value()
+            || finish.empty(),
+          "Expected a choice to be made from non-empty set");
+
         // stopped is the key in finish set (if any)
+        // status is only valid if stopped contains a value
         std::optional<size_t> stopped;
+        std::string_view status;
+
         if (first_running.has_value()) {
             auto& choice = first_running.value();
-            executor.stop_translation(choice.first->second);
-            stopped = choice.second;
-
-        } else if (first_waiting.has_value()) {
-            auto& choice = first_waiting.value();
             auto& executable = choice.first->second;
-            executor.start_translation(executable, _translation_time_quota);
-            // this sets up the translator state such that when it starts it
-            // will immediately stop itself and finish. we piggy back on the
-            // out-of-memory exception which has "immediate finish"
-            // semantics rather than adding completely new states.
+            executable.translator_ptr()->finish_translation();
             executor.stop_translation(executable);
             stopped = choice.second;
+            status = "running";
+
+        } else if (first_other.has_value()) {
+            auto& choice = first_other.value();
+            auto& executable = std::get<0>(choice)->second;
+            auto& waiting = std::get<2>(choice);
+            executable.translator_ptr()->finish_translation();
+            if (waiting) {
+                // this sets up the translator state such that when it starts it
+                // will immediately stop itself and finish. we piggy back on the
+                // out-of-memory exception which has "immediate finish"
+                // semantics rather than adding completely new states.
+                executor.start_translation(executable, _translation_time_quota);
+                executor.stop_translation(executable);
+                status = "waiting";
+            } else {
+                status = "idle";
+            }
+            stopped = std::get<1>(choice);
         }
 
         /*
@@ -411,7 +426,7 @@ ss::future<> fair_scheduling_policy::on_resource_exhaustion(
             vlog(
               datalake_log.info,
               "Finishing {} translator {}",
-              (first_running.has_value() ? "running" : "waiting"),
+              status,
               it->second);
             finish.erase(it);
 
