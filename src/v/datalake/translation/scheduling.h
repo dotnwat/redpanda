@@ -182,6 +182,11 @@ public:
      * scheduling_notifications::notify_done when done.
      */
     virtual void stop_translation() = 0;
+
+    /**
+     *
+     */
+    virtual void finish_translation() {}
 };
 
 std::ostream& operator<<(std::ostream&, const translator&);
