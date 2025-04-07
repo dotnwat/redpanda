@@ -86,6 +86,8 @@ public:
 
     virtual size_t allocated_memory() const = 0;
 
+    virtual ss::future<reservation> reserve_disk(size_t, ss::abort_source&) = 0;
+
     static std::unique_ptr<reservations_tracker> make_default(
       size_t total_memory, size_t memory_block_size, scheduling_notifications&);
 };

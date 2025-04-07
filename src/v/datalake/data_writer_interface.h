@@ -77,14 +77,21 @@ public:
     virtual ss::future<reservation_error>
     reserve_bytes(size_t bytes, ss::abort_source&) noexcept = 0;
 
+    virtual ss::future<reservation_error>
+    reserve_disk_bytes(size_t bytes, ss::abort_source&) noexcept = 0;
+
     /**
      * Frees up passed input bytes.
      */
     virtual ss::future<> free_bytes(size_t bytes, ss::abort_source&) = 0;
 
+    virtual ss::future<> free_disk_bytes(size_t bytes, ss::abort_source&) = 0;
+
     /**
      * Releases all the reservations. After this caller, the reserved bytes
      * tracked is 0. May not be called concurrently with other methods.
+     *
+     * XXX?
      */
     virtual void release() = 0;
 };

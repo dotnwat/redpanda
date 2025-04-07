@@ -10,6 +10,11 @@
 
 namespace datalake {
 
+/*
+ * TODO when the multiplexer flushes it needs to check if any errors during
+ * processing were recoverable, like oom, in which case flushing proceeds. so if
+ * we add new error codes for disk usage make sure we handle that case.
+ */
 ss::future<writer_error> serde_parquet_writer::add_data_struct(
   iceberg::struct_value value, size_t, ss::abort_source& as) {
     auto conversion_result = co_await to_parquet_value(
@@ -28,7 +33,14 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
         });
         auto new_buffered_bytes = stats.buffered_size;
         if (new_buffered_bytes > _buffered_bytes) {
-            auto reservation_result = co_await _mem_tracker.reserve_bytes(
+            // TODO use flushed+buffered for the incremental change in disk
+            // bytes
+            auto reservation_result = co_await _mem_tracker.reserve_disk_bytes(
+              new_buffered_bytes - _buffered_bytes, as);
+            if (reservation_result != reservation_error::ok) {
+                co_return map_to_writer_error(reservation_result);
+            }
+            reservation_result = co_await _mem_tracker.reserve_bytes(
               new_buffered_bytes - _buffered_bytes, as);
             if (reservation_result != reservation_error::ok) {
                 co_return map_to_writer_error(reservation_result);
@@ -39,6 +51,8 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
             // resulting compressed size is smaller than before and
             // allows us to free up some bytes.
             co_await _mem_tracker.free_bytes(
+              _buffered_bytes - new_buffered_bytes, as);
+            co_await _mem_tracker.free_disk_bytes(
               _buffered_bytes - new_buffered_bytes, as);
         }
     } catch (...) {

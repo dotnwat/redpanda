@@ -49,7 +49,10 @@ class noop_mem_tracker : public writer_mem_tracker {
 public:
     ss::future<reservation_error>
     reserve_bytes(size_t, ss::abort_source&) noexcept override;
+    ss::future<reservation_error>
+    reserve_disk_bytes(size_t, ss::abort_source&) noexcept override;
     ss::future<> free_bytes(size_t, ss::abort_source&) override;
+    ss::future<> free_disk_bytes(size_t, ss::abort_source&) override;
     void release() override;
 };
 
@@ -64,7 +67,10 @@ public:
 
     ss::future<reservation_error>
     reserve_bytes(size_t, ss::abort_source&) noexcept override;
+    ss::future<reservation_error>
+    reserve_disk_bytes(size_t, ss::abort_source&) noexcept override;
     ss::future<> free_bytes(size_t, ss::abort_source&) override;
+    ss::future<> free_disk_bytes(size_t, ss::abort_source&) override;
     void release() override;
 
     size_t current_usage() const;
@@ -72,8 +78,10 @@ public:
 
 private:
     size_t _current_usage{0};
+    size_t _current_disk_usage{0};
     scheduling::reservations_tracker& _reservations_tracker;
     ssx::semaphore_units _reservations;
+    ssx::semaphore_units _reservations_disk;
 };
 
 class coordinator_api {

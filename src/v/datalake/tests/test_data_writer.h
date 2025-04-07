@@ -27,7 +27,14 @@ public:
     reserve_bytes(size_t, ss::abort_source&) noexcept override {
         return ss::make_ready_future<reservation_error>(reservation_error::ok);
     }
+    ss::future<reservation_error>
+    reserve_disk_bytes(size_t, ss::abort_source&) noexcept override {
+        return ss::make_ready_future<reservation_error>(reservation_error::ok);
+    }
     ss::future<> free_bytes(size_t, ss::abort_source&) override {
+        return ss::make_ready_future<>();
+    }
+    ss::future<> free_disk_bytes(size_t, ss::abort_source&) override {
         return ss::make_ready_future<>();
     }
     void release() override {}

@@ -72,7 +72,14 @@ ss::future<reservation_error>
 noop_mem_tracker::reserve_bytes(size_t, ss::abort_source&) noexcept {
     return ss::make_ready_future<reservation_error>(reservation_error::ok);
 }
+ss::future<reservation_error>
+noop_mem_tracker::reserve_disk_bytes(size_t, ss::abort_source&) noexcept {
+    return ss::make_ready_future<reservation_error>(reservation_error::ok);
+}
 ss::future<> noop_mem_tracker::free_bytes(size_t, ss::abort_source&) {
+    return ss::make_ready_future<>();
+}
+ss::future<> noop_mem_tracker::free_disk_bytes(size_t, ss::abort_source&) {
     return ss::make_ready_future<>();
 }
 void noop_mem_tracker::release() {}
@@ -103,9 +110,40 @@ ss::future<reservation_error> translator_mem_tracker::reserve_bytes(
     co_return reservation_error::ok;
 }
 
+ss::future<reservation_error> translator_mem_tracker::reserve_disk_bytes(
+  size_t bytes, ss::abort_source& as) noexcept {
+    _current_disk_usage += bytes;
+    try {
+        while (_current_disk_usage > _reservations_disk.count()) {
+            auto reservation = co_await _reservations_tracker.reserve_disk(
+              bytes, as);
+            if (_reservations_disk.count()) {
+                _reservations_disk.adopt(std::move(reservation));
+            } else {
+                _reservations_disk = std::move(reservation);
+            }
+        }
+    } catch (const translator_out_of_memory_error&) {
+        co_return reservation_error::out_of_memory;
+    } catch (const translator_shutdown_error&) {
+        co_return reservation_error::shutting_down;
+    } catch (const translator_time_quota_exceeded_error&) {
+        co_return reservation_error::time_quota_exceeded;
+    } catch (...) {
+        co_return reservation_error::unknown;
+    }
+    co_return reservation_error::ok;
+}
+
 ss::future<>
 translator_mem_tracker::free_bytes(size_t bytes, ss::abort_source&) {
     _current_usage -= std::min(_current_usage, bytes);
+    return ss::now();
+}
+
+ss::future<>
+translator_mem_tracker::free_disk_bytes(size_t bytes, ss::abort_source&) {
+    _current_disk_usage -= std::min(_current_disk_usage, bytes);
     return ss::now();
 }
 
@@ -553,6 +591,11 @@ public:
             co_await discard().discard_result();
             co_return translation_errc::discard_error;
         }
+        /*
+         * TODO: it looks like neither this nor the code in discard() will
+         * be sufficient to reset the disk usage. we probably need something
+         * like the defer() above for memory in both cases.
+         */
         auto task = std::exchange(_in_progress_translation, std::nullopt);
         auto result = co_await std::move(task.value())
                         .finish(_cp_enabled, _upload_path_prefix, rcn, as);

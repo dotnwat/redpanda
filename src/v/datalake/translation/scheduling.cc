@@ -26,7 +26,8 @@ public:
       : _total_memory((total_memory / block_size) * block_size)
       , _available_memory{_total_memory, "dl/translation/memory"}
       , _reservation_block_size(block_size)
-      , _notifier(notifier) {
+      , _notifier(notifier)
+      , _available_disk{20_GiB, "dl/translation/disk"} {
         auto blocks = _total_memory / block_size;
         vassert(
           blocks > 0,
@@ -70,6 +71,16 @@ public:
         }
     }
 
+    /*
+     * reserve disk space from the per-shard pool of disk units.
+     */
+    ss::future<reservation>
+    reserve_disk(size_t bytes, ss::abort_source&) override {
+        auto opt_units = ss::try_get_units(_available_disk, bytes);
+        vassert(opt_units.has_value(), "");
+        co_return std::move(opt_units.value());
+    }
+
     size_t allocated_memory() const override {
         return _total_memory - _available_memory.available_units();
     }
@@ -81,6 +92,7 @@ private:
     ssx::semaphore _available_memory;
     const size_t _reservation_block_size;
     scheduling_notifications& _notifier;
+    ssx::semaphore _available_disk;
 };
 
 std::ostream& operator<<(std::ostream& os, const translation_status& status) {
