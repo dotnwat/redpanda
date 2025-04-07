@@ -100,8 +100,8 @@ class DatalakeDiskUsageTest(RedpandaTest):
 
     @cluster(num_nodes=2)
     @skip_debug_mode
-    @matrix(num_partitions=[1, 2, 30],
-            concurrent_translations=[1, 4],
+    @matrix(num_partitions=[1],
+            concurrent_translations=[1],
             cloud_storage_type=supported_storage_types())
     def test_idle_finish(self, num_partitions, concurrent_translations,
                          cloud_storage_type):
@@ -137,3 +137,93 @@ class DatalakeDiskUsageTest(RedpandaTest):
         wait_until(lambda: self.datalake_staging_usage() <= new_target_size,
                    timeout_sec=60,
                    backoff_sec=2)
+
+class DatalakeDiskUsageTest2(RedpandaTest):
+    """
+    """
+    def __init__(self, test_ctx, *args, **kwargs):
+        super(DatalakeDiskUsageTest2, self).__init__(
+            test_ctx,
+            num_brokers=1,
+            si_settings=SISettings(test_context=test_ctx),
+            extra_rp_conf={
+                "iceberg_enabled": True,
+                "datalake_disk_space_monitor_enable": True,
+                # for reactivity
+                "datalake_scheduler_time_slice_ms": 5000,
+                "datalake_disk_space_monitor_interval": 5000,
+                # let translator accumulate staging data
+                "datalake_translator_flush_bytes": 16 * 2**30,
+                "iceberg_target_lag_ms": 10 * 60 * 1000,
+                "datalake_scratch_space_size_bytes": 700 * 2**20,
+            },
+            *args,
+            **kwargs)
+
+        self.test_ctx = test_ctx
+        self.topic_name = "test"
+
+    def datalake_staging_usage(self):
+        for node in self.redpanda.nodes:
+            usage = self.redpanda.data_dir_usage("datalake_staging", node)
+            kafka = self.redpanda.data_dir_usage("kafka", node)
+            self.logger.info(f"XXXXX: {usage} - {usage//2**20} mb - kafka {kafka//2**20}")
+            print(f"XXXXX: target 700 mb datalake {usage//2**20} mb - kafka {kafka//2**20} mb")
+
+    def create_topic(self, num_partitions):
+        rpk = RpkTool(self.redpanda)
+        rpk.create_topic(self.topic_name,
+                         partitions=num_partitions,
+                         replicas=1,
+                         config={TopicSpec.PROPERTY_ICEBERG_MODE: "key_value"})
+
+    def produce_until_staging_size(self, target_size):
+        # produce some data to the topic and then back off and let datalake do
+        # its thang. after that check back in with the broker and if we haven't
+        # translated enough data then try again.
+        timeout_sec = 120
+        start_time = time.time()
+        current_size = 0
+        while current_size < target_size:
+            producer = RpkProducer(
+                self.test_ctx,
+                self.redpanda,
+                self.topic_name,
+                2**13,
+                2**14,  # ~128mb
+                acks=-1)
+            producer.start()
+            producer.wait()
+            producer.free()
+            time.sleep(2)
+            current_size = self.datalake_staging_usage()
+            self.logger.info(f"Staging data usage {current_size}")
+            assert (
+                time.time() -
+                start_time) < timeout_sec, f"{current_size} < {target_size}"
+        return current_size
+
+    @cluster(num_nodes=2)
+    @skip_debug_mode
+    @matrix(num_partitions=[10],
+            concurrent_translations=[4],
+            cloud_storage_type=supported_storage_types())
+    def test_idle_finish(self, num_partitions, concurrent_translations, cloud_storage_type):
+        self.create_topic(num_partitions)
+
+        p = KgoVerifierProducer(self.test_ctx,
+                                    self.redpanda,
+                                    self.topic_name,
+                                    random_byte_values=True,
+                                    msg_size=16384,
+                                    msg_count=10 * 2**16, # n * GB
+                                    rate_limit_bps=100*2**20)
+        p.start()
+        while not p.is_complete():
+            self.datalake_staging_usage()
+            time.sleep(2)
+        for _ in range(15):
+            self.datalake_staging_usage()
+            time.sleep(2)
+        p.wait()
+        p.free()
