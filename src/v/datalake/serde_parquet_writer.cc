@@ -4,6 +4,7 @@
 #include "datalake/logger.h"
 #include "datalake/schema_parquet.h"
 #include "datalake/values_parquet.h"
+#include "utils/human.h"
 #include "version/version.h"
 
 #include <seastar/util/defer.hh>
@@ -31,16 +32,20 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
             _buffered_bytes = stats.buffered_size;
             _flushed_bytes = stats.flushed_size;
         });
+
+        vlog(
+          datalake_log.info,
+          "XXX: buffered {} flushed {} total {}",
+          human::bytes(_buffered_bytes),
+          human::bytes(_flushed_bytes),
+          human::bytes(_buffered_bytes + _flushed_bytes));
+
+        /*
+         * handle memory reservation
+         */
         auto new_buffered_bytes = stats.buffered_size;
         if (new_buffered_bytes > _buffered_bytes) {
-            // TODO use flushed+buffered for the incremental change in disk
-            // bytes
-            auto reservation_result = co_await _mem_tracker.reserve_disk_bytes(
-              new_buffered_bytes - _buffered_bytes, as);
-            if (reservation_result != reservation_error::ok) {
-                co_return map_to_writer_error(reservation_result);
-            }
-            reservation_result = co_await _mem_tracker.reserve_bytes(
+            auto reservation_result = co_await _mem_tracker.reserve_bytes(
               new_buffered_bytes - _buffered_bytes, as);
             if (reservation_result != reservation_error::ok) {
                 co_return map_to_writer_error(reservation_result);
@@ -52,8 +57,26 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
             // allows us to free up some bytes.
             co_await _mem_tracker.free_bytes(
               _buffered_bytes - new_buffered_bytes, as);
+        }
+
+        /*
+         * handle disk reservation
+         */
+        const auto total_bytes = _buffered_bytes + _flushed_bytes;
+        const auto new_total_bytes = stats.buffered_size + stats.flushed_size;
+        if (new_total_bytes > total_bytes) {
+            auto reservation_result = co_await _mem_tracker.reserve_disk_bytes(
+              new_total_bytes - total_bytes, as);
+            if (reservation_result != reservation_error::ok) {
+                co_return map_to_writer_error(reservation_result);
+            }
+        } else if (new_total_bytes < total_bytes) {
+            /*
+             * the amount of data on disk won't shrink, but the total we are
+             * working with here includes data buffered in memory w
+             */
             co_await _mem_tracker.free_disk_bytes(
-              _buffered_bytes - new_buffered_bytes, as);
+              total_bytes - new_total_bytes, as);
         }
     } catch (...) {
         vlog(

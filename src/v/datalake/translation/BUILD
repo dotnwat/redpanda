@@ -99,6 +99,7 @@ redpanda_cc_library(
         ":translation_probe",
         ":utils",
         "//src/v/base",
+        "//src/v/utils:human",
         "//src/v/cluster",
         "//src/v/datalake:local_parquet_file_writer",
         "//src/v/datalake:location",

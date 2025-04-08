@@ -568,6 +568,7 @@ redpanda_cc_library(
         ":values_parquet",
         "//src/v/iceberg:values",
         "//src/v/version",
+        "//src/v/utils:human",
     ],
     include_prefix = "datalake",
     visibility = [":__subpackages__"],

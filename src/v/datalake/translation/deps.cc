@@ -23,6 +23,7 @@
 #include "datalake/translation_task.h"
 #include "kafka/data/partition_proxy.h"
 #include "kafka/utils/txn_reader.h"
+#include "utils/human.h"
 
 #include <seastar/util/defer.hh>
 
@@ -113,6 +114,12 @@ ss::future<reservation_error> translator_mem_tracker::reserve_bytes(
 ss::future<reservation_error> translator_mem_tracker::reserve_disk_bytes(
   size_t bytes, ss::abort_source& as) noexcept {
     _current_disk_usage += bytes;
+    vlog(
+      datalake_log.info,
+      "XXX: reserve_disk_bytes({}): curr {} units {}",
+      human::bytes(bytes),
+      human::bytes(_current_disk_usage),
+      human::bytes(_reservations_disk.count()));
     try {
         while (_current_disk_usage > _reservations_disk.count()) {
             auto reservation = co_await _reservations_tracker.reserve_disk(
@@ -586,6 +593,7 @@ public:
         if (!_in_progress_translation) {
             co_return translation_errc::no_data;
         }
+        vlog(datalake_log.info, "XXX: finish");
         vlog(datalake_log.debug, "[{}] finishing translation", _ntp);
         if (_discard_translated_state) {
             co_await discard().discard_result();
@@ -610,6 +618,7 @@ public:
         if (!_in_progress_translation) {
             co_return;
         }
+        vlog(datalake_log.info, "XXX: discard");
         auto task = std::exchange(_in_progress_translation, std::nullopt);
         co_await std::move(task.value()).discard().discard_result();
     }
