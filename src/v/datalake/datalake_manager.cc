@@ -320,7 +320,8 @@ ss::future<> datalake_manager::check_and_manage_disk_space() {
           index_type usage;
           for (const auto& it : mgr._scheduler.all_translators()) {
               auto status = it.second.status();
-              auto size = status.disk_bytes_flushed.value_or(0);
+              auto size = status.disk_bytes_flushed.value_or(0)
+                          + status.memory_bytes_reserved.value_or(0);
               usage.emplace(
                 size, std::make_tuple(ss::this_shard_id(), it.first));
           }
@@ -340,6 +341,14 @@ ss::future<> datalake_manager::check_and_manage_disk_space() {
       usage.end(),
       size_t(0),
       [](const auto acc, const auto& elem) { return acc + elem.first; });
+
+    vlog(
+      datalake_log.info,
+      "XXX: on disk total scratch {} (actual {}) / {}",
+      human::bytes(total_bytes),
+      human::bytes(co_await disk_usage()),
+      human::bytes(700_MiB));
+    co_return;
 
     // the amount of disk usage over the target
     const auto real_target_excess = total_bytes < target_size

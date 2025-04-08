@@ -38,6 +38,7 @@ public:
         return ss::make_ready_future<>();
     }
     void release() override {}
+    void release_disk() override {}
 };
 
 class test_data_writer : public parquet_file_writer {

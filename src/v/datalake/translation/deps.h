@@ -54,6 +54,7 @@ public:
     ss::future<> free_bytes(size_t, ss::abort_source&) override;
     ss::future<> free_disk_bytes(size_t, ss::abort_source&) override;
     void release() override;
+    void release_disk() override;
 };
 
 /**
@@ -72,6 +73,7 @@ public:
     ss::future<> free_bytes(size_t, ss::abort_source&) override;
     ss::future<> free_disk_bytes(size_t, ss::abort_source&) override;
     void release() override;
+    void release_disk() override;
 
     size_t current_usage() const;
     size_t total_reserved() const;

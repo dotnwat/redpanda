@@ -151,7 +151,7 @@ ss::future<> fair_scheduling_policy::schedule_one_translation(
     // sleep here because it would degrade responsiveness to _state_changed_cvar
     // signals.
     while (!executor.as.abort_requested() && !executor.waiting.empty()
-           && !mem_tracker.memory_exhausted()
+           && !mem_tracker.memory_exhausted() && !mem_tracker.disk_exhausted()
            && executor.translators_for_immediate_finish.empty()
            && executor.running.size() >= _max_concurrent_translations()) {
         co_await ss::sleep_abortable(polling_interval, executor.as);
@@ -159,6 +159,7 @@ ss::future<> fair_scheduling_policy::schedule_one_translation(
 
     if (
       executor.as.abort_requested() || mem_tracker.memory_exhausted()
+      || mem_tracker.disk_exhausted()
       || !executor.translators_for_immediate_finish.empty()) {
         co_return;
     }
@@ -343,6 +344,30 @@ ss::future<> fair_scheduling_policy::schedule_one_translation(
  */
 ss::future<> fair_scheduling_policy::on_resource_exhaustion(
   executor& executor, const reservations_tracker& mem_tracker) {
+    if (
+      mem_tracker.disk_exhausted()
+      && executor.translators_for_immediate_finish.empty()) {
+        auto it = std::max_element(
+          executor.translators.begin(),
+          executor.translators.end(),
+          [](const auto& a, const auto& b) {
+              auto as = a.second.status();
+              auto bs = b.second.status();
+              auto at = as.memory_bytes_reserved.value_or(0)
+                        + as.disk_bytes_flushed.value_or(0);
+              auto bt = bs.memory_bytes_reserved.value_or(0)
+                        + bs.disk_bytes_flushed.value_or(0);
+              return at < bt;
+          });
+        if (it != executor.translators.end()) {
+            executor.translators_for_immediate_finish[0] = it->first;
+            vlog(
+              datalake_log.info,
+              "XXX: scheduling for finish on disk exhaustion: {}",
+              it->first);
+        }
+    }
+
     /*
      * run parallel finish requests.
      */

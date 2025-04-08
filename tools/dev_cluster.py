@@ -69,11 +69,11 @@ class RedpandaConfig:
     cloud_storage_backend: str = 'aws'
     iceberg_enabled: bool = False
     datalake_disk_space_monitor_enable: bool = True
-    datalake_scheduler_time_slice_ms: int = 5000
-    datalake_disk_space_monitor_interval: int = 5000
-    datalake_translator_flush_bytes: int = 20 * 2**30
+    datalake_scheduler_time_slice_ms: int = 30 * 1000
+    datalake_disk_space_monitor_interval: int = 2000
+    datalake_translator_flush_bytes: int = 50 * 2**30
     iceberg_target_lag_ms:int = 15 * 60 * 1000
-    datalake_scratch_space_size_bytes:int = 700 * 2**20
+    datalake_scratch_space_size_bytes:int = 70 * 2**30
 
 
 

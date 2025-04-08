@@ -37,7 +37,8 @@ ss::future<> partitioning_writer::flush() {
             if (err == writer_error::ok) {
                 return ss::make_ready_future();
             }
-            return ss::make_exception_future<>(err);
+            return ss::make_exception_future<>(std::runtime_error(
+              fmt::format("Flushing parquet file writer: {}", err)));
         });
     });
 }

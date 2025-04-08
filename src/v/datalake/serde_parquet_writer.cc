@@ -1,15 +1,68 @@
 #include "datalake/serde_parquet_writer.h"
 
 #include "base/vlog.h"
+#include "config/configuration.h"
+#include "config/node_config.h"
 #include "datalake/logger.h"
 #include "datalake/schema_parquet.h"
 #include "datalake/values_parquet.h"
+#include "utils/directory_walker.h"
 #include "utils/human.h"
 #include "version/version.h"
 
+#include <seastar/core/seastar.hh>
 #include <seastar/util/defer.hh>
 
 namespace datalake {
+
+#if 0
+static ss::future<uint64_t> disk_usage() {
+    const auto path = config::node().datalake_staging_path();
+
+    if (!co_await ss::file_exists(path.string())) {
+        co_return 0;
+    }
+
+    chunked_vector<std::filesystem::path> files;
+    co_await directory_walker::walk(
+      path.string(), [&files, path](const ss::directory_entry& de) {
+          if (de.type == ss::directory_entry_type::regular) {
+              files.push_back(path / std::filesystem::path(de.name));
+          }
+          return ss::now();
+      });
+
+    uint64_t total = 0;
+    co_await ss::max_concurrent_for_each(
+      files.begin(),
+      files.end(),
+      config::shard_local_cfg().space_management_max_log_concurrency(),
+      [&total](const std::filesystem::path& path) {
+          return ss::file_size(path.string())
+            .then([&total](uint64_t size) { total += size; })
+            .handle_exception_type(
+              [path](const std::filesystem::filesystem_error& e) {
+                  if (e.code() == std::errc::no_such_file_or_directory) {
+                      vlog(
+                        datalake_log.debug,
+                        "Stat failed for path: {}: {}",
+                        path,
+                        e.code());
+                  }
+                  return ss::make_exception_future<>(e);
+              })
+            .handle_exception([path](std::exception_ptr eptr) {
+                vlog(
+                  datalake_log.warn,
+                  "Stat failed for path: {}: {}",
+                  path,
+                  eptr);
+            });
+      });
+
+    co_return total;
+}
+#endif
 
 /*
  * TODO when the multiplexer flushes it needs to check if any errors during
@@ -33,12 +86,13 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
             _flushed_bytes = stats.flushed_size;
         });
 
-        vlog(
-          datalake_log.info,
-          "XXX: buffered {} flushed {} total {}",
-          human::bytes(_buffered_bytes),
-          human::bytes(_flushed_bytes),
-          human::bytes(_buffered_bytes + _flushed_bytes));
+        // vlog(
+        //   datalake_log.info,
+        //   "XXX: buffered {} flushed {} total {} - ondisk total {}",
+        //   human::bytes(_buffered_bytes),
+        //   human::bytes(_flushed_bytes),
+        //   human::bytes(_buffered_bytes + _flushed_bytes),
+        //   human::bytes(co_await disk_usage()));
 
         /*
          * handle memory reservation
@@ -61,6 +115,8 @@ ss::future<writer_error> serde_parquet_writer::add_data_struct(
 
         /*
          * handle disk reservation
+         *
+         * why it accounts for buffered plus flushed
          */
         const auto total_bytes = _buffered_bytes + _flushed_bytes;
         const auto new_total_bytes = stats.buffered_size + stats.flushed_size;

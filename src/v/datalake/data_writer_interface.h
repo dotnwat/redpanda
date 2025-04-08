@@ -90,10 +90,9 @@ public:
     /**
      * Releases all the reservations. After this caller, the reserved bytes
      * tracked is 0. May not be called concurrently with other methods.
-     *
-     * XXX?
      */
     virtual void release() = 0;
+    virtual void release_disk() = 0;
 };
 
 /**

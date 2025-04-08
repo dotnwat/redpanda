@@ -57,6 +57,8 @@ public:
      * exhaustion.
      */
     virtual void notify_memory_exhausted() = 0;
+
+    virtual void notify_disk_exhausted() = 0;
 };
 
 using reservation = ssx::semaphore_units;
@@ -83,6 +85,7 @@ public:
     virtual ss::future<reservation> reserve_memory(ss::abort_source&) = 0;
     /* returns true if all the memory is exhausted */
     virtual bool memory_exhausted() const = 0;
+    virtual bool disk_exhausted() const = 0;
 
     virtual size_t allocated_memory() const = 0;
 
@@ -377,6 +380,7 @@ public:
     void notify_ready(const translator_id&) noexcept override;
     void notify_done(const translator_id&) noexcept override;
     void notify_memory_exhausted() override;
+    void notify_disk_exhausted() override;
 
     ss::future<> stop();
     /**

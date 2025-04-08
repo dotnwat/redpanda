@@ -10,6 +10,7 @@
 
 #include "datalake/translation/deps.h"
 
+#include "base/vlog.h"
 #include "cluster/notification.h"
 #include "cluster/partition.h"
 #include "datalake/coordinator/frontend.h"
@@ -84,6 +85,7 @@ ss::future<> noop_mem_tracker::free_disk_bytes(size_t, ss::abort_source&) {
     return ss::make_ready_future<>();
 }
 void noop_mem_tracker::release() {}
+void noop_mem_tracker::release_disk() {}
 
 ss::future<reservation_error> translator_mem_tracker::reserve_bytes(
   size_t bytes, ss::abort_source& as) noexcept {
@@ -114,13 +116,21 @@ ss::future<reservation_error> translator_mem_tracker::reserve_bytes(
 ss::future<reservation_error> translator_mem_tracker::reserve_disk_bytes(
   size_t bytes, ss::abort_source& as) noexcept {
     _current_disk_usage += bytes;
-    vlog(
-      datalake_log.info,
-      "XXX: reserve_disk_bytes({}): curr {} units {}",
-      human::bytes(bytes),
-      human::bytes(_current_disk_usage),
-      human::bytes(_reservations_disk.count()));
     try {
+        if (_current_disk_usage > _reservations_disk.count()) {
+            static constexpr auto rate_limit = std::chrono::milliseconds(500);
+            thread_local static ss::logger::rate_limit rate(rate_limit);
+            vloglr(
+              datalake_log,
+              seastar::log_level::info,
+              rate,
+              "XXX: translator out of disk space {} / {}. requesting "
+              "additional disk "
+              "reservation {}",
+              human::bytes(_current_disk_usage),
+              human::bytes(_reservations_disk.count()),
+              human::bytes(bytes));
+        }
         while (_current_disk_usage > _reservations_disk.count()) {
             auto reservation = co_await _reservations_tracker.reserve_disk(
               bytes, as);
@@ -157,6 +167,11 @@ translator_mem_tracker::free_disk_bytes(size_t bytes, ss::abort_source&) {
 void translator_mem_tracker::release() {
     _current_usage = 0;
     _reservations.return_all();
+}
+
+void translator_mem_tracker::release_disk() {
+    _current_disk_usage = 0;
+    _reservations_disk.return_all();
 }
 
 size_t translator_mem_tracker::current_usage() const { return _current_usage; }
@@ -576,7 +591,9 @@ public:
                   }
                   auto result = result_f.get();
                   if (result.has_error()) {
-                      return ss::make_exception_future(result.error());
+                      return ss::make_exception_future(
+                        std::runtime_error(fmt::format(
+                          "Flushing translation: {}", result.error())));
                   }
                   return ss::now();
               })
@@ -589,7 +606,10 @@ public:
     finish(retry_chain_node& rcn, ss::abort_source& as) final {
         // This is strictly not needed as flush() is always called after
         // every scheduler iteration but we do it just to be extra cautious.
-        auto cleanup = ss::defer([this] { _mem_tracker.release(); });
+        auto cleanup = ss::defer([this] {
+            _mem_tracker.release();
+            _mem_tracker.release_disk();
+        });
         if (!_in_progress_translation) {
             co_return translation_errc::no_data;
         }
@@ -615,6 +635,7 @@ public:
     }
 
     ss::future<> discard() final {
+        auto cleanup = ss::defer([this] { _mem_tracker.release_disk(); });
         if (!_in_progress_translation) {
             co_return;
         }

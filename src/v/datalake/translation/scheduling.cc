@@ -11,6 +11,7 @@
 #include "datalake/logger.h"
 #include "datalake/translation/scheduling_policies.h"
 #include "ssx/future-util.h"
+#include "utils/human.h"
 #include "utils/to_string.h"
 
 namespace datalake::translation::scheduling {
@@ -27,7 +28,7 @@ public:
       , _available_memory{_total_memory, "dl/translation/memory"}
       , _reservation_block_size(block_size)
       , _notifier(notifier)
-      , _available_disk{20_GiB, "dl/translation/disk"} {
+      , _available_disk{700_MiB, "dl/translation/disk"} {
         auto blocks = _total_memory / block_size;
         vassert(
           blocks > 0,
@@ -53,6 +54,10 @@ public:
         return static_cast<size_t>(units) < _reservation_block_size;
     }
 
+    bool disk_exhausted() const override {
+        return _available_disk.waiters() > 0;
+    }
+
     ss::future<reservation> reserve_memory(ss::abort_source& as) override {
         auto nr = _reservation_block_size;
         // fast path
@@ -75,10 +80,26 @@ public:
      * reserve disk space from the per-shard pool of disk units.
      */
     ss::future<reservation>
-    reserve_disk(size_t bytes, ss::abort_source&) override {
+    reserve_disk(size_t bytes, ss::abort_source& as) override {
+        bytes = std::max<size_t>(bytes, 1);
         auto opt_units = ss::try_get_units(_available_disk, bytes);
-        vassert(opt_units.has_value(), "");
-        co_return std::move(opt_units.value());
+        if (opt_units) {
+            co_return std::move(opt_units.value());
+        }
+        vlog(
+          datalake_log.info,
+          "shard disk usage limit reached (avaialble {}). waiting on free "
+          "space",
+          human::bytes(_available_disk.current()));
+        _notifier.notify_disk_exhausted();
+        try {
+            co_return co_await ss::get_units(_available_disk, bytes, as);
+        } catch (...) {
+            // propagate the exception in abort source, if any
+            as.check();
+            // else, rethrow generic exception
+            std::rethrow_exception(std::current_exception());
+        }
     }
 
     size_t allocated_memory() const override {
@@ -344,11 +365,17 @@ void scheduler::notify_done(const translator_id& id) noexcept {
 
 bool scheduler::requires_scheduling_actions() const {
     return !_executor.waiting.empty() || _mem_tracker->memory_exhausted()
+           || _mem_tracker->disk_exhausted()
            || !_executor.translators_for_immediate_finish.empty();
 }
 
 void scheduler::notify_memory_exhausted() {
     vlog(datalake_log.debug, "memory exhausted notification");
+    _state_changed_cvar.signal();
+}
+
+void scheduler::notify_disk_exhausted() {
+    vlog(datalake_log.info, "disk exhausted notification");
     _state_changed_cvar.signal();
 }
 
@@ -446,11 +473,12 @@ ss::future<> scheduler::main() {
           [this] { return requires_scheduling_actions(); });
         vlog(
           datalake_log.trace,
-          "scheduler tick,  memory_exhausted: {} finish: {}",
+          "scheduler tick,  memory_exhausted: {} disk_exhausted: {} finish: {}",
           _mem_tracker->memory_exhausted(),
+          _mem_tracker->disk_exhausted(),
           _executor.translators_for_immediate_finish.size());
         if (
-          _mem_tracker->memory_exhausted()
+          _mem_tracker->memory_exhausted() || _mem_tracker->disk_exhausted()
           || !_executor.translators_for_immediate_finish.empty()) {
             co_await _scheduling_policy->on_resource_exhaustion(
               _executor, *_mem_tracker);
