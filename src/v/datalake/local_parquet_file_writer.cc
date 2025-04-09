@@ -97,6 +97,21 @@ size_t local_parquet_file_writer::flushed_bytes() const {
     return _writer->flushed_bytes();
 }
 
+/*
+ * next steps
+ *
+ * 1. let's add back in cleanly a new disk_tracker type in parallel to mem
+ * tracker.
+ * 
+ * 2. add a new exception type for handling disk space overage and plumb that
+ * through the "stop translation" interface
+ *
+ * 3. fix the recoverable error issue in writer
+ *
+ * 4. chill out with the warning logging for disk usage. leave it for real oom
+ *
+ * 5. lots more single core (and multi core) testing after its quiet
+ */
 ss::future<writer_error> local_parquet_file_writer::flush() {
     if (!_initialized) {
         co_return writer_error::flush_error;
