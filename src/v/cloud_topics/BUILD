@@ -197,3 +197,29 @@ redpanda_cc_library(
         "@fmt",
     ],
 )
+
+redpanda_cc_library(
+    name = "cluster_services_interface",
+    hdrs = [
+        "cluster_services.h",
+    ],
+    include_prefix = "cloud_topics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/v/utils:named_type",
+        "@seastar",
+    ],
+)
+
+redpanda_cc_library(
+    name = "ephemeral_cluster_services",
+    hdrs = [
+        "ephemeral_cluster_services.h",
+    ],
+    include_prefix = "cloud_topics",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cluster_services_interface",
+        "@seastar",
+    ],
+)
