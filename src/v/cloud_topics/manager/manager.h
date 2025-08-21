@@ -21,6 +21,10 @@ class partition;
 class partition_manager;
 } // namespace cluster
 
+namespace cloud_io {
+class remote;
+}
+
 namespace raft {
 class group_manager;
 }
@@ -42,12 +46,18 @@ namespace cloud_topics {
  */
 class cloud_topics_manager {
 public:
-    cloud_topics_manager(cluster::partition_manager*, raft::group_manager*);
+    cloud_topics_manager(
+      cloud_io::remote* remote,
+      cloud_storage_clients::bucket_name bucket,
+      cluster::partition_manager*,
+      raft::group_manager*);
 
     seastar::future<> start();
     seastar::future<> stop();
 
 private:
+    cloud_io::remote* remote_;
+    cloud_storage_clients::bucket_name bucket_;
     cluster::partition_manager* partition_manager_;
     raft::group_manager* group_manager_;
 

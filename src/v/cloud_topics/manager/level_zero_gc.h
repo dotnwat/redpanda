@@ -9,10 +9,15 @@
  */
 #pragma once
 
+#include "model/fundamental.h"
 #include "ssx/semaphore.h"
 
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/future.hh>
+
+namespace cloud_io {
+class remote;
+}
 
 namespace cloud_topics {
 
@@ -22,7 +27,7 @@ class level_zero_gc {
     static constexpr std::chrono::seconds min_period{5};
 
 public:
-    level_zero_gc();
+    level_zero_gc(cloud_io::remote*, cloud_storage_clients::bucket_name);
 
     // Request that GC be started or stopped. These can be called in any order
     // and the last request will eventually take effect.
@@ -34,6 +39,8 @@ public:
     seastar::future<> shutdown();
 
 private:
+    [[maybe_unused]] cloud_io::remote* remote_;
+    [[maybe_unused]] cloud_storage_clients::bucket_name bucket_;
     bool should_run_{false};
     bool should_exit_{false};
     seastar::condition_variable worker_cv_;

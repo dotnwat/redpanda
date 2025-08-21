@@ -63,6 +63,8 @@ ss::future<> app::construct(
       &domain_supervisor);
 
     manager = std::make_unique<cloud_topics_manager>(
+      &remote->local(),
+      bucket,
       &controller->get_partition_manager().local(),
       &controller->get_raft_manager().local());
 }
