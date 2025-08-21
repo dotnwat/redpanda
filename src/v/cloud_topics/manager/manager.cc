@@ -84,6 +84,8 @@ seastar::future<> cloud_topics_manager::stop() {
           *leadership_notifications_);
     }
 
+    co_await level_zero_gc_.shutdown();
+
     vlog(cd_log.info, "Cloud topics manager stopped");
 
     co_return;
@@ -95,6 +97,7 @@ void cloud_topics_manager::start_managing(cluster::partition&) {
 
 void cloud_topics_manager::stop_managing(const model::ntp&) {
     vlog(cd_log.info, "Cloud topics manager partition deregistered");
+    level_zero_gc_.stop();
 }
 
 void cloud_topics_manager::notify_leadership(
@@ -102,8 +105,10 @@ void cloud_topics_manager::notify_leadership(
   std::optional<model::node_id>) {
     if (partition->is_leader()) {
         vlog(cd_log.info, "Cloud topics manager leader starting");
+        level_zero_gc_.start();
     } else {
         vlog(cd_log.info, "Cloud topics manager leader stopping");
+        level_zero_gc_.stop();
     }
 }
 

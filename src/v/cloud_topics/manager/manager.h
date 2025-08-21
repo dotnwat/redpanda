@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "cloud_topics/manager/level_zero_gc.h"
 #include "cluster/notification.h"
 #include "model/fundamental.h"
 #include "raft/notification.h"
@@ -60,6 +61,8 @@ private:
     void notify_leadership(
       seastar::lw_shared_ptr<cluster::partition>,
       std::optional<model::node_id>);
+
+    level_zero_gc level_zero_gc_;
 };
 
 } // namespace cloud_topics
