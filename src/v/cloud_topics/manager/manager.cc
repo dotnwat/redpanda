@@ -19,10 +19,15 @@
 namespace cloud_topics {
 
 cloud_topics_manager::cloud_topics_manager(
+  cloud_io::remote* remote,
+  cloud_storage_clients::bucket_name bucket,
   cluster::partition_manager* partition_manager,
   raft::group_manager* group_manager)
-  : partition_manager_(partition_manager)
-  , group_manager_(group_manager) {}
+  : remote_(remote)
+  , bucket_(std::move(bucket))
+  , partition_manager_(partition_manager)
+  , group_manager_(group_manager)
+  , level_zero_gc_(remote_, bucket_) {}
 
 seastar::future<> cloud_topics_manager::start() {
     vlog(cd_log.info, "Cloud topics manager starting");

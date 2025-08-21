@@ -10,6 +10,7 @@
 #include "cloud_topics/manager/level_zero_gc.h"
 
 #include "base/vlog.h"
+#include "cloud_io/remote.h"
 #include "cloud_topics/logger.h"
 
 #include <seastar/core/coroutine.hh>
@@ -18,8 +19,11 @@
 
 namespace cloud_topics {
 
-level_zero_gc::level_zero_gc()
-  : worker_sem_(0, "level_zero_gc/worker")
+level_zero_gc::level_zero_gc(
+  cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
+  : remote_(remote)
+  , bucket_(std::move(bucket))
+  , worker_sem_(0, "level_zero_gc/worker")
   , worker_(worker())
   , last_gc_(seastar::lowres_clock::now() - min_period) {}
 
