@@ -1036,6 +1036,8 @@ ss::future<list_result> remote::list_objects(
         vassert(max_keys.value() > 0, "Max keys must be greater than 0.");
     }
 
+    vlog(ctxlog.warn, "XXX allow {}", permit.is_allowed);
+
     // Keep iterating while the ListObjectsV2 calls has more items to return
     while (!_gate.is_closed() && permit.is_allowed && !result) {
         auto res = co_await lease.client->list_objects(
@@ -1093,6 +1095,7 @@ ss::future<list_result> remote::list_objects(
 
         switch (res.error()) {
         case cloud_storage_clients::error_outcome::retry:
+            vlog(ctxlog.warn, "XXX -1");
             vlog(
               ctxlog.debug,
               "ListObjectsV2 {}, {} backoff required",
@@ -1103,8 +1106,10 @@ ss::future<list_result> remote::list_objects(
             permit = fib.retry();
             break;
         case cloud_storage_clients::error_outcome::operation_not_supported:
+            vlog(ctxlog.warn, "XXX 0");
             [[fallthrough]];
         case cloud_storage_clients::error_outcome::fail:
+            vlog(ctxlog.warn, "XXX 1");
             result = cloud_storage_clients::error_outcome::fail;
             break;
         case cloud_storage_clients::error_outcome::key_not_found:

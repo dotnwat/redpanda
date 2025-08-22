@@ -10,7 +10,6 @@
 #include "cloud_topics/manager/level_zero_gc.h"
 
 #include "base/vlog.h"
-#include "cloud_io/remote.h"
 #include "cloud_topics/logger.h"
 
 #include <seastar/core/coroutine.hh>
@@ -19,13 +18,44 @@
 
 namespace cloud_topics {
 
-level_zero_gc::level_zero_gc(
-  cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
-  : remote_(remote)
-  , bucket_(std::move(bucket))
+class object_storage_remote_impl : public level_zero_gc::object_storage {
+public:
+    object_storage_remote_impl(
+      cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
+      : remote_(remote)
+      , bucket_(std::move(bucket))
+      , prefix_("cluster_metadaasdfta") {}
+
+    // TODO see all list_objects params
+    seastar::future<cloud_io::list_result> list_objects() override {
+        seastar::abort_source asrc;
+        retry_chain_node rtc(
+          asrc, std::chrono::seconds(5), std::chrono::seconds(1));
+        auto res = co_await remote_->list_objects(bucket_, rtc, prefix_);
+
+        // check prefix
+        // check ordering
+
+        co_return res;
+    }
+
+private:
+    cloud_io::remote* remote_;
+    const cloud_storage_clients::bucket_name bucket_;
+    const cloud_storage_clients::object_key prefix_;
+};
+
+level_zero_gc::level_zero_gc(std::unique_ptr<object_storage> storage)
+  : storage_(std::move(storage))
   , worker_sem_(0, "level_zero_gc/worker")
   , worker_(worker())
   , last_gc_(seastar::lowres_clock::now() - min_period) {}
+
+level_zero_gc::level_zero_gc(
+  cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
+  : level_zero_gc(
+      std::make_unique<object_storage_remote_impl>(remote, std::move(bucket))) {
+}
 
 void level_zero_gc::start() {
     vlog(cd_log.info, "XXX Starting cloud topics L0 GC worker");
@@ -56,9 +86,9 @@ seastar::future<> level_zero_gc::worker() {
             continue;
         }
 
-        // this can be abortable on shutdown signal. for normal stop signal does
-        // it matter if it is sleeping? nah, just check for run flag after
-        // waking up.
+        // this can be abortable on shutdown signal. for normal stop signal
+        // does it matter if it is sleeping? nah, just check for run flag
+        // after waking up.
         co_await seastar::sleep(std::chrono::seconds(min_period));
 
         co_await gc();
@@ -67,8 +97,17 @@ seastar::future<> level_zero_gc::worker() {
 }
 
 seastar::future<> level_zero_gc::gc() {
-    vlog(cd_log.info, "XXX: running GC :)");
-    co_return;
+    const auto res = co_await storage_->list_objects();
+    if (res.has_error()) {
+        vlog(cd_log.info, "XXX error listing {}", res.error());
+        co_return;
+    }
+
+    const auto& objects = res.value().contents;
+    vlog(cd_log.info, "XXX: num obj {}", objects.size());
+    for (auto& object : objects) {
+        vlog(cd_log.info, "XXX: see object {}", object.key);
+    }
 }
 
 } // namespace cloud_topics
