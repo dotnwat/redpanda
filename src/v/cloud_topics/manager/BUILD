@@ -13,11 +13,11 @@ redpanda_cc_library(
         "//src/v/cloud_topics:logger",
         "//src/v/cluster",
         "//src/v/raft",
-		"//src/v/cloud_io:remote",
     ],
     visibility = ["//visibility:public"],
     deps = [
         "//src/v/cluster:notification",
+		"//src/v/cloud_io:remote",
         "//src/v/model",
 		"//src/v/ssx:semaphore",
         "@seastar",

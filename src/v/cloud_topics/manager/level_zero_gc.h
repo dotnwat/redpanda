@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include "cloud_io/remote.h"
 #include "model/fundamental.h"
 #include "ssx/semaphore.h"
 
@@ -27,6 +28,28 @@ class level_zero_gc {
     static constexpr std::chrono::seconds min_period{5};
 
 public:
+    /*
+     * Object storage interface used by L0 GC.
+     */
+    class object_storage {
+    public:
+        object_storage() = default;
+        object_storage(const object_storage&) = delete;
+        object_storage(object_storage&&) = delete;
+        object_storage& operator=(const object_storage&) = delete;
+        object_storage& operator=(object_storage&&) = delete;
+        virtual ~object_storage() = default;
+
+        virtual seastar::future<cloud_io::list_result> list_objects() = 0;
+        // virtual seastar::future<> delete_objects() = 0;
+        //  int remote::delete_objects_max_keys() const {
+        //  bool is_batch_delete_supported() const;
+    };
+
+    // Construct using the given storage provider
+    explicit level_zero_gc(std::unique_ptr<object_storage>);
+
+    // Construct using the default storage provider
     level_zero_gc(cloud_io::remote*, cloud_storage_clients::bucket_name);
 
     // Request that GC be started or stopped. These can be called in any order
@@ -39,8 +62,7 @@ public:
     seastar::future<> shutdown();
 
 private:
-    [[maybe_unused]] cloud_io::remote* remote_;
-    [[maybe_unused]] cloud_storage_clients::bucket_name bucket_;
+    std::unique_ptr<object_storage> storage_;
     bool should_run_{false};
     bool should_exit_{false};
     seastar::condition_variable worker_cv_;
