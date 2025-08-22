@@ -16,10 +16,10 @@ redpanda_cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/cloud_io:remote",
         "//src/v/cluster:notification",
-		"//src/v/cloud_io:remote",
         "//src/v/model",
-		"//src/v/ssx:semaphore",
+        "//src/v/ssx:semaphore",
         "@seastar",
     ],
 )
@@ -40,7 +40,7 @@ redpanda_cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-		":level_zero_gc",
+        ":level_zero_gc",
         "//src/v/cluster:notification",
         "//src/v/model",
         "@seastar",
