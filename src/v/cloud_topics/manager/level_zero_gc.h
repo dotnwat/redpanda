@@ -10,6 +10,7 @@
 #pragma once
 
 #include "cloud_io/remote.h"
+#include "cloud_topics/types.h"
 #include "model/fundamental.h"
 #include "ssx/semaphore.h"
 
@@ -22,14 +23,41 @@ class remote;
 
 namespace cloud_topics {
 
+/*
+ * check lexiographic ordering of output
+ *
+ * most object storage systems state explicitly that object listings are
+ * sorted in lexiographic order. however, some lesser used systems
+ * either (1) explicitly state that this is not the case or (2) have
+ * configuration options that allow lexiographic ordering to be
+ * disabled.
+ *
+ * currently cloud topics assumes that object listings are in
+ * lexiographic ordering to simplify the implementation through the use
+ * of a stateless GC process. when used with a system that produces
+ * non-lexiographic orderings, the stateless process will operate
+ * correctly, but may be highly inefficient.
+ *
+ * next we check the output and watch for non-lexiographic orderings so
+ * that we can warn appropriately. if such a warning is encountered,
+ * then it may be an indication that cloud topics should adopt a more
+ * flexible approach to tracking cleaned epochs.
+ */
 class level_zero_gc {
     // Avoid thrashing (e.g. cause by leadership flapping) by requiring a
     // minimum delay between GC worker activations.
     static constexpr std::chrono::seconds min_period{5};
 
+    // GC grace period. TODO should be configuration option
+    static constexpr std::chrono::seconds min_gc_grace_period{5};
+
 public:
     /*
      * Object storage interface used by L0 GC.
+     *
+     * Implementations should constrain object storage access to _only_ L0 data
+     * objects. For example, it is assumed (but also verified) that calls to
+     * the `list_objects` interface return only L0 data objects.
      */
     class object_storage {
     public:
@@ -41,13 +69,27 @@ public:
         virtual ~object_storage() = default;
 
         virtual seastar::future<cloud_io::list_result> list_objects() = 0;
-        // virtual seastar::future<> delete_objects() = 0;
-        //  int remote::delete_objects_max_keys() const {
-        //  bool is_batch_delete_supported() const;
+    };
+
+    /*
+     * Interface for computing the maximum epoch eligible for GC.
+     */
+    class epoch_source {
+    public:
+        epoch_source() = default;
+        epoch_source(const epoch_source&) = default;
+        epoch_source(epoch_source&&) = delete;
+        epoch_source& operator=(const epoch_source&) = default;
+        epoch_source& operator=(epoch_source&&) = delete;
+        virtual ~epoch_source() = default;
+
+        // L0 objects with epochs <= the return value may be deleted.
+        virtual seastar::future<cluster_epoch> max_gc_eligible_epoch() = 0;
     };
 
     // Construct using the given storage provider
-    explicit level_zero_gc(std::unique_ptr<object_storage>);
+    explicit level_zero_gc(
+      std::unique_ptr<object_storage>, std::unique_ptr<epoch_source>);
 
     // Construct using the default storage provider
     level_zero_gc(cloud_io::remote*, cloud_storage_clients::bucket_name);
@@ -62,7 +104,9 @@ public:
     seastar::future<> shutdown();
 
 private:
+    seastar::abort_source asrc_;
     std::unique_ptr<object_storage> storage_;
+    std::unique_ptr<epoch_source> epoch_source_;
     bool should_run_{false};
     bool should_exit_{false};
     seastar::condition_variable worker_cv_;
