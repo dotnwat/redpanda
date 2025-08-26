@@ -17,6 +17,8 @@
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/future.hh>
 
+#include <expected>
+
 namespace cloud_io {
 class remote;
 }
@@ -68,7 +70,15 @@ public:
         object_storage& operator=(object_storage&&) = delete;
         virtual ~object_storage() = default;
 
-        virtual seastar::future<cloud_io::list_result> list_objects() = 0;
+        virtual seastar::future<std::expected<
+          cloud_storage_clients::client::list_bucket_result,
+          cloud_storage_clients::error_outcome>>
+        list_objects() = 0;
+
+        virtual seastar::future<std::expected<void, cloud_io::upload_result>>
+          delete_objects(
+            std::vector<cloud_storage_clients::client::list_bucket_item>)
+          = 0;
     };
 
     /*
@@ -83,8 +93,12 @@ public:
         epoch_source& operator=(epoch_source&&) = delete;
         virtual ~epoch_source() = default;
 
-        // L0 objects with epochs <= the return value may be deleted.
-        virtual seastar::future<cluster_epoch> max_gc_eligible_epoch() = 0;
+        // L0 objects with epochs <= the return value may be deleted. An
+        // expected return value of std::nullopt indicates that no GC eligible
+        // epoch could yet be determined.
+        virtual seastar::future<
+          std::expected<std::optional<cluster_epoch>, std::string>>
+        max_gc_eligible_epoch() = 0;
     };
 
     // Construct using the given storage provider

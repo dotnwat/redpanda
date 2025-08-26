@@ -32,10 +32,33 @@ public:
       , remote_(remote)
       , bucket_(std::move(bucket)) {}
 
-    seastar::future<cloud_io::list_result> list_objects() override {
+    seastar::future<std::expected<
+      cloud_storage_clients::client::list_bucket_result,
+      cloud_storage_clients::error_outcome>>
+    list_objects() override {
         retry_chain_node rtc(*asrc_, timeout, backoff);
-        co_return co_await remote_->list_objects(
+        auto res = co_await remote_->list_objects(
           bucket_, rtc, object_path_factory::level_zero_data_dir());
+        if (res.has_value()) {
+            co_return res.assume_value();
+        }
+        co_return std::unexpected(res.assume_error());
+    }
+
+    seastar::future<std::expected<void, cloud_io::upload_result>>
+    delete_objects(
+      std::vector<cloud_storage_clients::client::list_bucket_item> objects)
+      override {
+        retry_chain_node rtc(*asrc_, timeout, backoff);
+        auto keys
+          = objects | std::views::transform([](auto& obj) { return obj.key; })
+            | std::ranges::to<std::vector<cloud_storage_clients::object_key>>();
+        auto res = co_await remote_->delete_objects(
+          bucket_, keys, rtc, [](auto) {});
+        if (res == cloud_io::upload_result::success) {
+            co_return std::expected<void, cloud_io::upload_result>();
+        }
+        co_return std::unexpected(res);
     }
 
 private:
@@ -46,8 +69,13 @@ private:
 
 class epoch_source_cluster_impl : public level_zero_gc::epoch_source {
 public:
-    seastar::future<cluster_epoch> max_gc_eligible_epoch() override {
-        co_return cluster_epoch{};
+    seastar::future<std::expected<std::optional<cluster_epoch>, std::string>>
+    max_gc_eligible_epoch() override {
+        /*
+         * There is more work to do before we can fully integrate here. In the
+         * mean time do not allow any L0 data objects to be collected.
+         */
+        co_return std::nullopt;
     }
 };
 
@@ -106,31 +134,44 @@ seastar::future<> level_zero_gc::worker() {
     vlog(cd_log.info, "XXX GC worker exiting");
 }
 
-// TODO add trace/debug logging
 seastar::future<> level_zero_gc::gc() {
     const auto res = co_await storage_->list_objects();
-    if (res.has_error()) {
+    if (!res.has_value()) {
         vlog(
           cd_log.debug,
           "Received error listing objects during L0 GC: {}",
-          res.assume_error());
+          res.error());
         co_return;
     }
 
-    const auto max_gc_epoch = co_await epoch_source_->max_gc_eligible_epoch();
+    const auto maybe_max_gc_epoch
+      = co_await epoch_source_->max_gc_eligible_epoch();
+    if (!maybe_max_gc_epoch.has_value()) {
+        vlog(
+          cd_log.debug,
+          "Received error retrieving GC eligible epoch: {}",
+          maybe_max_gc_epoch.error());
+        co_return;
+    }
+
+    const auto max_gc_epoch = maybe_max_gc_epoch.value();
+    if (!max_gc_epoch.has_value()) {
+        vlog(cd_log.debug, "No GC eligible epoch currently exists");
+        co_return;
+    }
 
     const auto max_gc_birthday = std::chrono::system_clock::now()
                                  - min_gc_grace_period;
 
     // objects that can be safely deleted
-    chunked_vector<cloud_storage_clients::client::list_bucket_item>
+    std::vector<cloud_storage_clients::client::list_bucket_item>
       gc_eligible_objects;
 
     // used to detect unsorted object listings
     seastar::sstring last_key;
     std::optional<cluster_epoch> last_epoch;
 
-    for (auto& object : res.assume_value().contents) {
+    for (auto& object : res.value().contents) {
         auto res = object_path_factory::level_zero_path_to_epoch(object.key);
 
         // validate expected L0 object name format, and extract epoch
@@ -162,7 +203,7 @@ seastar::future<> level_zero_gc::gc() {
         last_epoch = res.value();
 
         // object's epoch is not yet eligible for collection
-        if (res.value() > max_gc_epoch) {
+        if (res.value() > max_gc_epoch.value()) {
             continue;
         }
 
@@ -174,11 +215,7 @@ seastar::future<> level_zero_gc::gc() {
         gc_eligible_objects.push_back(object);
     }
 
-    const auto& objects = res.value().contents;
-    vlog(cd_log.info, "XXX: num obj {}", objects.size());
-    for (auto& object : objects) {
-        vlog(cd_log.info, "XXX: see object {}", object.key);
-    }
+    co_await storage_->delete_objects(std::move(gc_eligible_objects));
 }
 
 } // namespace cloud_topics
