@@ -7,7 +7,7 @@
  *
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
-#include "cloud_topics/manager/level_zero_gc.h"
+#include "cloud_topics/level_zero/gc/level_zero_gc.h"
 
 #include "base/vlog.h"
 #include "cloud_topics/logger.h"

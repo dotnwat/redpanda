@@ -1,24 +1,27 @@
 load("//bazel:build.bzl", "redpanda_cc_library")
 
 redpanda_cc_library(
-    name = "manager",
+    name = "level_zero_gc",
     srcs = [
-        "manager.cc",
+        "level_zero_gc.cc",
     ],
     hdrs = [
-        "manager.h",
+        "level_zero_gc.h",
     ],
     implementation_deps = [
         "//src/v/base",
         "//src/v/cloud_topics:logger",
+        "//src/v/cloud_topics:object_utils",
+        "//src/v/cloud_topics:types",
         "//src/v/cluster",
         "//src/v/raft",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/v/cloud_topics/level_zero/gc:level_zero_gc",
+        "//src/v/cloud_io:remote",
         "//src/v/cluster:notification",
         "//src/v/model",
+        "//src/v/ssx:semaphore",
         "@seastar",
     ],
 )

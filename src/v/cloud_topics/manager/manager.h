@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include "cloud_topics/manager/level_zero_gc.h"
+#include "cloud_topics/level_zero/gc/level_zero_gc.h"
 #include "cluster/notification.h"
 #include "model/fundamental.h"
 #include "raft/notification.h"
