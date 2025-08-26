@@ -12,7 +12,6 @@
 #include "cloud_io/remote.h"
 #include "cloud_topics/types.h"
 #include "model/fundamental.h"
-#include "ssx/semaphore.h"
 
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/future.hh>
@@ -26,6 +25,34 @@ class remote;
 namespace cloud_topics {
 
 /*
+ * Garbage collection for level-zero data objects.
+ *
+ * Every L0 data object is associated with a global epoch:
+ *
+ *    .../00000-<uuid>
+ *    .../00999-<uuid>
+ *    .../00999-<uuid>
+ *    .../01005-<uuid>
+ *
+ * The process of L0 garbage collection involves first determining an epoch
+ * value for which it is safe to delete all L0 objects tagged with epochs less
+ * than order equal to the safe epoch, and then requesting the underlying
+ * storage system to delete these qualifying objects.
+ *
+ *
+ * A node with any non-zero ingress rate will upload at least four L0
+ * objects per second. Thus a five node cluster will upload a minimum of
+ * about 20 objects per second. In contrast, a cluster with an ingress
+ * rate of 4 GB/s using 4 MB L0 data object will upload around 1000 objects
+ * per second.
+ *
+ * AWS S3 allows batch deletes of 1000 objects per request. So as we
+ * approach supporting 4 GB/s in a cluster L0 GC will need to be able
+ * perform around one maximum batch delete request per second. It remains to
+ * be seen how much load this will place on a single core, and we should
+ * therefore be prepared to scale out L0 GC as needed, either to more cores
+ * or more nodes.
+ *
  * check lexiographic ordering of output
  *
  * most object storage systems state explicitly that object listings are
@@ -46,20 +73,12 @@ namespace cloud_topics {
  * flexible approach to tracking cleaned epochs.
  */
 class level_zero_gc {
-    // Avoid thrashing (e.g. cause by leadership flapping) by requiring a
-    // minimum delay between GC worker activations.
-    static constexpr std::chrono::seconds min_period{5};
-
     // GC grace period. TODO should be configuration option
     static constexpr std::chrono::seconds min_gc_grace_period{5};
 
 public:
     /*
      * Object storage interface used by L0 GC.
-     *
-     * Implementations should constrain object storage access to _only_ L0 data
-     * objects. For example, it is assumed (but also verified) that calls to
-     * the `list_objects` interface return only L0 data objects.
      */
     class object_storage {
     public:
@@ -70,14 +89,19 @@ public:
         object_storage& operator=(object_storage&&) = delete;
         virtual ~object_storage() = default;
 
+        /*
+         * Implementations are expected to limit the listing to only L0 data
+         * objects, and provide the listing in _globally_ lexiographic order.
+         */
         virtual seastar::future<std::expected<
           cloud_storage_clients::client::list_bucket_result,
           cloud_storage_clients::error_outcome>>
-        list_objects() = 0;
+        list_objects(seastar::abort_source*) = 0;
 
         virtual seastar::future<std::expected<void, cloud_io::upload_result>>
-          delete_objects(
-            std::vector<cloud_storage_clients::client::list_bucket_item>)
+        delete_objects(
+          seastar::abort_source*,
+          std::vector<cloud_storage_clients::client::list_bucket_item>)
           = 0;
     };
 
@@ -93,43 +117,55 @@ public:
         epoch_source& operator=(epoch_source&&) = delete;
         virtual ~epoch_source() = default;
 
-        // L0 objects with epochs <= the return value may be deleted. An
-        // expected return value of std::nullopt indicates that no GC eligible
-        // epoch could yet be determined.
+        /*
+         * L0 objects with epochs <= the return value may be deleted. An
+         * expected return value of std::nullopt indicates that no GC eligible
+         * epoch could yet be determined.
+         */
         virtual seastar::future<
           std::expected<std::optional<cluster_epoch>, std::string>>
-        max_gc_eligible_epoch() = 0;
+        max_gc_eligible_epoch(seastar::abort_source*) = 0;
     };
 
-    // Construct using the given storage provider
-    explicit level_zero_gc(
+public:
+    /*
+     * Construct with the given storage and epoch providers. This interface is
+     * intended to be used by tests which swap in mock implementations.
+     */
+    level_zero_gc(
       std::unique_ptr<object_storage>, std::unique_ptr<epoch_source>);
 
-    // Construct using the default storage provider
+    /*
+     * Construct with default implementations of storage and epoch providers.
+     */
     level_zero_gc(cloud_io::remote*, cloud_storage_clients::bucket_name);
 
-    // Request that GC be started or stopped. These can be called in any order
-    // and the last request will eventually take effect.
+    /*
+     * Request that GC be started or stopped. These can be called multiple times
+     * and in any order. The last invocation will eventually take effect.
+     */
     void start();
     void stop();
 
-    // Request and wait for GC to be completely stopped. After calling shutdown,
-    // calling start() or stop will have no effect.
+    /*
+     * Request and wait for GC to be completely stopped. After calling shutdown,
+     * calling start() or stop() will have no effect.
+     */
     seastar::future<> shutdown();
 
 private:
-    seastar::abort_source asrc_;
     std::unique_ptr<object_storage> storage_;
     std::unique_ptr<epoch_source> epoch_source_;
-    bool should_run_{false};
-    bool should_exit_{false};
-    seastar::condition_variable worker_cv_;
 
-    ssx::semaphore worker_sem_;
+    bool should_run_;
+    bool should_shutdown_;
+    seastar::abort_source asrc_;
+    seastar::condition_variable worker_cv_;
     seastar::future<> worker_;
+
     seastar::future<> worker();
-    seastar::future<> gc();
-    seastar::lowres_clock::time_point last_gc_;
+    enum class collection_error : int8_t;
+    seastar::future<std::expected<size_t, collection_error>> try_to_collect();
 };
 
 } // namespace cloud_topics

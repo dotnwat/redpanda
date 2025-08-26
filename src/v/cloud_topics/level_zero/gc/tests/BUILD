@@ -8,6 +8,7 @@ redpanda_cc_gtest(
     ],
     deps = [
         "//src/v/bytes:iostream",
+        "//src/v/cloud_topics/level_zero/gc:level_zero_gc",
         "//src/v/model/tests:random",
         "//src/v/test_utils:gtest",
         "@googletest//:gtest",

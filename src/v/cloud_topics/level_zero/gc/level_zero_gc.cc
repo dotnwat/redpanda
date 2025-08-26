@@ -25,18 +25,15 @@ public:
     static constexpr std::chrono::seconds backoff{1};
 
     object_storage_remote_impl(
-      seastar::abort_source* asrc,
-      cloud_io::remote* remote,
-      cloud_storage_clients::bucket_name bucket)
-      : asrc_(asrc)
-      , remote_(remote)
+      cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
+      : remote_(remote)
       , bucket_(std::move(bucket)) {}
 
     seastar::future<std::expected<
       cloud_storage_clients::client::list_bucket_result,
       cloud_storage_clients::error_outcome>>
-    list_objects() override {
-        retry_chain_node rtc(*asrc_, timeout, backoff);
+    list_objects(seastar::abort_source* asrc) override {
+        retry_chain_node rtc(*asrc, timeout, backoff);
         auto res = co_await remote_->list_objects(
           bucket_, rtc, object_path_factory::level_zero_data_dir());
         if (res.has_value()) {
@@ -47,9 +44,10 @@ public:
 
     seastar::future<std::expected<void, cloud_io::upload_result>>
     delete_objects(
+      seastar::abort_source* asrc,
       std::vector<cloud_storage_clients::client::list_bucket_item> objects)
       override {
-        retry_chain_node rtc(*asrc_, timeout, backoff);
+        retry_chain_node rtc(*asrc, timeout, backoff);
         auto keys
           = objects | std::views::transform([](auto& obj) { return obj.key; })
             | std::ranges::to<std::vector<cloud_storage_clients::object_key>>();
@@ -62,7 +60,6 @@ public:
     }
 
 private:
-    seastar::abort_source* asrc_;
     cloud_io::remote* remote_;
     const cloud_storage_clients::bucket_name bucket_;
 };
@@ -70,10 +67,10 @@ private:
 class epoch_source_cluster_impl : public level_zero_gc::epoch_source {
 public:
     seastar::future<std::expected<std::optional<cluster_epoch>, std::string>>
-    max_gc_eligible_epoch() override {
+    max_gc_eligible_epoch(seastar::abort_source*) override {
         /*
-         * There is more work to do before we can fully integrate here. In the
-         * mean time do not allow any L0 data objects to be collected.
+         * TODO(noah): missing an integration of epochs with the partition
+         * table. for now we report no eligible epoch.
          */
         co_return std::nullopt;
     }
@@ -84,80 +81,111 @@ level_zero_gc::level_zero_gc(
   std::unique_ptr<epoch_source> epoch_source)
   : storage_(std::move(storage))
   , epoch_source_(std::move(epoch_source))
-  , worker_sem_(0, "level_zero_gc/worker")
-  , worker_(worker())
-  , last_gc_(seastar::lowres_clock::now() - min_period) {}
+  , should_run_(false) // begin in a stopped state
+  , should_shutdown_(false)
+  , worker_(worker()) {}
 
 level_zero_gc::level_zero_gc(
   cloud_io::remote* remote, cloud_storage_clients::bucket_name bucket)
   : level_zero_gc(
-      std::make_unique<object_storage_remote_impl>(
-        &asrc_, remote, std::move(bucket)),
+      std::make_unique<object_storage_remote_impl>(remote, std::move(bucket)),
       std::make_unique<epoch_source_cluster_impl>()) {}
 
 void level_zero_gc::start() {
-    vlog(cd_log.info, "XXX Starting cloud topics L0 GC worker");
+    vlog(cd_log.info, "Starting cloud topics L0 GC worker");
     should_run_ = true;
     worker_cv_.signal();
 }
 
 void level_zero_gc::stop() {
-    vlog(cd_log.info, "XXX Stopping cloud topics L0 GC worker");
+    vlog(cd_log.info, "Stopping cloud topics L0 GC worker");
     should_run_ = false;
+    asrc_.request_abort();
 }
 
-// need extra flag to indicate that worker should exit
 seastar::future<> level_zero_gc::shutdown() {
-    should_exit_ = true;
-    stop();
+    vlog(cd_log.info, "Shutting down cloud topics L0 GC worker");
+    should_shutdown_ = true;
+    asrc_.request_abort();
     worker_cv_.signal();
-    // should have try/ignore eception around this
     co_await std::exchange(worker_, seastar::now());
 }
 
-// wrap with retry/restart loop
+enum class level_zero_gc::collection_error : int8_t {
+    // problem occurred interacting with the storage or epoch services
+    service_error,
+    // the cluster is reporting that no collectible epoch exists
+    no_collectible_epoch,
+    // object listing contained an invalid object name
+    invalid_object_name,
+};
+
 seastar::future<> level_zero_gc::worker() {
-    while (!should_exit_) {
-        co_await worker_cv_.wait(
-          [this] { return should_run_ || should_exit_; });
-        if (should_exit_) {
-            continue;
+    std::chrono::seconds backoff{0};
+
+    while (true) {
+        try {
+            co_await worker_cv_.wait(
+              [this] { return should_run_ || should_shutdown_; });
+
+            if (should_shutdown_) {
+                break;
+            }
+
+            // stop() and shutdown() may request an abort, but only the worker
+            // may subscribe or reset the abort source since it is able to
+            // ensure that the abort source is unreferenced at this time.
+            asrc_ = {};
+
+            if (backoff.count() > 0) {
+                (co_await seastar::coroutine::as_future(
+                   seastar::sleep_abortable(backoff, asrc_)))
+                  .ignore_ready_future();
+                backoff = std::chrono::seconds{0};
+            }
+
+            // error
+            // no epoch
+            // no objects
+            // some objects deleted
+            // TODO apply throttling / backoff
+            co_await try_to_collect();
+        } catch (...) {
+            vlog(
+              cd_log.info,
+              "Level zero GC restarting after error: {}",
+              std::current_exception());
         }
-
-        // this can be abortable on shutdown signal. for normal stop signal
-        // does it matter if it is sleeping? nah, just check for run flag
-        // after waking up.
-        co_await seastar::sleep(std::chrono::seconds(min_period));
-
-        co_await gc();
     }
-    vlog(cd_log.info, "XXX GC worker exiting");
+
+    vlog(cd_log.info, "Level zero GC worker is exiting");
 }
 
-seastar::future<> level_zero_gc::gc() {
-    const auto res = co_await storage_->list_objects();
-    if (!res.has_value()) {
+seastar::future<std::expected<size_t, level_zero_gc::collection_error>>
+level_zero_gc::try_to_collect() {
+    const auto candidate_objects = co_await storage_->list_objects(&asrc_);
+    if (!candidate_objects.has_value()) {
         vlog(
           cd_log.debug,
           "Received error listing objects during L0 GC: {}",
-          res.error());
-        co_return;
+          candidate_objects.error());
+        co_return std::unexpected(collection_error::service_error);
     }
 
     const auto maybe_max_gc_epoch
-      = co_await epoch_source_->max_gc_eligible_epoch();
+      = co_await epoch_source_->max_gc_eligible_epoch(&asrc_);
     if (!maybe_max_gc_epoch.has_value()) {
         vlog(
           cd_log.debug,
           "Received error retrieving GC eligible epoch: {}",
           maybe_max_gc_epoch.error());
-        co_return;
+        co_return std::unexpected(collection_error::service_error);
     }
 
     const auto max_gc_epoch = maybe_max_gc_epoch.value();
     if (!max_gc_epoch.has_value()) {
         vlog(cd_log.debug, "No GC eligible epoch currently exists");
-        co_return;
+        co_return std::unexpected(collection_error::no_collectible_epoch);
     }
 
     const auto max_gc_birthday = std::chrono::system_clock::now()
@@ -165,30 +193,34 @@ seastar::future<> level_zero_gc::gc() {
 
     // objects that can be safely deleted
     std::vector<cloud_storage_clients::client::list_bucket_item>
-      gc_eligible_objects;
+      eligible_objects;
 
     // used to detect unsorted object listings
     seastar::sstring last_key;
     std::optional<cluster_epoch> last_epoch;
 
-    for (auto& object : res.value().contents) {
-        auto res = object_path_factory::level_zero_path_to_epoch(object.key);
+    for (const auto& object : candidate_objects.value().contents) {
+        const auto object_epoch = object_path_factory::level_zero_path_to_epoch(
+          object.key);
 
         // validate expected L0 object name format, and extract epoch
-        if (!res.has_value()) {
+        if (!object_epoch.has_value()) {
             vlog(
               cd_log.error,
               "Unable to parse epoch during L0 GC: {}",
-              res.error());
-            co_return;
+              object_epoch.error());
+            co_return std::unexpected(collection_error::invalid_object_name);
         }
 
-        // check that output is ordered by epoch. not fatal. see class comment.
+        // detect non-lexiographic ordering. this may indicate that GC will not
+        // operate efficiently with the underlying storage system. see the class
+        // comment for more details about what this means in practice.
         if (!last_epoch.has_value()) {
             last_key = object.key;
-            last_epoch = res.value();
+            last_epoch = object_epoch.value();
         }
-        if (res.value() < last_epoch) {
+
+        if (object_epoch.value() < last_epoch) {
             constexpr std::chrono::minutes rate_limit{1};
             static seastar::logger::rate_limit rate(rate_limit);
             vloglr(
@@ -199,11 +231,12 @@ seastar::future<> level_zero_gc::gc() {
               object.key,
               last_key);
         }
-        last_key = object.key;
-        last_epoch = res.value();
 
-        // object's epoch is not yet eligible for collection
-        if (res.value() > max_gc_epoch.value()) {
+        last_key = object.key;
+        last_epoch = object_epoch.value();
+
+        // object's epoch is not yet eligible
+        if (object_epoch.value() > max_gc_epoch.value()) {
             continue;
         }
 
@@ -212,10 +245,22 @@ seastar::future<> level_zero_gc::gc() {
             continue;
         }
 
-        gc_eligible_objects.push_back(object);
+        eligible_objects.push_back(object);
     }
 
-    co_await storage_->delete_objects(std::move(gc_eligible_objects));
+    const auto num_eligible = eligible_objects.size();
+
+    auto res = co_await storage_->delete_objects(
+      &asrc_, std::move(eligible_objects));
+    if (!res.has_value()) {
+        vlog(
+          cd_log.debug,
+          "Received an error deleting L0 data objects: {}",
+          res.error());
+        co_return std::unexpected(collection_error::service_error);
+    }
+
+    co_return num_eligible;
 }
 
 } // namespace cloud_topics
