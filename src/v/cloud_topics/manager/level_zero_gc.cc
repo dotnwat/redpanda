@@ -117,7 +117,7 @@ seastar::future<> level_zero_gc::gc() {
         co_return;
     }
 
-    const auto max_gc_epoch = epoch_source_->max_gc_eligible_epoch();
+    const auto max_gc_epoch = co_await epoch_source_->max_gc_eligible_epoch();
 
     const auto max_gc_birthday = std::chrono::system_clock::now()
                                  - min_gc_grace_period;
