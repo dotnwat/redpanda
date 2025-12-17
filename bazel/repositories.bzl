@@ -62,6 +62,14 @@ def data_dependency():
     )
 
     http_archive(
+        name = "iwyu",
+        build_file = "//bazel/thirdparty:iwyu.BUILD",
+        sha256 = "c42f40dfb378b39fa437091817fb2c8ab37ebe28925544d4f87fb453c1880498",
+        strip_prefix = "include-what-you-use-6e08906c66b3009f2d590e4bd40d60fa303bf803",
+        url = "https://github.com/include-what-you-use/include-what-you-use/archive/6e08906c66b3009f2d590e4bd40d60fa303bf803.tar.gz",
+    )
+
+    http_archive(
         name = "jsoncons",
         build_file = "//bazel/thirdparty:jsoncons.BUILD",
         sha256 = "078ba32cd1198cbeb1903fbf4881d4960b226bdf8083d9f5a927b96f0aa8d6dd",

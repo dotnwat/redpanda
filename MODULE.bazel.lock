@@ -250,7 +250,7 @@
   "moduleExtensions": {
     "//bazel:extensions.bzl%non_module_dependencies": {
       "general": {
-        "bzlTransitiveDigest": "yo0kHEo8fD7vBQzEBJoX16oBQVqC4gyLtrIHq0QNAxk=",
+        "bzlTransitiveDigest": "aW6StFpU0QsueTDLKogrCdNEQNeoqcJ9MhUS2YdpXas=",
         "usagesDigest": "FEiDyZe9eAU6yEqnarZf0XMEUk+prUyYClvq1RU1J98=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
@@ -313,6 +313,15 @@
               "sha256": "866ac8ef07b350a6a2ba0c6826c37d78e8994dcbcd443bdd2b436350de19d540",
               "strip_prefix": "hwloc-2.11.2",
               "url": "https://vectorized-public.s3.amazonaws.com/dependencies/hwloc-2.11.2.tar.gz"
+            }
+          },
+          "iwyu": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "build_file": "@@//bazel/thirdparty:iwyu.BUILD",
+              "sha256": "c42f40dfb378b39fa437091817fb2c8ab37ebe28925544d4f87fb453c1880498",
+              "strip_prefix": "include-what-you-use-6e08906c66b3009f2d590e4bd40d60fa303bf803",
+              "url": "https://github.com/include-what-you-use/include-what-you-use/archive/6e08906c66b3009f2d590e4bd40d60fa303bf803.tar.gz"
             }
           },
           "jsoncons": {
