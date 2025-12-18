@@ -159,6 +159,10 @@ private:
     config::binding<std::chrono::milliseconds> _scheduling_interval;
 
     write_request_scheduler_probe _probe;
+
+    // The table of all shard bytes counters (ix = shard id)
+    std::vector<std::reference_wrapper<const std::atomic<size_t>>>
+      _shard_counters;
 };
 
 } // namespace cloud_topics::l0

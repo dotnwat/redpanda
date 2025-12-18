@@ -59,6 +59,27 @@ write_request_scheduler<Clock>::write_request_scheduler(
 
 template<typename Clock>
 ss::future<> write_request_scheduler<Clock>::start() {
+    // Collect counters across all shards
+    struct counter_shard {
+        const std::atomic<size_t>* count;
+        ss::shard_id shard;
+    };
+    auto shard_bytes = co_await this->container().map(
+      [](write_request_scheduler<Clock>& s) {
+          return counter_shard{
+            .count = s._stage.stage_bytes_ref(),
+            .shard = ss::this_shard_id(),
+          };
+      });
+    for (unsigned ix = 0; ix < ss::smp::count; ix++) {
+        for (const counter_shard& sc : shard_bytes) {
+            if (sc.shard == ix) {
+                _shard_counters.push_back(std::ref(*sc.count));
+                break;
+            }
+        }
+    }
+
     // Start the background time based fallback loop on shard 0
     if (
       ss::this_shard_id() == ss::shard_id(0)
@@ -226,11 +247,13 @@ ss::future<> write_request_scheduler<Clock>::apply_time_based_fallback() {
     // additional latency is not significant. If we have very high tput
     // on some shards they will be excluded from the time based fallback
     // because they will trigger the data threshold based uploads.
-    auto shard_bytes = co_await this->container().map(
-      [](write_request_scheduler<Clock>& s) {
-          return shard_info{
-            .shard = ss::this_shard_id(), .bytes = s.shard_bytes()};
-      });
+    std::vector<shard_info> shard_bytes;
+    for (unsigned i = 0; i < _shard_counters.size(); i++) {
+        shard_bytes.push_back({
+          .shard = ss::shard_id(i),
+          .bytes = _shard_counters[i].get().load(),
+        });
+    }
 
     // NOTE: the heuristic is based on cache behavior. The shard that
     // uploads the data has to read it. If the write request originates
