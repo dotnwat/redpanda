@@ -236,7 +236,9 @@ ss::future<> write_request_scheduler<Clock>::pull_and_roundtrip(
 }
 
 template<typename Clock>
-ss::future<> write_request_scheduler<Clock>::apply_time_based_fallback() {
+ss::future<std::optional<typename Clock::time_point>>
+write_request_scheduler<Clock>::apply_time_based_fallback(
+  typename Clock::time_point last_upload_time) {
     // The time based fallback works in three stages:
     // 1. Collect information about the requests from every shard.
     // 2. Decide which shard should handle the requests.
@@ -248,11 +250,25 @@ ss::future<> write_request_scheduler<Clock>::apply_time_based_fallback() {
     // on some shards they will be excluded from the time based fallback
     // because they will trigger the data threshold based uploads.
     std::vector<shard_info> shard_bytes;
+    size_t total_size = 0;
     for (unsigned i = 0; i < _shard_counters.size(); i++) {
+        auto bytes = _shard_counters[i].get().load();
         shard_bytes.push_back({
           .shard = ss::shard_id(i),
-          .bytes = _shard_counters[i].get().load(),
+          .bytes = bytes,
         });
+        total_size += bytes;
+    }
+
+    // One of two conditions should be met in order for the upload
+    // to be started:
+    // - we should have enough data on all shards;
+    // - we reached the deadline;
+    // This is an optimisation aimed at lowering the latency.
+    auto now = Clock::now();
+    auto deadline = last_upload_time + _scheduling_interval();
+    if (total_size < _max_buffer_size() && now < deadline) {
+        co_return std::nullopt;
     }
 
     // NOTE: the heuristic is based on cache behavior. The shard that
@@ -319,6 +335,7 @@ ss::future<> write_request_scheduler<Clock>::apply_time_based_fallback() {
               return scheduler.pull_and_roundtrip(shard_bytes);
           });
     }
+    co_return now;
 }
 
 template<typename Clock>
@@ -341,10 +358,15 @@ ss::future<> write_request_scheduler<Clock>::bg_time_based_fallback() {
           cd_log.debug,
           "Starting write_request_scheduler time based fallback background "
           "loop");
+        auto last_upload = Clock::now();
         while (!_as.abort_requested() && !_stage.stopped()) {
             // Sleep before next iteration
-            co_await ss::sleep_abortable(_scheduling_interval(), _as);
-            co_await apply_time_based_fallback();
+            co_await ss::sleep_abortable(
+              std::chrono::milliseconds(20) /*TODO: use constant*/, _as);
+            auto res = co_await apply_time_based_fallback(last_upload);
+            if (res.has_value()) {
+                last_upload = res.value();
+            }
         }
     } catch (...) {
         if (ssx::is_shutdown_exception(std::current_exception())) {

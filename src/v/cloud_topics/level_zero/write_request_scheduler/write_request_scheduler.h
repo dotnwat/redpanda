@@ -56,6 +56,8 @@ class write_request_scheduler
         size_t bytes;
     };
 
+    using time_point = Clock::time_point;
+
 public:
     explicit write_request_scheduler(write_pipeline<Clock>::stage s);
 
@@ -71,9 +73,17 @@ private:
     /// uploads.
     ss::future<> bg_time_based_fallback();
 
-    /// This method implements the actual fallback mechanism.
+    /// This method implements the time-based fallback mechanism.
     /// It is invoked by the 'bg_time_based_fallback' method.
-    ss::future<> apply_time_based_fallback();
+    ///
+    /// \brief If there is enough data to start the upload the upload may
+    /// start early. Otherwise it will be started when enough time have passed
+    /// since last upload.
+    ///
+    /// \param last_upload_time Time when the last x-shard upload was made
+    /// \return nullopt if upload wasn't started or time of the x-shard upload
+    ss::future<std::optional<time_point>>
+    apply_time_based_fallback(time_point last_upload_time);
 
     /// Target shard pulls write requests from pipelines of
     /// other shards and forwards them to its own pipeline.

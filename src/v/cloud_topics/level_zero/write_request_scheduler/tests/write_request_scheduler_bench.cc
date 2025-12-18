@@ -43,9 +43,9 @@ struct write_request_balancer_accessor {
     static void disable_time_based_fallback(write_request_scheduler<>* s) {
         s->_test_only_disable_time_based_fallback = true;
     }
-    static ss::future<>
-    apply_time_based_fallback(write_request_scheduler<>* s) {
-        return s->apply_time_based_fallback();
+    static ss::future<> apply_time_based_fallback(
+      write_request_scheduler<>* s, ss::lowres_clock::time_point last_upload) {
+        co_await s->apply_time_based_fallback(last_upload);
     }
 };
 } // namespace l0
@@ -209,12 +209,14 @@ PERF_TEST_C(write_request_scheduler_bench, time_fallback) {
             .discard_result();
       });
 
+    auto now = ss::lowres_clock::now();
+
     // Make sure requests are enqueued on all shards
     co_await ss::sleep(100ms);
 
     perf_tests::start_measuring_time();
     co_await cloud_topics::l0::write_request_balancer_accessor::
-      apply_time_based_fallback(&scheduler.local());
+      apply_time_based_fallback(&scheduler.local(), now);
     perf_tests::stop_measuring_time();
 
     co_await std::move(invoke_fut);
