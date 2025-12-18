@@ -351,14 +351,23 @@ size_t write_pipeline<Clock>::stage_bytes(pipeline_stage s) const {
     if (s == unassigned_pipeline_stage) {
         return 0;
     }
-    return _stage_bytes[static_cast<size_t>(s()->get_numeric_id())];
+    return _stage_bytes[static_cast<size_t>(s()->get_numeric_id())].count;
+}
+
+template<class Clock>
+const std::atomic<size_t>*
+write_pipeline<Clock>::stage_bytes_ref(pipeline_stage s) const {
+    if (s == unassigned_pipeline_stage) {
+        return nullptr;
+    }
+    return &_stage_bytes[static_cast<size_t>(s()->get_numeric_id())].count;
 }
 
 template<class Clock>
 size_t write_pipeline<Clock>::current_size() const {
     size_t total = 0;
-    for (auto bytes : _stage_bytes) {
-        total += bytes;
+    for (const auto& bytes : _stage_bytes) {
+        total += bytes.count.load(std::memory_order_relaxed);
     }
     return total;
 }

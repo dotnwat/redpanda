@@ -163,6 +163,9 @@ public:
             return ss::get_units(_parent->_mem_budget, units);
         }
 
+        /// Get pointer to the stage's pending bytes counter
+        auto stage_bytes_ref() { return _parent->stage_bytes_ref(_ps); }
+
     private:
         /// Pick the right abort source to use.
         ///
@@ -194,6 +197,7 @@ public:
 
     /// Get the number of bytes at a specific pipeline stage.
     size_t stage_bytes(pipeline_stage s) const;
+    const std::atomic<size_t>* stage_bytes_ref(pipeline_stage s) const;
 
 private:
     /// Transfer bytes from one stage to another.
@@ -222,7 +226,17 @@ private:
     void reenqueue(write_request<Clock>& req, bool signal = true);
 
     // Bytes per pipeline stage.
-    std::array<size_t, max_pipeline_stages> _stage_bytes{};
+    struct alignas(std::hardware_destructive_interference_size)
+      padded_atomic_counter {
+        // Always updated on the same shard.
+        // Can be read from any shard.
+        std::atomic<uint64_t> count{0};
+
+        void operator+=(size_t c) { count += c; }
+
+        void operator-=(size_t c) { count -= c; }
+    };
+    std::array<padded_atomic_counter, max_pipeline_stages> _stage_bytes{};
 
     /// Sum of bytes across all pipeline stages.
     size_t current_size() const;
