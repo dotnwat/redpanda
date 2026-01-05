@@ -36,6 +36,8 @@
 
 #include <boost/test/tools/old/interface.hpp>
 
+#include <fmt/format.h>
+
 using namespace kafka;
 join_group_request make_join_group_request(
   ss::sstring member_id,
@@ -147,6 +149,112 @@ FIXTURE_TEST(join_empty_group_static_member, consumer_offsets_fixture) {
                      && resp.data.member_id != unknown_member_id;
           });
     }).get();
+}
+
+FIXTURE_TEST(
+  concurrent_static_member_rejoin_race, consumer_offsets_fixture) {
+    // This test reproduces the "updating non-joining member" race condition
+    // by having a static member rapidly rejoin before the first join completes.
+    //
+    // Scenario:
+    // 1. Static member joins with unknown member_id (gets assigned m1)
+    // 2. Before the join completes, same static member rejoins (gets assigned m2)
+    // 3. This triggers update_static_member_and_rebalance which calls
+    //    replace_static_member followed by update_member
+    // 4. If the member still has a join_promise, update_member throws
+    //    "updating non-joining member" exception
+    //
+    // To increase likelihood of hitting the race:
+    // - Use very short group_initial_rebalance_delay to speed up joins
+    // - Send many concurrent requests
+    // - The race is timing-dependent but this test documents the issue
+
+    scoped_config cfg;
+    // Reduce rebalance delay to minimum to speed up the test
+    cfg.get("group_initial_rebalance_delay").set_value(std::chrono::milliseconds(1));
+
+    kafka::group_instance_id instance_id("static-member-race-test");
+    ss::sstring group_name = "race-test-group";
+
+    wait_for_consumer_offsets_topic(instance_id);
+    auto client = make_kafka_client().get();
+    auto deferred = ss::defer([&client] {
+        client.stop().then([&client] { client.shutdown(); }).get();
+    });
+    client.connect().get();
+
+    // Fire off many join requests rapidly to increase chance of race
+    std::vector<ss::future<join_group_response>> futures;
+
+    for (int i = 0; i < 5; ++i) {
+        auto req = make_join_group_request(
+          unknown_member_id, group_name, {"range"}, "consumer");
+        req.data.group_instance_id = instance_id;
+        req.data.session_timeout_ms = 30s;
+        req.data.rebalance_timeout_ms = 60s;
+
+        // Send without waiting - this creates concurrent requests
+        futures.push_back(
+          client.dispatch(std::move(req), kafka::api_version(5)));
+
+        // Tiny delay to stagger requests slightly
+        if (i < 4) {
+            ss::sleep(1ms).get();
+        }
+    }
+
+    // Wait for all responses
+    auto responses = ss::when_all_succeed(futures.begin(), futures.end()).get();
+
+    // Log what happened
+    for (size_t i = 0; i < responses.size(); ++i) {
+        auto& resp = responses[i];
+        BOOST_TEST_MESSAGE(fmt::format(
+          "Join {} response: error={} member_id={}",
+          i,
+          resp.data.error_code,
+          resp.data.member_id));
+
+        // Should get valid responses (none, not_coordinator, or fenced_instance_id are ok)
+        BOOST_CHECK(
+          resp.data.error_code == kafka::error_code::none
+          || resp.data.error_code == kafka::error_code::member_id_required
+          || resp.data.error_code == kafka::error_code::not_coordinator
+          || resp.data.error_code == kafka::error_code::fenced_instance_id);
+    }
+
+    // Try more aggressive rapid rejoining
+    // This increases the chance of hitting the race condition
+    BOOST_TEST_MESSAGE("Starting rapid rejoin loop to stress-test the race...");
+
+    for (int i = 0; i < 20; ++i) {
+        auto req = make_join_group_request(
+          unknown_member_id, group_name, {"range"}, "consumer");
+        req.data.group_instance_id = instance_id;
+        req.data.session_timeout_ms = 30s;
+        req.data.rebalance_timeout_ms = 60s;
+
+        auto resp = client.dispatch(std::move(req), kafka::api_version(5)).get();
+
+        if (i % 5 == 0) {
+            BOOST_TEST_MESSAGE(fmt::format(
+              "Rapid rejoin {} response: error={} member_id={}",
+              i,
+              resp.data.error_code,
+              resp.data.member_id));
+        }
+
+        // Should not get unexpected errors
+        BOOST_CHECK(
+          resp.data.error_code == kafka::error_code::none
+          || resp.data.error_code == kafka::error_code::member_id_required
+          || resp.data.error_code == kafka::error_code::not_coordinator
+          || resp.data.error_code == kafka::error_code::fenced_instance_id);
+    }
+
+    BOOST_TEST_MESSAGE(
+      "Test completed. If race not triggered, it's timing-dependent. "
+      "Check logs for 'Updating non-joining member' with joining=true");
 }
 
 FIXTURE_TEST(empty_offset_commit_request, consumer_offsets_fixture) {

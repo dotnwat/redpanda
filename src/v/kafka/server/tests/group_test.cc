@@ -570,4 +570,83 @@ SEASTAR_THREAD_TEST_CASE(add_new_static_member) {
     BOOST_TEST(m2->rebalance_timeout() == m2_rebalance_timeout);
 }
 
+SEASTAR_THREAD_TEST_CASE(update_member_with_existing_join_promise) {
+    // This test directly reproduces the "updating non-joining member" exception
+    // by calling update_member twice on the same member before the first
+    // join completes.
+    //
+    // The scenario:
+    // 1. Member is added and has a join_promise (is_joining() == true)
+    // 2. update_member() is called again while member is still joining
+    // 3. This triggers the exception because the logic checks:
+    //    if (!member->is_joining()) { create new promise }
+    //    else { throw "updating non-joining member" }
+    //
+    // Note: The error message is misleading - it should say
+    // "updating already-joining member"
+
+    auto g = get();
+    const kafka::group_id group_id = g.id();
+
+    // Create and add a member - this creates a join_promise
+    auto member = ss::make_lw_shared<group_member>(
+      kafka::member_id("m1"),
+      group_id,
+      kafka::group_instance_id("static-member-1"),
+      kafka::client_id("client-id"),
+      kafka::client_host("client-host"),
+      std::chrono::milliseconds(30000),
+      std::chrono::milliseconds(60000),
+      kafka::protocol_type("consumer"),
+      chunked_vector<member_protocol>{
+        {kafka::protocol_name("range"), bytes::from_string("metadata")}});
+
+    // Add member which creates a join_promise (makes member.is_joining() == true)
+    auto join_future = g.add_member(member);
+
+    // Verify member is in joining state
+    BOOST_TEST(member->is_joining());
+    BOOST_TEST(g.contains_member(member->id()));
+
+    // Now try to call update_member on this same member while it's still joining
+    // This should trigger the exception
+    chunked_vector<member_protocol> new_protocols;
+    new_protocols.push_back({kafka::protocol_name("range"), bytes::from_string("new-metadata")});
+
+    bool exception_thrown = false;
+    ss::sstring exception_msg;
+
+    // Call update_member which returns an exceptional future
+    auto update_future = g.update_member(
+      member,
+      std::move(new_protocols),
+      kafka::client_id("new-client-id"),
+      kafka::client_host("new-client-host"),
+      std::chrono::milliseconds(30000),
+      std::chrono::milliseconds(60000));
+
+    // The exception is inside the future, so we need to get it
+    try {
+        update_future.get();
+        // We shouldn't reach here
+        BOOST_TEST_MESSAGE("ERROR: Expected exception was not thrown!");
+    } catch (const std::runtime_error& e) {
+        exception_thrown = true;
+        exception_msg = e.what();
+    }
+
+    // Verify we got the exception
+    BOOST_TEST(exception_thrown);
+    BOOST_TEST(exception_msg.find("updating non-joining member") != ss::sstring::npos);
+
+    // Demonstrate the bug: the error message is misleading
+    BOOST_TEST_MESSAGE(
+      "REPRODUCED: Exception thrown when update_member called on joining member");
+    BOOST_TEST_MESSAGE(fmt::format("Exception message: {}", exception_msg));
+    BOOST_TEST_MESSAGE(
+      "BUG: Error says 'updating non-joining member' but should say "
+      "'updating already-joining member' because is_joining() == true");
+    BOOST_TEST_MESSAGE(fmt::format("Member ID in exception: {}", member->id()));
+}
+
 } // namespace kafka
