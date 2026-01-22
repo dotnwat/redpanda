@@ -48,6 +48,14 @@ public:
     seastar::future<proto::admin::log_message_response> log_message(
       serde::pb::rpc::context, proto::admin::log_message_request) override;
 
+    seastar::future<proto::admin::list_named_semaphores_response>
+      list_named_semaphores(
+        serde::pb::rpc::context,
+        proto::admin::list_named_semaphores_request) override;
+
+    seastar::future<proto::admin::list_waypoints_response> list_waypoints(
+      serde::pb::rpc::context, proto::admin::list_waypoints_request) override;
+
 private:
     admin::proxy::client _client;
     ss::sharded<stress_fiber_manager>& _stress_fiber_manager;

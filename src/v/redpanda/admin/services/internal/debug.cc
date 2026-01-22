@@ -14,9 +14,20 @@
 #include "base/vlog.h"
 #include "finjector/stress_fiber.h"
 #include "serde/protobuf/rpc.h"
+#include "ssx/semaphore.h"
 #include "utils/to_string.h"
 
 #include <seastar/core/coroutine.hh>
+#include <seastar/core/smp.hh>
+
+struct named_semaphore_info {
+    template<typename Func>
+    static void for_each(Func&& func) {
+        for (auto& sem : ssx::semaphore::semaphores_) {
+            func(sem.name_, sem.current(), sem.available_units(), sem.waiters());
+        }
+    }
+};
 
 namespace proto {
 using namespace proto::admin;
@@ -160,6 +171,58 @@ debug_service_impl::log_message(
 
     log.log(ss_level, "{}", msg);
     co_return proto::admin::log_message_response{};
+}
+
+seastar::future<proto::admin::list_named_semaphores_response>
+debug_service_impl::list_named_semaphores(
+  serde::pb::rpc::context, proto::admin::list_named_semaphores_request) {
+    proto::admin::list_named_semaphores_response response;
+    for (ss::shard_id shard = 0; shard < ss::smp::count; ++shard) {
+        auto shard_info = co_await ss::smp::submit_to(shard, [] {
+            proto::admin::shard_named_semaphores info;
+            info.set_shard(ss::this_shard_id());
+            named_semaphore_info::for_each(
+              [&info](
+                const seastar::sstring& name,
+                size_t current,
+                ssize_t available,
+                size_t waiters) {
+                  auto& sem = info.get_semaphores().emplace_back();
+                  sem.set_name(seastar::sstring(name));
+                  sem.set_current(current);
+                  sem.set_available(available);
+                  sem.set_waiters(waiters);
+              });
+            return info;
+        });
+        response.get_shards().push_back(std::move(shard_info));
+    }
+    co_return response;
+}
+
+seastar::future<proto::admin::list_waypoints_response>
+debug_service_impl::list_waypoints(
+  serde::pb::rpc::context, proto::admin::list_waypoints_request) {
+    proto::admin::list_waypoints_response response;
+    for (ss::shard_id shard = 0; shard < ss::smp::count; ++shard) {
+        auto shard_info = co_await ss::smp::submit_to(shard, [] {
+            proto::admin::shard_waypoints info;
+            info.set_shard(ss::this_shard_id());
+            vlog::waypoint_user_iterator::for_each(
+              [&info](const vlog::waypoint_user& user) {
+                  auto& wp_info = info.get_waypoints().emplace_back();
+                  wp_info.set_filename(seastar::sstring(user.wp->filename));
+                  wp_info.set_line(user.wp->line);
+                  wp_info.set_name(
+                    user.name ? seastar::sstring(*user.name)
+                              : seastar::sstring());
+                  wp_info.set_count(user.count);
+              });
+            return info;
+        });
+        response.get_shards().push_back(std::move(shard_info));
+    }
+    co_return response;
 }
 
 } // namespace admin

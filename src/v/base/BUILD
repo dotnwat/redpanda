@@ -23,6 +23,7 @@ redpanda_cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/v/container:intrusive",
         "@boost//:outcome",
         "@fmt",
         "@seastar",

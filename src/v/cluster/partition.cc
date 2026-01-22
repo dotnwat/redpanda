@@ -551,6 +551,11 @@ ss::future<> partition::start(
 }
 
 ss::future<> partition::stop() {
+    vpoint(fmt::format("{}", ntp()));
+
+    seastar::semaphore block{0};
+    co_await block.wait();
+
     auto partition_ntp = ntp();
     vlog(clusterlog.debug, "Stopping partition: {}", partition_ntp);
     _as.request_abort();

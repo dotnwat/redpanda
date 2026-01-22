@@ -59,6 +59,42 @@ message LogMessageRequest {
 
 message LogMessageResponse {}
 
+message ListNamedSemaphoresRequest {}
+
+message NamedSemaphoreInfo {
+    string name = 1;
+    int64 current = 2;
+    int64 available = 3;
+    uint64 waiters = 4;
+}
+
+message ShardNamedSemaphores {
+    uint32 shard = 1;
+    repeated NamedSemaphoreInfo semaphores = 2;
+}
+
+message ListNamedSemaphoresResponse {
+    repeated ShardNamedSemaphores shards = 1;
+}
+
+message ListWaypointsRequest {}
+
+message WaypointInfo {
+    string filename = 1;
+    uint32 line = 2;
+    string name = 3;
+    uint64 count = 4;
+}
+
+message ShardWaypoints {
+    uint32 shard = 1;
+    repeated WaypointInfo waypoints = 2;
+}
+
+message ListWaypointsResponse {
+    repeated ShardWaypoints shards = 1;
+}
+
 // The DebugService provides access to internal debugging information and debug
 // operations for the cluster or node.
 //
@@ -88,6 +124,17 @@ service DebugService {
         };
     }
     rpc LogMessage(LogMessageRequest) returns (LogMessageResponse) {
+        option (pbgen.rpc) = {
+            authz: SUPERUSER,
+        };
+    }
+    rpc ListNamedSemaphores(ListNamedSemaphoresRequest)
+        returns (ListNamedSemaphoresResponse) {
+        option (pbgen.rpc) = {
+            authz: SUPERUSER,
+        };
+    }
+    rpc ListWaypoints(ListWaypointsRequest) returns (ListWaypointsResponse) {
         option (pbgen.rpc) = {
             authz: SUPERUSER,
         };

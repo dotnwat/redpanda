@@ -14,6 +14,7 @@ redpanda_cc_library(
         "//src/v/finjector",
         "//src/v/redpanda/admin/proxy:client",
         "//src/v/serde/protobuf:rpc",
+        "//src/v/ssx:semaphore",
         "//src/v/utils:to_string",
         "@fmt",
         "@seastar",
