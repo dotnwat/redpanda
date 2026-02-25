@@ -14,7 +14,7 @@
 #include <seastar/core/coroutine.hh>
 #include <seastar/util/log.hh>
 
-static ss::logger tlog("tracing");
+ss::logger tlog("tracing");
 
 namespace tracing {
 

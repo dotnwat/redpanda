@@ -24,7 +24,8 @@
 
 #include <charconv>
 
-static ss::logger tlog("tracing");
+// Defined in span_buffer.cc.
+extern ss::logger tlog;
 
 namespace tracing {
 
@@ -117,6 +118,7 @@ ss::future<> otlp_exporter::do_export() {
           });
 
         if (all_spans.empty()) {
+            vlog(tlog.debug, "No trace spans to export");
             co_return;
         }
 
@@ -146,33 +148,53 @@ ss::future<> otlp_exporter::send(iobuf payload) {
 
     http::client client(client_cfg, _as);
 
-    co_await http::with_client(
-      std::move(client), [&payload](http::client& c) -> ss::future<> {
-          auto timeout
-            = config::shard_local_cfg().tracing_flush_interval_ms();
-          auto res = co_await c.get_connected(timeout, prefix_logger(tlog, ""));
+    auto timeout = config::shard_local_cfg().tracing_flush_interval_ms();
+    auto res = co_await client.get_connected(
+      timeout, prefix_logger(tlog, ""));
 
-          if (res != http::reconnect_result_t::connected) {
-              vlog(tlog.debug, "Unable to connect to tracing endpoint");
-              co_return;
-          }
+    if (res != http::reconnect_result_t::connected) {
+        vlog(tlog.debug, "Unable to connect to tracing endpoint");
+        client.shutdown();
+        co_return;
+    }
 
-          http::client::request_header header;
-          header.method(boost::beast::http::verb::post);
-          header.target("/v1/traces");
-          header.insert(
-            boost::beast::http::field::content_type,
-            "application/x-protobuf");
-          header.insert(
-            boost::beast::http::field::content_length,
-            fmt::format("{}", payload.size_bytes()));
+    http::client::request_header header;
+    header.method(boost::beast::http::verb::post);
+    header.target("/v1/traces");
+    header.insert(
+      boost::beast::http::field::content_type, "application/x-protobuf");
+    header.insert(
+      boost::beast::http::field::content_length,
+      fmt::format("{}", payload.size_bytes()));
 
-          auto resp = co_await c.request(
-            std::move(header), std::move(payload), timeout);
-          co_await resp->prefetch_headers();
+    auto resp = co_await client.request(
+      std::move(header), std::move(payload), timeout);
+    co_await resp->prefetch_headers();
 
-          vlog(tlog.debug, "Trace export completed");
-      });
+    auto status = resp->get_headers().result();
+
+    // Drain response body so the response_stream is fully consumed.
+    iobuf response_body;
+    while (!resp->is_done()) {
+        auto chunk = co_await resp->recv_some();
+        response_body.append(std::move(chunk));
+    }
+
+    if (status != boost::beast::http::status::ok) {
+        auto body_str = iobuf_to_bytes(response_body);
+        vlog(
+          tlog.warn,
+          "Trace export failed: HTTP {} - {}",
+          static_cast<unsigned>(status),
+          std::string_view(
+            reinterpret_cast<const char*>(body_str.data()),
+            body_str.size()));
+    } else {
+        vlog(tlog.debug, "Trace export completed");
+    }
+
+    co_await client.stop();
+    client.shutdown();
 }
 
 } // namespace tracing

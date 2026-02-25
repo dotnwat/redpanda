@@ -126,16 +126,19 @@ static constexpr uint32_t f_scope_name = 1;
 // Span
 static constexpr uint32_t f_span_trace_id = 1;
 static constexpr uint32_t f_span_span_id = 2;
+// field 3 = trace_state (unused)
 static constexpr uint32_t f_span_parent_span_id = 4;
-static constexpr uint32_t f_span_name = 6;
-static constexpr uint32_t f_span_kind = 7;
-static constexpr uint32_t f_span_start_time = 8;
-static constexpr uint32_t f_span_end_time = 9;
-static constexpr uint32_t f_span_status = 16;
+static constexpr uint32_t f_span_name = 5;
+static constexpr uint32_t f_span_kind = 6;
+static constexpr uint32_t f_span_start_time = 7;
+static constexpr uint32_t f_span_end_time = 8;
+// fields 9-14 = attributes, events, links (unused)
+static constexpr uint32_t f_span_status = 15;
 
 // Status
-static constexpr uint32_t f_status_message = 1;
-static constexpr uint32_t f_status_code = 2;
+// field 1 is deprecated
+static constexpr uint32_t f_status_message = 2;
+static constexpr uint32_t f_status_code = 3;
 
 // Status code values
 static constexpr uint64_t status_ok = 1;

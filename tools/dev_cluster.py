@@ -400,16 +400,22 @@ class OtelCollector:
                 },
             },
             "exporters": {
-                "otlp": {
+                "otlp/tempo": {
                     "endpoint": self.tempo_grpc_endpoint,
                     "tls": {"insecure": True},
                 },
+                "debug": {
+                    "verbosity": "basic",
+                },
             },
             "service": {
+                "telemetry": {
+                    "logs": {"level": "debug"},
+                },
                 "pipelines": {
                     "traces": {
                         "receivers": ["otlp"],
-                        "exporters": ["otlp"],
+                        "exporters": ["otlp/tempo", "debug"],
                     },
                 },
             },
@@ -881,13 +887,6 @@ async def main() -> None:
             default_minio_rp_config = dataclasses.asdict(DefaultMinioRedpandaConfig())
             config_dict["redpanda"] = config_dict["redpanda"] | default_minio_rp_config
 
-        if use_tracing:
-            config_dict["redpanda"] = config_dict["redpanda"] | {
-                "tracing_enabled": True,
-                "tracing_endpoint": f"http://{args.listen_address}:{otel_http_port}",
-                "tracing_sample_rate": 1.0,
-            }
-
         if args.config_overrides:
             try:
                 config_overrides = json.loads(args.config_overrides)
@@ -898,10 +897,25 @@ async def main() -> None:
         with open(conf_file, "w") as f:
             yaml_dump(config_dict, f, indent=2)
 
-        # If there is a bootstrap file in pwd, propagate it to each node's
-        # directory so that they'll load it on first start
+        # Build bootstrap config from any existing file in pwd plus tracing.
+        bootstrap_path = node_dir / BOOTSTRAP_YAML
+        bootstrap_config: dict[str, Any] = {}
         if os.path.exists(BOOTSTRAP_YAML):
-            shutil.copyfile(BOOTSTRAP_YAML, node_dir / BOOTSTRAP_YAML)
+            with open(BOOTSTRAP_YAML) as f:
+                loaded = yaml.safe_load(f)
+                if loaded:
+                    bootstrap_config = loaded
+
+        if use_tracing:
+            bootstrap_config["tracing_enabled"] = True
+            bootstrap_config["tracing_endpoint"] = (
+                f"http://{args.listen_address}:{otel_http_port}"
+            )
+            bootstrap_config["tracing_sample_rate"] = 1.0
+
+        if bootstrap_config:
+            with open(bootstrap_path, "w") as f:
+                yaml.dump(bootstrap_config, f)
 
         return node_meta
 
