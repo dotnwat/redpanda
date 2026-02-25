@@ -389,6 +389,8 @@ redpanda_cc_library(
         "//src/v/storage",
         "//src/v/storage:record_batch_builder",
         "//src/v/strings:string_switch",
+        "//src/v/tracing:span",
+        "//src/v/tracing:span_buffer",
         "//src/v/strings:utf8",
         "//src/v/utils:absl_sstring_hash",
         "//src/v/utils:ema",

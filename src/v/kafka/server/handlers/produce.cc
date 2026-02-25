@@ -26,7 +26,9 @@
 #include "model/timestamp.h"
 #include "pandaproxy/schema_registry/validation.h"
 #include "raft/errc.h"
+#include "random/generators.h"
 #include "ssx/future-util.h"
+#include "tracing/span.h"
 
 #include <seastar/core/execution_stage.hh>
 #include <seastar/core/future.hh>
@@ -797,13 +799,31 @@ produce_handler::handle(request_context ctx, ss::smp_service_group ssg) {
       error_code::policy_violation);
     request.data.topics.erase_to_end(linked_topics_it);
 
+    // PoC tracing: create a span for the produce request.
+    auto trace_span = [&ctx]() -> tracing::span {
+        if (!config::shard_local_cfg().tracing_enabled()) {
+            return {};
+        }
+        auto rate = config::shard_local_cfg().tracing_sample_rate();
+        if (rate < 1.0) {
+            auto& rng = random_generators::global();
+            auto v = rng.get_int<uint32_t>(0, 999);
+            if (v >= static_cast<uint32_t>(rate * 1000.0)) {
+                return {};
+            }
+        }
+        return tracing::span(
+          ctx.trace_span_buffer(), "kafka.produce", tracing::span_kind::server);
+    }();
+
     ss::promise<> dispatched_promise;
     auto dispatched_f = dispatched_promise.get_future();
 
     auto produced_f = ss::do_with(
       produce_ctx(std::move(ctx), std::move(request), std::move(resp), ssg),
+      std::move(trace_span),
       [dispatched_promise = std::move(dispatched_promise)](
-        produce_ctx& octx) mutable {
+        produce_ctx& octx, tracing::span&) mutable {
           // dispatch produce requests for each topic
           auto stages = produce_topics(octx);
           std::vector<ss::future<>> dispatched;

@@ -105,6 +105,8 @@ redpanda_cc_library(
         "//src/v/storage:chunk_cache",
         "//src/v/strings:utf8",
         "//src/v/syschecks",
+        "//src/v/tracing:otlp_exporter",
+        "//src/v/tracing:span_buffer",
         "//src/v/transform",
         "//src/v/transform:fwd",
         "//src/v/transform/rpc",

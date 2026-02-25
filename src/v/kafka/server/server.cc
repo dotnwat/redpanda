@@ -83,6 +83,7 @@
 #include "ssx/when_all.h"
 #include "strings/string_switch.h"
 #include "strings/utf8.h"
+#include "tracing/span_buffer.h"
 
 #include <seastar/core/byteorder.hh>
 #include <seastar/core/loop.hh>
@@ -164,7 +165,8 @@ server::server(
   ss::sharded<cluster::cluster_link::frontend>& clfe,
   std::optional<qdc_monitor_config> qdc_config,
   ssx::singleton_thread_worker& tw,
-  const std::unique_ptr<pandaproxy::schema_registry::api>& sr) noexcept
+  const std::unique_ptr<pandaproxy::schema_registry::api>& sr,
+  ss::sharded<tracing::span_buffer>& trace_span_buffer) noexcept
   : net::server(cfg, klog)
   , _smp_group(smp)
   , _fetch_scheduling_group(fetch_sg)
@@ -222,7 +224,8 @@ server::server(
   , _thread_worker(tw)
   , _replica_selector(
       std::make_unique<rack_aware_replica_selector>(_metadata_cache.local()))
-  , _schema_registry(sr) {
+  , _schema_registry(sr)
+  , _trace_span_buffer(trace_span_buffer) {
     vlog(
       klog.debug,
       "Starting kafka server with {} byte limit on fetch requests",

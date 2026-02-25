@@ -251,6 +251,17 @@ void application::start_runtime_services(
     }
 
     space_manager->start().get();
+
+    // Distributed tracing (OpenTelemetry).
+    syschecks::systemd_message("Starting trace span buffer").get();
+    _trace_span_buffer.start().get();
+    _trace_span_buffer.invoke_on_all(&tracing::span_buffer::start).get();
+
+    syschecks::systemd_message("Starting trace exporter").get();
+    _trace_exporter.start_single(std::ref(_trace_span_buffer)).get();
+    _trace_exporter
+      .invoke_on(tracing::otlp_exporter::shard, &tracing::otlp_exporter::start)
+      .get();
 }
 
 /**

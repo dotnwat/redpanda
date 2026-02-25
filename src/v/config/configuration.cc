@@ -3548,6 +3548,32 @@ configuration::configuration()
       "wait for manual activation via the Admin API (false).",
       {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
       true)
+  , tracing_enabled(
+      *this,
+      "tracing_enabled",
+      "Enable distributed tracing via OpenTelemetry. When enabled, Redpanda "
+      "exports trace spans to the configured tracing endpoint.",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      false)
+  , tracing_endpoint(
+      *this,
+      "tracing_endpoint",
+      "URL of the OpenTelemetry Collector HTTP endpoint for trace export "
+      "(e.g. http://otel-collector:4318).",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      "")
+  , tracing_sample_rate(
+      *this,
+      "tracing_sample_rate",
+      "Fraction of requests to trace, between 0.0 and 1.0.",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      0.01)
+  , tracing_flush_interval_ms(
+      *this,
+      "tracing_flush_interval_ms",
+      "Interval between trace span export flushes to the collector.",
+      {.needs_restart = needs_restart::no, .visibility = visibility::tunable},
+      5000ms)
   , enable_rack_awareness(
       *this,
       "enable_rack_awareness",

@@ -47,6 +47,10 @@
 #include <memory>
 #include <type_traits>
 
+namespace tracing {
+class span_buffer;
+}
+
 namespace kafka {
 
 /// Checks to see if the event is auditable.
@@ -130,6 +134,10 @@ public:
 
     const cluster::metadata_cache& metadata_cache() const {
         return _conn->server().metadata_cache();
+    }
+
+    tracing::span_buffer& trace_span_buffer() {
+        return _conn->server().trace_span_buffer();
     }
 
     cluster::metadata_cache& metadata_cache() {

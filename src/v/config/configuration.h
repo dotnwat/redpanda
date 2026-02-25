@@ -618,6 +618,12 @@ struct configuration final : public config_store {
 
     property<bool> features_auto_enable;
 
+    // distributed tracing (OpenTelemetry)
+    property<bool> tracing_enabled;
+    property<ss::sstring> tracing_endpoint;
+    property<double> tracing_sample_rate;
+    property<std::chrono::milliseconds> tracing_flush_interval_ms;
+
     // enables rack aware replica assignment
     property<bool> enable_rack_awareness;
 

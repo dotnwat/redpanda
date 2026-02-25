@@ -64,6 +64,10 @@ namespace features {
 class feature_table;
 }
 
+namespace tracing {
+class span_buffer;
+}
+
 namespace kafka {
 
 class server;
@@ -111,7 +115,8 @@ public:
       seastar::sharded<cluster::cluster_link::frontend>&,
       std::optional<qdc_monitor_config>,
       ssx::singleton_thread_worker&,
-      const std::unique_ptr<pandaproxy::schema_registry::api>&);
+      const std::unique_ptr<pandaproxy::schema_registry::api>&,
+      seastar::sharded<tracing::span_buffer>&);
 
     seastar::future<> start();
     seastar::future<> shutdown_input();

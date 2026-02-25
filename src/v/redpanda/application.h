@@ -59,6 +59,8 @@
 #include "rpc/rpc_server.h"
 #include "ssx/sharded_service_container.h"
 #include "storage/api.h"
+#include "tracing/otlp_exporter.h"
+#include "tracing/span_buffer.h"
 #include "transform/fwd.h"
 #include "utils/stop_signal.h"
 #include "wasm/fwd.h"
@@ -344,6 +346,9 @@ private:
     std::unique_ptr<metrics::host_metrics_watcher> _host_metrics_watcher;
 
     ss::sharded<admin::kafka_connections_service> _kafka_connections_service;
+
+    ss::sharded<tracing::span_buffer> _trace_span_buffer;
+    ss::sharded<tracing::otlp_exporter> _trace_exporter;
 
     ss::sharded<ss::abort_source> _as;
 };

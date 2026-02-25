@@ -96,6 +96,16 @@ application::application(ss::sstring logger_name)
 application::~application() {}
 
 void application::shutdown() {
+    // Stop tracing exporter first to prevent new export attempts.
+    if (_trace_exporter.local_is_initialized()) {
+        shutdown_with_watchdog(
+          _trace_exporter, [](auto& exporter) { return exporter.stop(); });
+    }
+    if (_trace_span_buffer.local_is_initialized()) {
+        shutdown_with_watchdog(
+          _trace_span_buffer, [](auto& buf) { return buf.stop(); });
+    }
+
     storage.invoke_on_all(&storage::api::stop_cluster_uuid_waiters).get();
     // Stop accepting new requests.
     if (_kafka_server.ref().local_is_initialized()) {

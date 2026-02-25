@@ -1044,7 +1044,8 @@ void application::wire_up_redpanda_services(
         std::ref(controller->get_cluster_link_frontend()),
         qdc_config,
         std::ref(*thread_worker),
-        std::ref(_schema_registry))
+        std::ref(_schema_registry),
+        std::ref(_trace_span_buffer))
       .get();
     construct_service(
       _compaction_controller,
