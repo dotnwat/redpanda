@@ -286,6 +286,159 @@ class Prometheus:
         return await self.process.wait()
 
 
+class Tempo:
+    def __init__(
+        self,
+        binary: Path,
+        directory: Path,
+        listen_address: str = "127.0.0.1",
+        grpc_port: int = 4317,
+        http_port: int = 3200,
+    ) -> None:
+        self.binary = binary
+        self.directory = directory
+        self.stopped = False
+        self.listen_address = listen_address
+        self.grpc_port = grpc_port
+        self.http_port = http_port
+        self.process: asyncio.subprocess.Process
+
+    def stop(self) -> None:
+        if not self.stopped:
+            self.stopped = True
+            send_signal(self.process, signal.SIGINT, "tempo")
+
+    async def run(self) -> int:
+        log_path = self.directory / "tempo.log"
+        data_dir = self.directory / "data"
+        config_file = self.directory / "tempo.yaml"
+
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        config = {
+            "server": {
+                "http_listen_address": self.listen_address,
+                "http_listen_port": self.http_port,
+                "grpc_listen_address": self.listen_address,
+                "grpc_listen_port": 9096,
+            },
+            "distributor": {
+                "receivers": {
+                    "otlp": {
+                        "protocols": {
+                            "grpc": {
+                                "endpoint": f"{self.listen_address}:{self.grpc_port}",
+                            },
+                        },
+                    },
+                },
+            },
+            "storage": {
+                "trace": {
+                    "backend": "local",
+                    "local": {"path": str(data_dir / "traces")},
+                    "wal": {"path": str(data_dir / "wal")},
+                },
+            },
+        }
+
+        with open(config_file, "w") as f:
+            yaml.dump(config, f)
+
+        args = [
+            str(self.binary),
+            f"-config.file={config_file}",
+        ]
+        print(f"Running: {' '.join(args)}")
+        print(f"Tempo API available at: http://{self.listen_address}:{self.http_port}")
+
+        self.process = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+
+        await stream_until_eof(self.process, "tempo", False, log_path)
+
+        return await self.process.wait()
+
+
+class OtelCollector:
+    def __init__(
+        self,
+        binary: Path,
+        directory: Path,
+        listen_address: str = "127.0.0.1",
+        http_port: int = 4318,
+        tempo_grpc_endpoint: str = "127.0.0.1:4317",
+    ) -> None:
+        self.binary = binary
+        self.directory = directory
+        self.stopped = False
+        self.listen_address = listen_address
+        self.http_port = http_port
+        self.tempo_grpc_endpoint = tempo_grpc_endpoint
+        self.process: asyncio.subprocess.Process
+
+    def stop(self) -> None:
+        if not self.stopped:
+            self.stopped = True
+            send_signal(self.process, signal.SIGINT, "otel-collector")
+
+    async def run(self) -> int:
+        log_path = self.directory / "otel-collector.log"
+        config_file = self.directory / "otel-collector.yaml"
+
+        config = {
+            "receivers": {
+                "otlp": {
+                    "protocols": {
+                        "http": {
+                            "endpoint": f"{self.listen_address}:{self.http_port}",
+                        },
+                    },
+                },
+            },
+            "exporters": {
+                "otlp": {
+                    "endpoint": self.tempo_grpc_endpoint,
+                    "tls": {"insecure": True},
+                },
+            },
+            "service": {
+                "pipelines": {
+                    "traces": {
+                        "receivers": ["otlp"],
+                        "exporters": ["otlp"],
+                    },
+                },
+            },
+        }
+
+        with open(config_file, "w") as f:
+            yaml.dump(config, f)
+
+        args = [
+            str(self.binary),
+            f"--config=file:{config_file}",
+        ]
+        print(f"Running: {' '.join(args)}")
+        print(
+            f"OTel Collector OTLP HTTP endpoint: "
+            f"http://{self.listen_address}:{self.http_port}"
+        )
+
+        self.process = await asyncio.create_subprocess_exec(
+            *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+
+        await stream_until_eof(self.process, "otel-collector", False, log_path)
+
+        return await self.process.wait()
+
+
 class Grafana:
     def __init__(
         self,
@@ -293,12 +446,14 @@ class Grafana:
         directory: Path,
         port: int = 3000,
         prometheus_url: str | None = None,
+        tempo_url: str | None = None,
     ) -> None:
         self.binary = binary
         self.directory = directory
         self.stopped = False
         self.port = port
         self.prometheus_url = prometheus_url
+        self.tempo_url = tempo_url
         self.process: asyncio.subprocess.Process
 
     def stop(self) -> None:
@@ -324,30 +479,45 @@ class Grafana:
             elif not src.exists():
                 print(f"Warning: Could not find {src}")
 
-        # Configure Prometheus as a datasource via provisioning
+        # Configure datasources via provisioning
+        datasources: list[dict[str, Any]] = []
+
         if self.prometheus_url:
+            datasources.append({
+                "name": "Prometheus",
+                "type": "prometheus",
+                "access": "proxy",
+                "url": self.prometheus_url,
+                "isDefault": True,
+                "editable": True,
+            })
+            print(f"Configured Prometheus datasource at {self.prometheus_url}")
+
+        if self.tempo_url:
+            datasources.append({
+                "name": "Tempo",
+                "type": "tempo",
+                "access": "proxy",
+                "url": self.tempo_url,
+                "isDefault": not self.prometheus_url,
+                "editable": True,
+            })
+            print(f"Configured Tempo datasource at {self.tempo_url}")
+
+        if datasources:
             provisioning_dir = grafana_home / "conf" / "provisioning" / "datasources"
             provisioning_dir.mkdir(parents=True, exist_ok=True)
 
-            datasource_config = {
+            datasource_config: dict[str, Any] = {
                 "apiVersion": 1,
-                "datasources": [
-                    {
-                        "name": "Prometheus",
-                        "type": "prometheus",
-                        "access": "proxy",
-                        "url": self.prometheus_url,
-                        "isDefault": True,
-                        "editable": True,
-                    }
-                ],
+                "datasources": datasources,
             }
 
-            datasource_file = provisioning_dir / "prometheus.yml"
+            datasource_file = provisioning_dir / "datasources.yml"
             with open(datasource_file, "w") as f:
                 yaml.dump(datasource_config, f)
-            print(f"Configured Prometheus datasource at {self.prometheus_url}")
 
+        if self.prometheus_url:
             redpanda_root = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
             if redpanda_root:
                 dashboards_dir = Path(redpanda_root) / "tools" / "dashboards"
@@ -607,6 +777,24 @@ async def main() -> None:
         default=True,
     )
     parser.add_argument(
+        "--otel-collector",
+        type=Path,
+        help="path to otel collector executable",
+        default=None,
+    )
+    parser.add_argument(
+        "--tempo",
+        type=Path,
+        help="path to tempo executable",
+        default=None,
+    )
+    parser.add_argument(
+        "--use-tracing",
+        action=argparse.BooleanOptionalAction,
+        help="whether to spin up OTel Collector + Tempo and enable Redpanda tracing",
+        default=True,
+    )
+    parser.add_argument(
         "--config-overrides",
         type=str,
         help="JSON dictionary of config overrides to apply to all nodes",
@@ -672,6 +860,12 @@ async def main() -> None:
             config_dict=dataclasses.asdict(node_conf),
         )
 
+    # Determine tracing collector endpoint before preparing nodes
+    use_tracing = args.use_tracing and args.otel_collector and args.tempo
+    otel_http_port = 4318
+    tempo_grpc_port = 4317
+    tempo_http_port = 3200
+
     def prepare_node(i: int, rack: str | None) -> NodeMetadata:
         node_dir = args.directory / f"node{i}"
         data_dir = node_dir / "data"
@@ -686,6 +880,13 @@ async def main() -> None:
         if args.use_minio:
             default_minio_rp_config = dataclasses.asdict(DefaultMinioRedpandaConfig())
             config_dict["redpanda"] = config_dict["redpanda"] | default_minio_rp_config
+
+        if use_tracing:
+            config_dict["redpanda"] = config_dict["redpanda"] | {
+                "tracing_enabled": True,
+                "tracing_endpoint": f"http://{args.listen_address}:{otel_http_port}",
+                "tracing_sample_rate": 1.0,
+            }
 
         if args.config_overrides:
             try:
@@ -736,6 +937,33 @@ async def main() -> None:
         )
         prometheus_task = asyncio.create_task(prometheus.run())
 
+    tempo = None
+    tempo_task = None
+    otel_collector = None
+    otel_collector_task = None
+    if use_tracing:
+        tempo_dir = args.directory / "tempo"
+        tempo_dir.mkdir(parents=True, exist_ok=True)
+        tempo = Tempo(
+            args.tempo,
+            tempo_dir,
+            args.listen_address,
+            grpc_port=tempo_grpc_port,
+            http_port=tempo_http_port,
+        )
+        tempo_task = asyncio.create_task(tempo.run())
+
+        otel_dir = args.directory / "otel-collector"
+        otel_dir.mkdir(parents=True, exist_ok=True)
+        otel_collector = OtelCollector(
+            args.otel_collector,
+            otel_dir,
+            args.listen_address,
+            http_port=otel_http_port,
+            tempo_grpc_endpoint=f"{args.listen_address}:{tempo_grpc_port}",
+        )
+        otel_collector_task = asyncio.create_task(otel_collector.run())
+
     grafana = None
     grafana_task = None
     if args.use_grafana and args.grafana:
@@ -747,10 +975,16 @@ async def main() -> None:
         if prometheus:
             prometheus_url = f"http://{prometheus.listen_address}:{prometheus.port}"
 
+        # Build Tempo URL if tracing is enabled
+        tempo_url = None
+        if tempo:
+            tempo_url = f"http://{tempo.listen_address}:{tempo.http_port}"
+
         grafana = Grafana(
             args.grafana,
             grafana_dir,
             prometheus_url=prometheus_url,
+            tempo_url=tempo_url,
         )
         grafana_task = asyncio.create_task(grafana.run())
 
@@ -783,6 +1017,10 @@ async def main() -> None:
             prometheus.stop()
         if grafana:
             grafana.stop()
+        if otel_collector:
+            otel_collector.stop()
+        if tempo:
+            tempo.stop()
 
     asyncio.get_event_loop().add_signal_handler(signal.SIGINT, stop)
 
@@ -816,6 +1054,8 @@ async def main() -> None:
     await stop_and_wait("minio", minio, minio_task)
     await stop_and_wait("prometheus", prometheus, prometheus_task)
     await stop_and_wait("grafana", grafana, grafana_task)
+    await stop_and_wait("otel-collector", otel_collector, otel_collector_task)
+    await stop_and_wait("tempo", tempo, tempo_task)
 
     if failed:
         exit(1)

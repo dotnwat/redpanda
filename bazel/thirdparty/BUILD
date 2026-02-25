@@ -28,6 +28,24 @@ alias(
 )
 
 alias(
+    name = "otelcol_contrib",
+    actual = select({
+        "@platforms//cpu:x86_64": "@otelcol_contrib_x86_64//:otelcol_contrib",
+        "@platforms//cpu:aarch64": "@otelcol_contrib_aarch64//:otelcol_contrib",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "tempo",
+    actual = select({
+        "@platforms//cpu:x86_64": "@tempo_x86_64//:tempo",
+        "@platforms//cpu:aarch64": "@tempo_aarch64//:tempo",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "omb_minimal",
     actual = "@omb//:omb",
     visibility = ["//visibility:public"],
