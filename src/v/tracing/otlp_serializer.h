@@ -38,7 +38,10 @@ private:
 
 /// Serialize a batch of completed spans into an OTLP
 /// ExportTraceServiceRequest protobuf message.
+/// If node_id is non-empty it is written as service.instance.id.
 iobuf serialize_otlp_traces(
-  std::string_view service_name, const chunked_vector<completed_span>& spans);
+  std::string_view service_name,
+  const chunked_vector<completed_span>& spans,
+  std::string_view node_id = {});
 
 } // namespace tracing

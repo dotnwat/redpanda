@@ -210,7 +210,9 @@ iobuf serialize_span(const completed_span& s) {
 } // namespace
 
 iobuf serialize_otlp_traces(
-  std::string_view service_name, const chunked_vector<completed_span>& spans) {
+  std::string_view service_name,
+  const chunked_vector<completed_span>& spans,
+  std::string_view node_id) {
     // Build InstrumentationScope.
     iobuf scope_buf;
     {
@@ -235,6 +237,10 @@ iobuf serialize_otlp_traces(
         proto_writer rw(resource_buf);
         write_string_attribute(
           rw, f_resource_attributes, "service.name", service_name);
+        if (!node_id.empty()) {
+            write_string_attribute(
+              rw, f_resource_attributes, "service.instance.id", node_id);
+        }
     }
 
     // Build ResourceSpans.

@@ -10,6 +10,7 @@
 #include "tracing/otlp_exporter.h"
 
 #include "config/configuration.h"
+#include "config/node_config.h"
 #include "http/client.h"
 #include "ssx/future-util.h"
 #include "tracing/otlp_serializer.h"
@@ -128,7 +129,12 @@ ss::future<> otlp_exporter::do_export() {
 
         vlog(tlog.debug, "Exporting {} trace spans", all_spans.size());
 
-        auto payload = serialize_otlp_traces("redpanda", all_spans);
+        auto nid = config::node().node_id();
+        ss::sstring nid_str;
+        if (nid) {
+            nid_str = fmt::format("{}", (*nid)());
+        }
+        auto payload = serialize_otlp_traces("redpanda", all_spans, nid_str);
         co_await send(std::move(payload));
     } catch (...) {
         vlog(
