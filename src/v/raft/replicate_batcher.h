@@ -51,6 +51,9 @@ public:
         bool force_flush_requested() const {
             return _replicate_opts.force_flush();
         }
+        const std::optional<tracing::trace_context>& trace_ctx() const {
+            return _replicate_opts.trace_ctx;
+        }
 
         auto release_data() {
             return std::make_tuple(std::move(_data), std::move(_units));

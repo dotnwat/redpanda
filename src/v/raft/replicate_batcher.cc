@@ -14,6 +14,7 @@
 #include "raft/replicate_entries_stm.h"
 #include "raft/types.h"
 #include "ssx/future-util.h"
+#include "tracing/span.h"
 
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
@@ -372,8 +373,27 @@ ss::future<> replicate_batcher::do_flush(
   std::vector<ssx::semaphore_units> u,
   absl::flat_hash_map<vnode, follower_req_seq> seqs) {
     _ptr->_probe->replicate_batch_flushed();
+
+    // Extract trace context from the first traced item.
+    auto parent_ctx = [&]() -> std::optional<tracing::trace_context> {
+        for (const auto& n : notifications) {
+            if (auto& ctx = n->trace_ctx(); ctx) {
+                return ctx;
+            }
+        }
+        return std::nullopt;
+    }();
+    auto raft_span = parent_ctx ? tracing::span(
+                                    "raft.replicate",
+                                    tracing::span_kind::internal,
+                                    *parent_ctx)
+                                : tracing::span();
+    auto stm_trace_ctx = raft_span.is_enabled()
+                           ? std::make_optional(raft_span.context())
+                           : std::nullopt;
+
     auto stm = ss::make_lw_shared<replicate_entries_stm>(
-      _ptr, std::move(req), std::move(seqs));
+      _ptr, std::move(req), std::move(seqs), stm_trace_ctx);
     try {
         auto holder = _bg.hold();
         auto leader_result = co_await stm->apply(std::move(u));
@@ -408,7 +428,7 @@ ss::future<> replicate_batcher::do_flush(
                                == consistency_level::quorum_ack;
                     });
               })
-              .finally([stm] {});
+              .finally([stm, raft_span = std::move(raft_span)] {});
         }
     } catch (...) {
         propagate_current_exception(notifications);

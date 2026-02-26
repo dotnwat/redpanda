@@ -28,6 +28,7 @@
 #include "raft/errc.h"
 #include "ssx/future-util.h"
 #include "tracing/span.h"
+#include "tracing/trace_context.h"
 
 #include <seastar/core/execution_stage.hh>
 #include <seastar/core/future.hh>
@@ -147,7 +148,8 @@ partition_produce_stages partition_append(
   int16_t acks,
   int32_t num_records,
   int64_t num_bytes,
-  std::chrono::milliseconds timeout_ms) {
+  std::chrono::milliseconds timeout_ms,
+  std::optional<tracing::trace_context> trace_ctx) {
     // https://github.com/redpanda-data/redpanda/blob/dev/src/v/kafka/protocol/schemata/produce_response.json
     // If CreateTime is used for the topic, the timestamp will be -1. If
     // LogAppendTime is used for the topic, the timestamp will be the broker
@@ -156,8 +158,11 @@ partition_produce_stages partition_append(
                                   == model::timestamp_type::create_time
                                 ? model::timestamp::missing()
                                 : batch->header().max_timestamp;
-    auto stages = partition.replicate(
-      bid, std::move(*batch), acks_to_replicate_options(acks, timeout_ms));
+    auto opts = acks_to_replicate_options(acks, timeout_ms);
+    if (trace_ctx) {
+        opts.trace_ctx = *trace_ctx;
+    }
+    auto stages = partition.replicate(bid, std::move(*batch), opts);
     return partition_produce_stages{
       .dispatched = std::move(stages.request_enqueued),
       .produced = stages.replicate_finished.then_wrapped(
@@ -343,6 +348,9 @@ ss::future<produce_response::partition> do_produce_topic_partition(
           auto batch_size = batch->size_bytes();
           child.set_attribute("rp.records", num_records);
           child.set_attribute("rp.batch_size", batch_size);
+          auto child_ctx = child.is_enabled()
+                             ? std::make_optional(child.context())
+                             : std::nullopt;
           auto stages = partition_append(
             ntp.tp.partition,
             std::move(*partition),
@@ -351,7 +359,8 @@ ss::future<produce_response::partition> do_produce_topic_partition(
             acks,
             num_records,
             batch_size,
-            timeout);
+            timeout,
+            std::move(child_ctx));
           return stages.dispatched
             .then_wrapped([source_shard, dispatch = std::move(dispatch)](
                             ss::future<> f) mutable {

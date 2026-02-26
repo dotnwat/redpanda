@@ -26,6 +26,7 @@
 #include "raft/types.h"
 #include "rpc/types.h"
 #include "ssx/async_algorithm.h"
+#include "tracing/span.h"
 
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/semaphore.hh>
@@ -250,7 +251,24 @@ ss::future<result<replicate_result>> replicate_entries_stm::apply(units_t u) {
         }
     });
     _units = ss::make_lw_shared<units_t>(std::move(u));
+
+    auto append_span = _trace_ctx ? tracing::span(
+                                      "raft.append_log",
+                                      tracing::span_kind::internal,
+                                      *_trace_ctx)
+                                  : tracing::span();
     _append_result = co_await append_to_self();
+    if (append_span.is_enabled()) {
+        if (_append_result && !_append_result->has_error()) {
+            auto& res = _append_result->value();
+            append_span.set_attribute(
+              "rp.base_offset", static_cast<int64_t>(res.base_offset()));
+            append_span.set_attribute(
+              "rp.last_offset", static_cast<int64_t>(res.last_offset()));
+        } else {
+            append_span.set_error("append_failed");
+        }
+    }
 
     if (!_append_result || _append_result->has_error()) {
         co_return build_replicate_result();
@@ -367,7 +385,8 @@ ss::future<> replicate_entries_stm::wait_for_shutdown() {
 replicate_entries_stm::replicate_entries_stm(
   consensus* p,
   append_entries_request r,
-  absl::flat_hash_map<vnode, follower_req_seq> seqs)
+  absl::flat_hash_map<vnode, follower_req_seq> seqs,
+  std::optional<tracing::trace_context> trace_ctx)
   : _ptr(p)
   , _meta(r.metadata())
   , _is_flush_required(r.is_flush_required())
@@ -376,7 +395,8 @@ replicate_entries_stm::replicate_entries_stm(
       std::make_unique<chunked_vector<model::record_batch>>(
         std::move(r).release_batches()))
   , _followers_seq(std::move(seqs))
-  , _ctxlog(_ptr->_ctxlog) {}
+  , _ctxlog(_ptr->_ctxlog)
+  , _trace_ctx(trace_ctx) {}
 
 replicate_entries_stm::~replicate_entries_stm() {
     vassert(

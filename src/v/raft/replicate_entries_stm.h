@@ -22,6 +22,7 @@
 #include "ssx/mutex.h"
 #include "ssx/semaphore.h"
 #include "storage/types.h"
+#include "tracing/trace_context.h"
 
 #include <seastar/core/gate.hh>
 #include <seastar/core/shared_ptr.hh>
@@ -73,7 +74,8 @@ public:
     replicate_entries_stm(
       consensus*,
       append_entries_request,
-      absl::flat_hash_map<vnode, follower_req_seq>);
+      absl::flat_hash_map<vnode, follower_req_seq>,
+      std::optional<tracing::trace_context> trace_ctx = std::nullopt);
     ~replicate_entries_stm();
 
     /// caller have to pass semaphore units, the apply call will do the
@@ -129,6 +131,7 @@ private:
     ss::lw_shared_ptr<std::vector<ssx::semaphore_units>> _units;
     std::optional<result<storage::append_result>> _append_result;
     uint16_t _requests_count = 0;
+    std::optional<tracing::trace_context> _trace_ctx;
 };
 
 } // namespace raft

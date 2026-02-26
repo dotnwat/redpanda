@@ -14,6 +14,7 @@
 #include "base/outcome.h"
 #include "model/fundamental.h"
 #include "raft/errc.h"
+#include "tracing/trace_context.h"
 
 #include <chrono>
 #include <optional>
@@ -68,6 +69,10 @@ struct replicate_options {
     /// If set, the replicate request will only be processed if the current
     /// term matches the expected term.
     std::optional<model::term_id> expected_term{std::nullopt};
+
+    /// Trace context for distributed tracing. If set, raft will create
+    /// child spans for leader append and quorum wait.
+    std::optional<tracing::trace_context> trace_ctx;
 };
 
 struct replicate_result {
