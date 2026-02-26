@@ -21,6 +21,7 @@
 #include "serde/rw/bool_class.h"
 #include "serde/rw/envelope.h"
 #include "serde/rw/scalar.h"
+#include "tracing/trace_context.h"
 #include "utils/named_type.h"
 #include "utils/to_string.h"
 
@@ -140,6 +141,13 @@ struct append_entries_request
         return _batches;
     }
 
+    const std::optional<tracing::trace_context>& trace_ctx() const {
+        return _trace_ctx;
+    }
+    void set_trace_ctx(std::optional<tracing::trace_context> ctx) {
+        _trace_ctx = std::move(ctx);
+    }
+
     friend std::ostream&
     operator<<(std::ostream& o, const append_entries_request& r);
 
@@ -162,12 +170,15 @@ private:
 
     // not serialized field used for accounting in raft internals
     size_t _total_size;
+
+    // in-memory only; serialized through the serde_wrapper, not here
+    std::optional<tracing::trace_context> _trace_ctx;
 };
 
 class append_entries_request_serde_wrapper
   : public serde::envelope<
       append_entries_request_serde_wrapper,
-      serde::version<0>,
+      serde::version<1>,
       serde::compat_version<0>> {
 public:
     explicit append_entries_request_serde_wrapper(append_entries_request req)

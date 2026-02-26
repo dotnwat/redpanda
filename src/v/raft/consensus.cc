@@ -42,6 +42,7 @@
 #include "storage/ntp_config.h"
 #include "storage/snapshot.h"
 #include "storage/types.h"
+#include "tracing/span.h"
 
 #include <seastar/core/condition-variable.hh>
 #include <seastar/core/coroutine.hh>
@@ -1985,6 +1986,12 @@ consensus::append_entries(append_entries_request&& r) {
 
 ss::future<append_entries_reply>
 consensus::do_append_entries(append_entries_request&& r) {
+    auto follower_span = r.trace_ctx() ? tracing::span(
+                                           "raft.follower_append",
+                                           tracing::span_kind::server,
+                                           *r.trace_ctx())
+                                       : tracing::span();
+
     auto lstats = _log->offsets();
     append_entries_reply reply;
     const auto request_metadata = r.metadata();
@@ -2325,12 +2332,19 @@ consensus::do_append_entries(append_entries_request&& r) {
             // but can inflate the number of recovering partitions
             // statistic a bit).
         }
+        if (follower_span.is_enabled()) {
+            follower_span.set_attribute(
+              "rp.base_offset", static_cast<int64_t>(ofs.base_offset()));
+            follower_span.set_attribute(
+              "rp.last_offset", static_cast<int64_t>(ofs.last_offset()));
+        }
         co_return make_append_entries_reply(reply.target_node_id, ofs);
     } catch (...) {
         vlog(
           _ctxlog.warn,
           "Error occurred while appending log entries - {}",
           std::current_exception());
+        follower_span.set_error("append_failed");
         reply.result = reply_result::failure;
         co_return reply;
     }

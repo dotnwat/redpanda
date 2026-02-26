@@ -364,6 +364,16 @@ append_entries_request_serde_wrapper::serde_async_write(iobuf& dst) {
     write(dst, _request.metadata());
     write(dst, _request.is_flush_required());
     co_await serde::write_async(dst, std::move(_request).release_batches());
+
+    // v1: trace context
+    const auto& ctx = _request.trace_ctx();
+    bool has_trace = ctx.has_value();
+    write(dst, has_trace);
+    if (has_trace) {
+        dst.append(ctx->trace);
+        dst.append(ctx->parent_span);
+        write(dst, ctx->flags);
+    }
 }
 
 ss::future<append_entries_request_serde_wrapper>
@@ -389,8 +399,33 @@ append_entries_request_serde_wrapper::serde_async_direct_read(
         co_await ss::coroutine::maybe_yield();
     }
 
-    co_return append_entries_request(
+    // v1: trace context
+    std::optional<tracing::trace_context> trace_ctx;
+    if (h._version >= 1) {
+        auto has_trace = read_nested<bool>(src, 0U);
+        if (has_trace) {
+            tracing::trace_context ctx;
+            // NOLINTNEXTLINE
+            src.consume_to(
+              ctx.trace.size(), reinterpret_cast<char*>(ctx.trace.data()));
+            // NOLINTNEXTLINE
+            src.consume_to(
+              ctx.parent_span.size(),
+              reinterpret_cast<char*>(ctx.parent_span.data()));
+            ctx.flags = read_nested<uint8_t>(src, 0U);
+            trace_ctx = ctx;
+        }
+    }
+
+    // skip unknown trailing fields for forward-compat
+    if (src.bytes_left() > h._bytes_left_limit) {
+        src.skip(src.bytes_left() - h._bytes_left_limit);
+    }
+
+    auto req = append_entries_request(
       node_id, target_node_id, meta, std::move(batches), batches_size, flush);
+    req.set_trace_ctx(std::move(trace_ctx));
+    co_return req;
 }
 
 std::ostream& operator<<(std::ostream& o, const append_entries_request& r) {

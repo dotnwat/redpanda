@@ -78,17 +78,16 @@ replicate_entries_stm::send_append_entries_request(
     // op_lock so next append entries request can be dispatched to the
     // follower
     auto signal_dispatch_sem = ss::defer([this] { _dispatch_sem.signal(); });
+    auto req = append_entries_request(
+      _ptr->self(),
+      n,
+      _meta,
+      std::move(batches),
+      _batches_size,
+      _is_flush_required);
+    req.set_trace_ctx(_trace_ctx);
     return _ptr->_client_protocol
-      .append_entries(
-        n.id(),
-        append_entries_request(
-          _ptr->self(),
-          n,
-          _meta,
-          std::move(batches),
-          _batches_size,
-          _is_flush_required),
-        std::move(opts))
+      .append_entries(n.id(), std::move(req), std::move(opts))
 
       .then(
         [this, target_node_id = n.id()](result<append_entries_reply> reply) {
