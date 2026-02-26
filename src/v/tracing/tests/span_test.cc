@@ -8,7 +8,6 @@
 // by the Apache License, Version 2.0
 
 #include "tracing/span.h"
-
 #include "tracing/span_buffer.h"
 #include "tracing/trace_context.h"
 
@@ -154,7 +153,9 @@ TEST(SpanTest, MoveSemantics) {
     EXPECT_TRUE(s2.is_enabled());
 
     // s2 goes out of scope, should submit.
-    { auto _ = std::move(s2); }
+    {
+        auto _ = std::move(s2);
+    }
 
     auto drained = buf.drain();
     ASSERT_EQ(drained.size(), 1);

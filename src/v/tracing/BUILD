@@ -40,6 +40,8 @@ redpanda_cc_library(
     deps = [
         ":span_buffer",
         ":trace_context",
+        "//src/v/config",
+        "//src/v/random:generators",
         "@seastar",
     ],
 )

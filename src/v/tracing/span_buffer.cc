@@ -18,6 +18,10 @@ ss::logger tlog("tracing");
 
 namespace tracing {
 
+static thread_local span_buffer* tl_span_buffer = nullptr;
+
+span_buffer* current_span_buffer() { return tl_span_buffer; }
+
 void span_buffer::submit(completed_span span) {
     if (_buffer.size() >= max_buffer_size) {
         if (!_overflow_logged) {
@@ -38,9 +42,13 @@ chunked_vector<completed_span> span_buffer::drain() {
     return std::exchange(_buffer, {});
 }
 
-ss::future<> span_buffer::start() { co_return; }
+ss::future<> span_buffer::start() {
+    tl_span_buffer = this;
+    co_return;
+}
 
 ss::future<> span_buffer::stop() {
+    tl_span_buffer = nullptr;
     _buffer.clear();
     co_return;
 }

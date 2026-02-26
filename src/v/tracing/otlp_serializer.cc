@@ -39,8 +39,7 @@ void proto_writer::write_fixed64(uint64_t v) {
     std::memcpy(buf, &v, 8);
     // Ensure little-endian on big-endian platforms.
     static_assert(
-      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
-      "big-endian not supported");
+      __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "big-endian not supported");
     _out.append(buf, 8);
 }
 
@@ -132,7 +131,8 @@ static constexpr uint32_t f_span_name = 5;
 static constexpr uint32_t f_span_kind = 6;
 static constexpr uint32_t f_span_start_time = 7;
 static constexpr uint32_t f_span_end_time = 8;
-// fields 9-14 = attributes, events, links (unused)
+static constexpr uint32_t f_span_attributes = 9;
+// fields 10-14 = events, links, etc. (unused)
 static constexpr uint32_t f_span_status = 15;
 
 // Status
@@ -183,6 +183,11 @@ iobuf serialize_span(const completed_span& s) {
     w.write_fixed64_field(f_span_start_time, s.start_ns);
     w.write_fixed64_field(f_span_end_time, s.end_ns);
 
+    // Attributes (repeated KeyValue).
+    for (const auto& [key, val] : s.attributes) {
+        write_string_attribute(w, f_span_attributes, key, val);
+    }
+
     // Status submessage.
     if (s.is_error) {
         iobuf status_buf;
@@ -205,8 +210,7 @@ iobuf serialize_span(const completed_span& s) {
 } // namespace
 
 iobuf serialize_otlp_traces(
-  std::string_view service_name,
-  const chunked_vector<completed_span>& spans) {
+  std::string_view service_name, const chunked_vector<completed_span>& spans) {
     // Build InstrumentationScope.
     iobuf scope_buf;
     {

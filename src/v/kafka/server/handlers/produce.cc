@@ -26,7 +26,6 @@
 #include "model/timestamp.h"
 #include "pandaproxy/schema_registry/validation.h"
 #include "raft/errc.h"
-#include "random/generators.h"
 #include "ssx/future-util.h"
 #include "tracing/span.h"
 
@@ -314,10 +313,24 @@ ss::future<produce_response::partition> do_produce_topic_partition(
        dispatch = std::move(dispatched),
        acks = octx.request.data.acks,
        timeout,
-       source_shard = ss::this_shard_id()](
-        cluster::partition_manager& mgr) mutable {
+       source_shard = ss::this_shard_id(),
+       trace_ctx = octx.trace_ctx](cluster::partition_manager& mgr) mutable {
+          // Child span on the partition's home shard. Uses the
+          // thread-local span_buffer — no plumbing needed.
+          auto child = trace_ctx ? tracing::span(
+                                     "kafka.produce.replicate",
+                                     tracing::span_kind::internal,
+                                     *trace_ctx)
+                                 : tracing::span();
+          child.set_attribute("rp.topic", ntp.tp.topic());
+          child.set_attribute(
+            "rp.partition", static_cast<int64_t>(ntp.tp.partition()));
+          child.set_attribute(
+            "rp.shard", static_cast<int64_t>(ss::this_shard_id()));
+
           auto partition = kafka::make_partition_proxy(ntp, mgr);
           if (!partition || !partition->is_leader()) {
+              child.set_error("not_leader");
               return ss::as_ready_future(finalize_request_with_error_code(
                 error_code::not_leader_for_partition,
                 std::move(dispatch),
@@ -328,6 +341,8 @@ ss::future<produce_response::partition> do_produce_topic_partition(
           auto bid = model::batch_identity::from(batch->header());
           auto num_records = batch->record_count();
           auto batch_size = batch->size_bytes();
+          child.set_attribute("rp.records", num_records);
+          child.set_attribute("rp.batch_size", batch_size);
           auto stages = partition_append(
             ntp.tp.partition,
             std::move(*partition),
@@ -358,7 +373,8 @@ ss::future<produce_response::partition> do_produce_topic_partition(
             })
             .then([f = std::move(stages.produced)]() mutable {
                 return std::move(f);
-            });
+            })
+            .finally([child = std::move(child)]() {});
       });
     if (p.error_code == error_code::none) {
         auto dur = std::chrono::steady_clock::now() - start;
@@ -799,22 +815,22 @@ produce_handler::handle(request_context ctx, ss::smp_service_group ssg) {
       error_code::policy_violation);
     request.data.topics.erase_to_end(linked_topics_it);
 
-    // PoC tracing: create a span for the produce request.
-    auto trace_span = [&ctx]() -> tracing::span {
-        if (!config::shard_local_cfg().tracing_enabled()) {
-            return {};
+    // Root tracing span for the produce request. Sampling and
+    // enabled checks happen inside the constructor automatically.
+    auto trace_span = tracing::span(
+      "kafka.produce", tracing::span_kind::server);
+    if (trace_span.is_enabled()) {
+        trace_span.set_attribute(
+          "rp.shard", static_cast<int64_t>(ss::this_shard_id()));
+        if (ctx.header().client_id) {
+            trace_span.set_attribute(
+              "rp.client_id", ss::sstring(*ctx.header().client_id));
         }
-        auto rate = config::shard_local_cfg().tracing_sample_rate();
-        if (rate < 1.0) {
-            auto& rng = random_generators::global();
-            auto v = rng.get_int<uint32_t>(0, 999);
-            if (v >= static_cast<uint32_t>(rate * 1000.0)) {
-                return {};
-            }
-        }
-        return tracing::span(
-          ctx.trace_span_buffer(), "kafka.produce", tracing::span_kind::server);
-    }();
+        trace_span.set_attribute(
+          "rp.topics", static_cast<int64_t>(request.data.topics.size()));
+        trace_span.set_attribute(
+          "rp.acks", static_cast<int64_t>(request.data.acks));
+    }
 
     ss::promise<> dispatched_promise;
     auto dispatched_f = dispatched_promise.get_future();
@@ -823,7 +839,11 @@ produce_handler::handle(request_context ctx, ss::smp_service_group ssg) {
       produce_ctx(std::move(ctx), std::move(request), std::move(resp), ssg),
       std::move(trace_span),
       [dispatched_promise = std::move(dispatched_promise)](
-        produce_ctx& octx, tracing::span&) mutable {
+        produce_ctx& octx, tracing::span& root_span) mutable {
+          // Propagate trace context for cross-shard child spans.
+          if (root_span.is_enabled()) {
+              octx.trace_ctx = root_span.context();
+          }
           // dispatch produce requests for each topic
           auto stages = produce_topics(octx);
           std::vector<ss::future<>> dispatched;

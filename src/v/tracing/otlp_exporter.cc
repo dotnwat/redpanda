@@ -11,9 +11,9 @@
 
 #include "config/configuration.h"
 #include "http/client.h"
-#include "utils/unresolved_address.h"
 #include "ssx/future-util.h"
 #include "tracing/otlp_serializer.h"
+#include "utils/unresolved_address.h"
 
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/smp.hh>
@@ -107,14 +107,18 @@ ss::future<> otlp_exporter::do_export() {
     }
 
     try {
-        // Collect spans from all shards.
-        chunked_vector<completed_span> all_spans;
-        co_await _spans.invoke_on_all(
-          [&all_spans](span_buffer& buf) {
-              auto drained = buf.drain();
-              for (auto& s : drained) {
-                  all_spans.push_back(std::move(s));
+        // Collect spans from all shards. Each shard drains its own
+        // buffer; results are merged on shard 0 via the reducer.
+        auto all_spans = co_await _spans.map_reduce0(
+          [](span_buffer& buf) { return buf.drain(); },
+          chunked_vector<completed_span>{},
+          [](
+            chunked_vector<completed_span> acc,
+            chunked_vector<completed_span> shard_spans) {
+              for (auto& s : shard_spans) {
+                  acc.push_back(std::move(s));
               }
+              return acc;
           });
 
         if (all_spans.empty()) {
@@ -149,8 +153,7 @@ ss::future<> otlp_exporter::send(iobuf payload) {
     http::client client(client_cfg, _as);
 
     auto timeout = config::shard_local_cfg().tracing_flush_interval_ms();
-    auto res = co_await client.get_connected(
-      timeout, prefix_logger(tlog, ""));
+    auto res = co_await client.get_connected(timeout, prefix_logger(tlog, ""));
 
     if (res != http::reconnect_result_t::connected) {
         vlog(tlog.debug, "Unable to connect to tracing endpoint");
@@ -187,8 +190,7 @@ ss::future<> otlp_exporter::send(iobuf payload) {
           "Trace export failed: HTTP {} - {}",
           static_cast<unsigned>(status),
           std::string_view(
-            reinterpret_cast<const char*>(body_str.data()),
-            body_str.size()));
+            reinterpret_cast<const char*>(body_str.data()), body_str.size()));
     } else {
         vlog(tlog.debug, "Trace export completed");
     }

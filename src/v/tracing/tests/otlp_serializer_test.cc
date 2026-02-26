@@ -7,9 +7,8 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "tracing/otlp_serializer.h"
-
 #include "bytes/iobuf.h"
+#include "tracing/otlp_serializer.h"
 #include "tracing/span_buffer.h"
 #include "tracing/trace_context.h"
 
@@ -142,8 +141,8 @@ TEST(OtlpSerializerTest, SerializeSingleSpan) {
     ASSERT_GT(bytes.size(), 10);
 
     auto [tag, wire_type, pos] = decode_tag(bytes, 0);
-    EXPECT_EQ(tag, 1);           // field 1 = resource_spans
-    EXPECT_EQ(wire_type, 2);     // wire type 2 = length-delimited
+    EXPECT_EQ(tag, 1);       // field 1 = resource_spans
+    EXPECT_EQ(wire_type, 2); // wire type 2 = length-delimited
 
     // Decode the length of the ResourceSpans submessage.
     auto [rs_len, rs_start] = decode_varint(bytes, pos);
@@ -174,8 +173,9 @@ TEST(OtlpSerializerTest, SerializeSpanWithError) {
     std::string error_msg = "something failed";
     bool found = false;
     for (size_t i = 0; i + error_msg.size() <= bytes.size(); ++i) {
-        if (std::memcmp(bytes.data() + i, error_msg.data(), error_msg.size())
-            == 0) {
+        if (
+          std::memcmp(bytes.data() + i, error_msg.data(), error_msg.size())
+          == 0) {
             found = true;
             break;
         }
@@ -268,7 +268,6 @@ TEST(OtlpSerializerTest, MultipleSpans) {
                 break;
             }
         }
-        EXPECT_TRUE(found)
-          << "Span name '" << name << "' not found in output";
+        EXPECT_TRUE(found) << "Span name '" << name << "' not found in output";
     }
 }

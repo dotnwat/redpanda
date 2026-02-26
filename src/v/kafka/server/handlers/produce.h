@@ -11,6 +11,9 @@
 #pragma once
 #include "kafka/protocol/produce.h"
 #include "kafka/server/handlers/handler.h"
+#include "tracing/trace_context.h"
+
+#include <optional>
 
 namespace kafka {
 
@@ -34,6 +37,8 @@ struct produce_ctx {
     produce_request request;
     produce_response response;
     ss::smp_service_group ssg;
+    /// Parent trace context for creating cross-shard child spans.
+    std::optional<tracing::trace_context> trace_ctx;
 
     produce_ctx(
       request_context&& rctx,
