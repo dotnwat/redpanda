@@ -18,7 +18,7 @@
 #include "cluster/scheduling/leader_balancer_random.h"
 #include "leader_balancer_test_utils.h"
 #include "model/metadata.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <boost/test/unit_test.hpp>
 

@@ -33,7 +33,6 @@
 #include "storage/types.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/sleep.hh>
 #include <seastar/util/log.hh>

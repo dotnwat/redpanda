@@ -22,14 +22,11 @@
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "storage/ntp_config.h"
-#include "utils/uuid.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/coroutine/maybe_yield.hh>
 
 #include <algorithm>
 #include <optional>
-#include <span>
 #include <utility>
 #include <vector>
 

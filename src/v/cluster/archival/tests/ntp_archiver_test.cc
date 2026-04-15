@@ -29,7 +29,6 @@
 #include "test_utils/boost_fixture.h"
 #include "test_utils/scoped_config.h"
 
-#include <seastar/core/future-util.hh>
 #include <seastar/core/sstring.hh>
 #include <seastar/testing/thread_test_case.hh>
 

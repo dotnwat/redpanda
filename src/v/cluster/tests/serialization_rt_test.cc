@@ -14,7 +14,6 @@
 #include "cluster/tests/randoms.h"
 #include "cluster/tests/topic_properties_generator.h"
 #include "cluster/tx_protocol_types.h"
-#include "cluster/types.h"
 #include "container/chunked_vector.h"
 #include "model/compression.h"
 #include "model/fundamental.h"
@@ -28,7 +27,7 @@
 #include "reflection/adl.h"
 #include "reflection/async_adl.h"
 #include "security/tests/randoms.h"
-#include "storage/types.h"
+#include "storage/types.h" // NOLINT(misc-include-cleaner)
 #include "test_utils/random_bytes.h"
 #include "test_utils/randoms.h"
 #include "test_utils/rpc.h"

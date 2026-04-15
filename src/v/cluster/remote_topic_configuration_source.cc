@@ -14,10 +14,7 @@
 #include "cloud_storage/remote.h"
 #include "cloud_storage/topic_manifest.h"
 #include "cloud_storage/topic_manifest_downloader.h"
-#include "cloud_storage/types.h"
-#include "cloud_storage_clients/configuration.h"
-#include "cluster/logger.h"
-#include "cluster/types.h"
+#include "cloud_storage/types.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
 #include "model/timeout_clock.h"
 

@@ -11,12 +11,9 @@
 #include "types.h"
 
 #include "utils/human.h"
-#include "utils/to_string.h"
 
-#include <fmt/chrono.h>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 #include <fmt/ostream.h>
-
-#include <chrono>
 
 namespace cluster::node {
 

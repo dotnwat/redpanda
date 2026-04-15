@@ -12,7 +12,7 @@
 #include "cluster/tx_errc.h"
 
 #include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <fmt/ostream.h> // NOLINT(misc-include-cleaner)
 
 #include <iostream>
 

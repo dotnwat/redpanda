@@ -36,19 +36,14 @@
 #include "rpc/types.h"
 #include "ssx/async_algorithm.h"
 
-#include <seastar/core/chunked_fifo.hh>
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/core/reactor.hh>
 #include <seastar/core/sharded.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/sleep.hh>
 #include <seastar/core/timed_out_error.hh>
 #include <seastar/core/with_timeout.hh>
 #include <seastar/util/log.hh>
 
 #include <fmt/format.h>
-#include <fmt/ranges.h>
 
 #include <algorithm>
 #include <chrono>

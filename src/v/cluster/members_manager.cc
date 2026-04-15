@@ -16,7 +16,6 @@
 #include "cluster/controller_snapshot.h"
 #include "cluster/controller_stm.h"
 #include "cluster/drain_manager.h"
-#include "cluster/errc.h"
 #include "cluster/fwd.h"
 #include "cluster/logger.h"
 #include "cluster/members_table.h"
@@ -27,22 +26,14 @@
 #include "features/feature_table.h"
 #include "model/metadata.h"
 #include "raft/consensus_utils.h"
-#include "raft/errc.h"
+#include "raft/errc.h" // NOLINT(misc-include-cleaner)
 #include "raft/group_configuration.h"
 #include "random/generators.h"
-#include "reflection/adl.h"
 #include "storage/api.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/do_with.hh>
-#include <seastar/core/future-util.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/sharded.hh>
-#include <seastar/core/shared_ptr.hh>
-#include <seastar/core/smp.hh>
-
-#include <fmt/ranges.h>
 
 #include <chrono>
 #include <exception>

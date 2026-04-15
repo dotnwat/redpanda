@@ -16,7 +16,7 @@
 #include "cluster/logger.h"
 #include "utils/uuid.h"
 
-#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_io.hpp> // NOLINT(misc-include-cleaner)
 
 #include <optional>
 

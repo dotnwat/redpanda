@@ -14,7 +14,6 @@
 #include "model/namespace.h"
 #include "reflection/adl.h"
 #include "storage/ntp_config.h"
-#include "utils/uuid.h"
 
 #include <seastar/core/sstring.hh>
 

@@ -26,7 +26,6 @@
 #include "config/configuration.h"
 #include "features/feature_table.h"
 #include "model/fundamental.h"
-#include "model/metadata.h"
 #include "model/namespace.h"
 #include "raft/fundamental.h"
 #include "raft/fwd.h"
@@ -35,7 +34,6 @@
 #include "ssx/when_all.h"
 #include "storage/ntp_config.h"
 
-#include <seastar/core/shared_ptr_incomplete.hh>
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>
 

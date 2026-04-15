@@ -14,14 +14,11 @@
 #include "absl/container/node_hash_map.h"
 #include "base/outcome.h"
 #include "base/vassert.h"
-#include "cloud_storage/remote_path_provider.h"
 #include "cluster/archival/archival_metadata_stm.h"
 #include "cluster/cluster_utils.h"
 #include "cluster/errc.h"
 #include "cluster/fwd.h"
 #include "cluster/logger.h"
-#include "cluster/members_backend.h"
-#include "cluster/members_table.h"
 #include "cluster/partition.h"
 #include "cluster/partition_leaders_table.h"
 #include "cluster/partition_manager.h"
@@ -40,26 +37,17 @@
 #include "raft/group_configuration.h"
 #include "ssx/event.h"
 #include "ssx/future-util.h"
-#include "storage/offset_translator.h"
 #include "types.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/future-util.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/sharded.hh>
-#include <seastar/core/smp.hh>
 #include <seastar/coroutine/switch_to.hh>
-#include <seastar/util/later.hh>
-#include <seastar/util/variant_utils.hh>
-
-#include <fmt/ranges.h>
 
 #include <algorithm>
 #include <exception>
 #include <optional>
-#include <variant>
 
 /// on every core, sharded
 namespace cluster {

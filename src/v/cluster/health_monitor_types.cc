@@ -11,15 +11,10 @@
 #include "cluster/health_monitor_types.h"
 
 #include "cluster/drain_manager.h"
-#include "cluster/errc.h"
 #include "cluster/node/types.h"
-#include "features/feature_table.h"
 #include "health_monitor_types.h"
-#include "model/adl_serde.h"
 #include "model/metadata.h"
-#include "utils/to_string.h"
 
-#include <seastar/core/chunked_fifo.hh>
 #include <seastar/core/sharded.hh>
 #include <seastar/core/shared_ptr.hh>
 
@@ -27,7 +22,6 @@
 #include <fmt/ostream.h>
 
 #include <algorithm>
-#include <chrono>
 #include <iterator>
 #include <optional>
 

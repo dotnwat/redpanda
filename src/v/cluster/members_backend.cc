@@ -7,7 +7,6 @@
 #include "cluster/members_frontend.h"
 #include "cluster/members_manager.h"
 #include "cluster/members_table.h"
-#include "cluster/scheduling/allocation_strategy.h"
 #include "cluster/scheduling/partition_allocator.h"
 #include "cluster/topic_table.h"
 #include "cluster/topics_frontend.h"
@@ -15,11 +14,8 @@
 #include "config/configuration.h"
 #include "metrics/prometheus_sanitize.h"
 #include "model/metadata.h"
-#include "model/namespace.h"
 #include "model/timeout_clock.h"
-#include "random/generators.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/util/log.hh>
 
 namespace cluster {

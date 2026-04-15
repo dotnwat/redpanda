@@ -11,10 +11,8 @@
 
 #include "cluster/scheduling/types.h"
 
-#include "cluster/logger.h"
 #include "cluster/scheduling/allocation_state.h"
 #include "utils/exceptions.h"
-#include "utils/to_string.h"
 
 #include <fmt/ostream.h>
 

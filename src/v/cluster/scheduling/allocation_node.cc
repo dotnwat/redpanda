@@ -13,8 +13,6 @@
 
 #include "cluster/logger.h"
 
-#include <fmt/ranges.h>
-
 namespace cluster {
 allocation_node::allocation_node(
   model::node_id id,

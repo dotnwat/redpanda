@@ -30,7 +30,6 @@
 #include "random/generators.h"
 #include "rpc/types.h"
 #include "ssx/sformat.h"
-#include "utils/to_string.h"
 
 #include <seastar/core/sstring.hh>
 #include <seastar/coroutine/maybe_yield.hh>

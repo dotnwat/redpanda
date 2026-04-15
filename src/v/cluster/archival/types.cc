@@ -11,16 +11,12 @@
 #include "cluster/archival/types.h"
 
 #include "cloud_storage/configuration.h"
-#include "cloud_storage/partition_manifest.h"
-#include "cloud_storage/types.h"
+#include "cloud_storage/types.h" // NOLINT(misc-include-cleaner)
 #include "cluster/archival/logger.h"
 #include "config/configuration.h"
 #include "net/types.h"
 
-#include <fmt/chrono.h>
-#include <fmt/format.h>
-
-#include <chrono>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 
 using namespace std::chrono_literals;
 

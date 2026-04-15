@@ -11,22 +11,18 @@
 #include "cluster/rm_stm_types.h"
 #include "cluster/tests/randoms.h"
 #include "cluster/tests/rm_stm_test_fixture.h"
-#include "finjector/hbadger.h"
 #include "finjector/stress_fiber.h"
 #include "model/fundamental.h"
-#include "model/metadata.h"
 #include "model/record.h"
 #include "model/record_batch_types.h"
 #include "model/tests/random_batch.h"
 #include "model/tests/randoms.h"
 #include "model/timestamp.h"
 #include "raft/consensus.h"
-#include "raft/consensus_utils.h"
 #include "raft/tests/raft_fixture_base.h"
 #include "random/generators.h"
-#include "storage/record_batch_builder.h"
+#include "storage/disk_log_impl.h" // NOLINT(misc-include-cleaner)
 #include "storage/tests/batch_generators.h"
-#include "storage/tests/utils/disk_log_builder.h"
 #include "storage/types.h"
 #include "test_utils/async.h"
 #include "test_utils/boost_fixture.h"
@@ -34,8 +30,6 @@
 #include "utils/directory_walker.h"
 
 #include <seastar/util/defer.hh>
-
-#include <system_error>
 
 using namespace std::chrono_literals;
 

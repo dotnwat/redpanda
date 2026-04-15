@@ -11,7 +11,7 @@
 #include "cluster/cluster_link/table_utils.h"
 
 #include "cluster_link/model/types.h"
-#include "ssx/async_algorithm.h"
+#include "ssx/async_algorithm.h" // NOLINT(misc-include-cleaner)
 
 namespace cluster::cluster_link {
 

@@ -20,17 +20,9 @@
 #include "cluster/types.h"
 
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/coroutine/as_future.hh>
 #include <seastar/http/request.hh>
-#include <seastar/util/defer.hh>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/outcome/try.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <boost/outcome/try.hpp> // NOLINT(misc-include-cleaner)
 
 namespace {
 

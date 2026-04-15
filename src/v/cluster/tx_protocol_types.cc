@@ -10,9 +10,10 @@
  */
 #include "cluster/tx_protocol_types.h"
 
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
+
 namespace cluster {
 
 std::ostream& operator<<(std::ostream& o, const commit_tx_request& r) {

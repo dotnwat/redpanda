@@ -14,26 +14,20 @@
 #include "cloud_storage/partition_manifest.h"
 #include "cluster/archival/logger.h"
 #include "cluster/archival/segment_reupload.h"
-#include "cluster/archival/types.h"
 #include "config/configuration.h"
 #include "logger.h"
 #include "model/fundamental.h"
-#include "storage/disk_log_impl.h"
 #include "storage/fs_utils.h"
 #include "storage/offset_to_filepos.h"
 #include "storage/segment.h"
 #include "storage/segment_set.h"
 #include "storage/version.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/io_priority_class.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/lowres_clock.hh>
 #include <seastar/core/shared_ptr.hh>
 #include <seastar/core/when_all.hh>
 #include <seastar/util/log.hh>
-
-#include <boost/range/irange.hpp>
 
 #include <ranges>
 #include <utility>

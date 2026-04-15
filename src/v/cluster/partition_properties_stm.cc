@@ -14,7 +14,6 @@
 #include "base/vassert.h"
 #include "cluster/errc.h"
 #include "cluster/logger.h"
-#include "cluster/types.h"
 #include "container/chunked_vector.h"
 #include "model/fundamental.h"
 #include "model/namespace.h"
@@ -22,10 +21,6 @@
 #include "raft/persisted_stm.h"
 #include "snapshot.h"
 #include "storage/log.h"
-
-#include <seastar/core/chunked_fifo.hh>
-#include <seastar/coroutine/as_future.hh>
-#include <seastar/util/defer.hh>
 
 #include <fmt/format.h>
 

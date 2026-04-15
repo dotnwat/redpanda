@@ -11,7 +11,7 @@
 #include "cluster/partition_balancer_types.h"
 
 #include "utils/human.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace cluster {
 

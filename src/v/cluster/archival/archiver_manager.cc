@@ -15,11 +15,9 @@
 #include "cluster/archival/ntp_archiver_service.h"
 #include "cluster/archival/upload_housekeeping_service.h"
 #include "cluster/partition_manager.h"
-#include "cluster/types.h"
 #include "config/configuration.h"
 #include "container/chunked_vector.h"
 #include "model/fundamental.h"
-#include "model/metadata.h"
 #include "model/namespace.h"
 #include "ssx/semaphore.h"
 #include "ssx/sformat.h"
@@ -27,17 +25,12 @@
 
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/loop.hh>
-#include <seastar/core/lowres_clock.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/util/later.hh>
 
 #include <boost/msm/back/state_machine.hpp>
-#include <boost/msm/front/euml/common.hpp>
 #include <boost/msm/front/functor_row.hpp>
 #include <boost/msm/front/state_machine_def.hpp>
 #include <fmt/format.h>
-#include <fmt/ostream.h>
 
 #include <exception>
 #include <optional>

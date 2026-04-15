@@ -30,7 +30,6 @@
 #include "raft/state_machine_base.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/loop.hh>
 #include <seastar/core/sstring.hh>

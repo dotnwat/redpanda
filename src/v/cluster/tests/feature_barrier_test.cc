@@ -11,7 +11,7 @@
 
 #include "base/vlog.h"
 #include "cluster/commands.h"
-#include "cluster/feature_manager.h"
+#include "cluster/feature_manager.h" // NOLINT(misc-include-cleaner)
 #include "cluster/members_table.h"
 #include "test_utils/async.h"
 #include "test_utils/boost_fixture.h"

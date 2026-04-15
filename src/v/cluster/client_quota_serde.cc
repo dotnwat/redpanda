@@ -13,12 +13,11 @@
 #include "serde/rw/envelope.h"
 #include "serde/rw/set.h"     // IWYU pragma: keep
 #include "serde/rw/sstring.h" // IWYU pragma: keep
-#include "utils/to_string.h"
+#include "utils/to_string.h"  // NOLINT(misc-include-cleaner)
 
 #include <seastar/util/variant_utils.hh>
 
-#include <fmt/format.h>
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <ostream>
 

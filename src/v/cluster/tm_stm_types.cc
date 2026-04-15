@@ -10,8 +10,6 @@
  */
 #include "cluster/tm_stm_types.h"
 
-#include "model/timeout_clock.h"
-
 #include <seastar/core/lowres_clock.hh>
 
 #include <optional>

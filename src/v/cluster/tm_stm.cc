@@ -12,16 +12,15 @@
 #include "absl/container/btree_set.h"
 #include "cluster/snapshot.h"
 #include "cluster/tm_stm_types.h"
-#include "cluster/types.h"
+#include "cluster/types.h" // NOLINT(misc-include-cleaner)
 #include "container/chunked_vector.h"
 #include "kafka/protocol/types.h"
 #include "model/record.h"
 #include "raft/errc.h"
+#include "ssx/future-util.h" // NOLINT(misc-include-cleaner)
 #include "storage/record_batch_builder.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
-#include <seastar/util/bool_class.hh>
 
 #include <cstdint>
 #include <optional>

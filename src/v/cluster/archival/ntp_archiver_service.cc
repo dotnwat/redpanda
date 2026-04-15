@@ -26,56 +26,45 @@
 #include "cluster/archival/adjacent_segment_merger.h"
 #include "cluster/archival/archival_metadata_stm.h"
 #include "cluster/archival/archival_policy.h"
-#include "cluster/archival/async_data_uploader.h"
 #include "cluster/archival/logger.h"
 #include "cluster/archival/replica_state_validator.h"
 #include "cluster/archival/retention_calculator.h"
 #include "cluster/archival/scrubber.h"
 #include "cluster/archival/segment_reupload.h"
 #include "cluster/archival/types.h"
-#include "cluster/partition_manager.h"
+#include "cluster/partition_manager.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
 #include "container/chunked_vector.h"
 #include "features/feature_table.h"
 #include "model/fundamental.h"
-#include "model/metadata.h"
 #include "model/record.h"
-#include "model/timeout_clock.h"
 #include "net/connection.h"
 #include "raft/fundamental.h"
 #include "ssx/abort_source.h"
 #include "ssx/checkpoint_mutex.h"
 #include "ssx/future-util.h"
-#include "storage/disk_log_impl.h"
-#include "storage/fs_utils.h"
+#include "storage/disk_log_impl.h" // NOLINT(misc-include-cleaner)
 #include "storage/ntp_config.h"
 #include "storage/parser.h"
 #include "utils/execution_monitor.h"
 #include "utils/human.h"
 #include "utils/lazy_abort_source.h"
-#include "utils/prefix_logger.h"
 #include "utils/retry_chain_node.h"
 #include "utils/stream_provider.h"
 #include "utils/stream_utils.h"
 
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/condition-variable.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/file.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/loop.hh>
 #include <seastar/core/lowres_clock.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/timed_out_error.hh>
 #include <seastar/core/when_all.hh>
-#include <seastar/coroutine/all.hh>
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>
 #include <seastar/util/log.hh>
 #include <seastar/util/noncopyable_function.hh>
-
-#include <fmt/format.h>
 
 #include <algorithm>
 #include <chrono>

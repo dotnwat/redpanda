@@ -14,8 +14,6 @@
 #include "random/generators.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/coroutine.hh>
-
 namespace cluster {
 
 ss::sstring self_test_status_as_string(self_test_status sts) {

@@ -17,9 +17,6 @@
 #include "serde/envelope.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/future-util.hh>
-#include <seastar/core/sleep.hh>
-
 namespace cluster {
 
 struct snapshot_data

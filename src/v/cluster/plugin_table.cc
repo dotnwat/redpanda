@@ -11,9 +11,11 @@
 #include "plugin_table.h"
 
 #include "base/vassert.h"
-#include "cluster/types.h"
+#include "cluster/types.h" // NOLINT(misc-include-cleaner)
 #include "model/metadata.h"
 #include "model/transform.h"
+
+#include <seastar/core/chunked_fifo.hh> // NOLINT(misc-include-cleaner)
 
 namespace cluster {
 

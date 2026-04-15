@@ -13,11 +13,11 @@
 #include "cloud_io/cache_service.h"
 #include "cloud_storage/partition_manifest.h"
 #include "cloud_storage/remote.h"
-#include "cloud_storage/remote_partition.h"
+#include "cloud_storage/remote_partition.h" // NOLINT(misc-include-cleaner)
 #include "cloud_storage/remote_path_provider.h"
 #include "cloud_topics/level_zero/stm/ctp_stm.h"
 #include "cluster/archival/archival_metadata_stm.h"
-#include "cluster/archival/ntp_archiver_service.h"
+#include "cluster/archival/ntp_archiver_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/archival/types.h"
 #include "cluster/fwd.h"
 #include "cluster/logger.h"
@@ -25,27 +25,16 @@
 #include "cluster/partition_recovery_manager.h"
 #include "cluster/topic_configuration.h"
 #include "cluster/types.h"
-#include "config/configuration.h"
 #include "model/metadata.h"
 #include "raft/consensus.h"
 #include "raft/consensus_utils.h"
 #include "raft/fundamental.h"
-#include "raft/group_configuration.h"
-#include "raft/rpc_client_protocol.h"
 #include "ssx/async-clear.h"
-#include "storage/segment_utils.h"
-#include "storage/snapshot.h"
-#include "utils/retry_chain_node.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/core/reactor.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/smp.hh>
 
-#include <algorithm>
 #include <exception>
-#include <iterator>
 #include <optional>
 #include <utility>
 

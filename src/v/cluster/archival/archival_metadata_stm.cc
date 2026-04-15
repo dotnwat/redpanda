@@ -36,8 +36,8 @@
 #include "serde/envelope.h"
 #include "serde/rw/envelope.h"
 #include "serde/rw/iobuf.h"
-#include "serde/rw/optional.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/optional.h" // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "ssx/future-util.h"
 #include "ssx/semaphore.h"
 #include "storage/ntp_config.h"
@@ -45,13 +45,10 @@
 #include "storage/record_batch_utils.h"
 #include "utils/named_type.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/do_with.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/loop.hh>
 #include <seastar/core/lowres_clock.hh>
 #include <seastar/core/semaphore.hh>
-#include <seastar/core/shared_future.hh>
 #include <seastar/core/sleep.hh>
 #include <seastar/core/sstring.hh>
 #include <seastar/util/bool_class.hh>

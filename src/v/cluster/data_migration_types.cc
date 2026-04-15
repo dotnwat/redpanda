@@ -12,7 +12,7 @@
 
 #include "model/namespace.h"
 #include "ssx/sformat.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/util/variant_utils.hh>
 
