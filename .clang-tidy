@@ -28,6 +28,7 @@ WarningsAsErrors: >-
   bugprone-suspicious-string-compare,
   misc-unused-using-decls,
   misc-unused-alias-decls,
+  misc-include-cleaner,
   modernize-redundant-void-arg,
   performance-implicit-conversion-in-loop,
   performance-trivially-destructible,
@@ -70,5 +71,9 @@ CheckOptions:
     value:           ::seastar::future
   - key:             performance-move-const-arg.CheckTriviallyCopyableMove
     value:           0
+  - key:             misc-include-cleaner.MissingIncludes
+    value:           false
+  - key:             misc-include-cleaner.IgnoreHeaders
+    value:           'boost/test/unit_test\.hpp'
 ...
 

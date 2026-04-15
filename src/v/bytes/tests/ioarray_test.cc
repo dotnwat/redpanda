@@ -12,10 +12,9 @@
 #include "base/seastarx.h"
 #include "bytes/ioarray.h"
 
-#include <seastar/core/file.hh>
-
-#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
+
+#include <sys/uio.h> // NOLINT(misc-include-cleaner)
 
 #include <random>
 

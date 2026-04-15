@@ -9,7 +9,7 @@
 
 #include "absl/hash/hash.h"
 #include "bytes/bytes.h"
-#include "bytes/hash.h"
+#include "bytes/hash.h" // NOLINT(misc-include-cleaner)
 #include "bytes/iostream.h"
 #include "utils.h"
 

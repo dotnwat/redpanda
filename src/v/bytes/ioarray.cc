@@ -17,7 +17,7 @@
 #include <seastar/core/align.hh>
 #include <seastar/core/byteorder.hh>
 
-#include <sys/uio.h>
+#include <sys/uio.h> // NOLINT(misc-include-cleaner)
 
 #include <cstring>
 #include <iterator>
