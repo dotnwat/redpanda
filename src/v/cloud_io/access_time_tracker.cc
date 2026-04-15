@@ -15,16 +15,14 @@
 #include "bytes/iobuf_parser.h"
 #include "bytes/iostream.h"
 #include "serde/peek.h"
-#include "serde/rw/enum.h"
+#include "serde/rw/enum.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/envelope.h"
 #include "serde/rw/rw.h"
 #include "serde/rw/scalar.h"
-#include "serde/rw/sstring.h"
+#include "serde/rw/sstring.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/smp.hh>
 #include <seastar/util/defer.hh>
-#include <seastar/util/log.hh>
+#include <seastar/util/log.hh> // NOLINT(misc-include-cleaner)
 
 #include <exception>
 #include <ranges>
