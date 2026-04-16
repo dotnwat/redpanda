@@ -23,10 +23,7 @@
 #include "raft/tests/raft_fixture.h"
 #include "test_utils/async.h"
 #include "test_utils/scoped_config.h"
-#include "test_utils/test.h"
 #include "test_utils/tmp_dir.h"
-
-#include <seastar/core/coroutine.hh>
 
 #include <gmock/gmock.h>
 

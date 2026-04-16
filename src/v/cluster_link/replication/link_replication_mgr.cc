@@ -10,11 +10,9 @@
 
 #include "cluster_link/replication/link_replication_mgr.h"
 
-#include "base/units.h"
 #include "cluster_link/logger.h"
-#include "ssx/async_algorithm.h"
 #include "ssx/future-util.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 using namespace std::chrono_literals;
 

@@ -14,7 +14,7 @@
 #include "base/format_to.h"
 #include "model/timestamp.h"
 #include "ssx/async_algorithm.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/util/variant_utils.hh>
 

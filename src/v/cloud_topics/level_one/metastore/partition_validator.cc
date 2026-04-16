@@ -15,10 +15,6 @@
 #include "model/fundamental.h"
 #include "utils/retry_chain_node.h"
 
-#include <seastar/core/coroutine.hh>
-
-#include <chrono>
-
 using namespace std::chrono_literals;
 
 namespace cloud_topics::l1 {

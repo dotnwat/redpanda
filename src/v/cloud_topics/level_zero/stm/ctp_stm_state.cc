@@ -11,7 +11,7 @@
 #include "cloud_topics/level_zero/stm/ctp_stm_state.h"
 
 #include "model/fundamental.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace cloud_topics {
 

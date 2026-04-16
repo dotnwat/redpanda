@@ -10,23 +10,17 @@
 
 #include "cloud_topics/level_zero/batcher/batcher.h"
 
-#include "cloud_io/remote.h"
 #include "cloud_topics/errc.h"
 #include "cloud_topics/level_zero/batcher/aggregator.h"
-#include "cloud_topics/level_zero/pipeline/event_filter.h"
-#include "cloud_topics/level_zero/pipeline/serializer.h"
-#include "cloud_topics/level_zero/pipeline/write_request.h"
 #include "cloud_topics/logger.h"
 #include "cloud_topics/object_utils.h"
 #include "cloud_topics/types.h"
+#include "cloud_io/remote.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
-#include "ssx/sformat.h"
 #include "utils/human.h"
 
-#include <seastar/core/condition-variable.hh>
 #include <seastar/coroutine/as_future.hh>
 
-#include <chrono>
 #include <exception>
 #include <limits>
 #include <variant>

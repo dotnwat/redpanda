@@ -10,11 +10,9 @@
 
 #include "cloud_topics/level_zero/pipeline/read_pipeline.h"
 
-#include "base/units.h"
 #include "cloud_topics/level_zero/pipeline/circuit_breaker.h"
 #include "cloud_topics/level_zero/pipeline/event_filter.h"
 #include "cloud_topics/level_zero/pipeline/read_request.h"
-#include "cloud_topics/logger.h"
 #include "config/configuration.h"
 #include "resource_mgmt/memory_groups.h"
 #include "ssx/abort_source.h"
@@ -23,13 +21,11 @@
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/lowres_clock.hh>
 #include <seastar/core/semaphore.hh>
-#include <seastar/coroutine/as_future.hh>
+#include <seastar/coroutine/as_future.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/defer.hh>
 
 #include <algorithm>
 #include <chrono>
-#include <exception>
-#include <variant>
 
 namespace cloud_topics::l0 {
 

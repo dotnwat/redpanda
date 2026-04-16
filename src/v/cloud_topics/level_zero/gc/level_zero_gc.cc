@@ -24,7 +24,6 @@
 #include "ssx/semaphore.h"
 #include "ssx/work_queue.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/manual_clock.hh>
 #include <seastar/core/shard_id.hh>

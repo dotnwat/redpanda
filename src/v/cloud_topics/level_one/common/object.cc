@@ -19,7 +19,7 @@
 
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/coroutine/maybe_yield.hh>
 

@@ -12,12 +12,10 @@
 #include "cloud_io/tests/scoped_remote.h"
 #include "cloud_topics/level_one/metastore/domain_uuid.h"
 #include "cloud_topics/read_replica/snapshot_manager.h"
-#include "cloud_topics/read_replica/snapshot_metastore.h"
+#include "cloud_topics/read_replica/snapshot_metastore.h" // NOLINT(misc-include-cleaner)
 #include "cloud_topics/read_replica/tests/db_utils.h"
 #include "lsm/lsm.h"
 #include "test_utils/tmp_dir.h"
-
-#include <seastar/core/coroutine.hh>
 
 #include <gtest/gtest.h>
 

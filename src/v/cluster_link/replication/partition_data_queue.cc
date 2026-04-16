@@ -10,7 +10,7 @@
 
 #include "cluster_link/replication/partition_data_queue.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace cluster_link::replication {
 

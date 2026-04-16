@@ -15,13 +15,11 @@
 #include "cluster/cluster_recovery_manager.h"
 #include "cluster/cluster_recovery_table.h"
 #include "kafka/server/tests/produce_consume_utils.h"
-#include "ssx/future-util.h"
 #include "ssx/sformat.h"
 #include "test_utils/async.h"
 #include "test_utils/scoped_config.h"
 #include "utils/retry_chain_node.h"
 
-#include <seastar/core/gate.hh>
 #include <seastar/util/defer.hh>
 
 #include <gtest/gtest.h>

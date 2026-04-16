@@ -11,7 +11,7 @@
 
 #include "cluster_link/source_topic_syncer.h"
 #include "cluster_link/tests/deps.h"
-#include "kafka/server/handlers/topics/types.h"
+#include "kafka/server/handlers/topics/types.h" // NOLINT(misc-include-cleaner)
 #include "test_utils/async.h"
 #include "test_utils/test.h"
 

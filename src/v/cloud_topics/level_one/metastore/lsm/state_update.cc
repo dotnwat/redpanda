@@ -14,8 +14,7 @@
 #include "cloud_topics/level_one/metastore/state_update.h"
 #include "cloud_topics/level_one/metastore/state_update_utils.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/coroutine/as_future.hh>
+#include <seastar/coroutine/as_future.hh> // NOLINT(misc-include-cleaner)
 
 namespace cloud_topics::l1 {
 
