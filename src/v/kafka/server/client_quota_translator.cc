@@ -12,9 +12,6 @@
 #include "kafka/server/client_quota_translator.h"
 
 #include "cluster/client_quota_store.h"
-#include "kafka/server/logger.h"
-
-#include <seastar/core/shard_id.hh>
 #include <seastar/util/variant_utils.hh>
 
 #include <optional>

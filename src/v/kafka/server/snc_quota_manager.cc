@@ -10,21 +10,18 @@
 #include "kafka/server/snc_quota_manager.h"
 
 #include "config/configuration.h"
-#include "kafka/server/logger.h"
+#include "kafka/server/logger.h" // NOLINT(misc-include-cleaner)
 #include "metrics/prometheus_sanitize.h"
 #include "ssx/future-util.h"
 #include "ssx/sharded_ptr.h"
-#include "utils/tristate.h"
 
 #include <seastar/core/metrics.hh>
 
-#include <fmt/core.h>
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <chrono>
 #include <iterator>
 #include <memory>
-#include <numeric>
 
 using namespace std::chrono_literals;
 

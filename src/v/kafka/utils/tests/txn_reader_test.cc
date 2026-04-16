@@ -27,8 +27,6 @@
 
 #include <seastar/core/chunked_fifo.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/shared_ptr.hh>
-#include <seastar/util/variant_utils.hh>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

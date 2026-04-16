@@ -10,7 +10,7 @@
 #include "kafka/client/fetch_session.h"
 
 #include "kafka/client/test/utils.h"
-#include "kafka/protocol/batch_consumer.h"
+#include "kafka/protocol/batch_consumer.h" // NOLINT(misc-include-cleaner)
 #include "kafka/protocol/batch_reader.h"
 #include "kafka/protocol/errors.h"
 #include "kafka/protocol/fetch.h"

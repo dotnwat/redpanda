@@ -45,9 +45,7 @@
 #include <seastar/core/future.hh>
 #include <seastar/core/scheduling.hh>
 #include <seastar/core/sleep.hh>
-#include <seastar/core/thread.hh>
 #include <seastar/core/timer.hh>
-#include <seastar/core/with_scheduling_group.hh>
 #include <seastar/util/log.hh>
 
 #include <boost/range/irange.hpp>

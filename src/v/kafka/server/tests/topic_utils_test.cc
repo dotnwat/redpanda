@@ -12,7 +12,7 @@
 #include "kafka/server/handlers/topics/topic_utils.h"
 #include "model/fundamental.h"
 
-#include <boost/range/iterator_range.hpp>
+#include <boost/range/iterator_range.hpp> // NOLINT(misc-include-cleaner)
 #include <boost/test/unit_test.hpp>
 
 using namespace kafka; // NOLINT

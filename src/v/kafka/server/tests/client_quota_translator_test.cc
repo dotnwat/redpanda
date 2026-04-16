@@ -10,18 +10,14 @@
 #include "base/seastarx.h"
 #include "cluster/client_quota_serde.h"
 #include "cluster/client_quota_store.h"
-#include "config/configuration.h"
 #include "kafka/server/client_quota_translator.h"
 
 #include <seastar/testing/thread_test_case.hh>
 
-#include <boost/test/auto_unit_test.hpp>
-#include <boost/test/test_tools.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <optional>
 #include <ranges>
-#include <variant>
 
 using namespace kafka;
 

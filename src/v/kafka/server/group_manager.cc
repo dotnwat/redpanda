@@ -13,7 +13,6 @@
 #include "cluster/cluster_utils.h"
 #include "cluster/health_monitor_frontend.h"
 #include "cluster/logger.h"
-#include "cluster/metadata_cache.h"
 #include "cluster/offsets_snapshot.h"
 #include "cluster/partition.h"
 #include "cluster/partition_manager.h"
@@ -22,7 +21,7 @@
 #include "config/configuration.h"
 #include "container/chunked_hash_map.h"
 #include "container/chunked_vector.h"
-#include "kafka/protocol/delete_groups.h"
+#include "kafka/protocol/delete_groups.h" // NOLINT(misc-include-cleaner)
 #include "kafka/protocol/describe_groups.h"
 #include "kafka/protocol/errors.h"
 #include "kafka/protocol/offset_commit.h"
@@ -45,12 +44,12 @@
 #include "storage/types.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/loop.hh>
 #include <seastar/util/defer.hh>
 #include <seastar/util/later.hh>
 
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <chrono>

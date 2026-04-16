@@ -7,21 +7,19 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "cluster/partition.h"
+#include "cluster/partition.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
-#include "config/types.h"
 #include "container/chunked_vector.h"
 #include "kafka/protocol/types.h"
 #include "kafka/server/group.h"
-#include "kafka/server/group_metadata.h"
-#include "utils/to_string.h"
 
+#include <seastar/core/sleep.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sstring.hh>
 #include <seastar/testing/thread_test_case.hh>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid.hpp>             // NOLINT(misc-include-cleaner)
+#include <boost/uuid/uuid_generators.hpp> // NOLINT(misc-include-cleaner)
 
 #include <chrono>
 

@@ -18,11 +18,6 @@
 #include "kafka/server/handlers/sasl_handshake.h"
 #include "kafka/server/request_context.h"
 #include "net/types.h"
-#include "security/audit/schemas/iam.h"
-#include "security/audit/schemas/utils.h"
-#include "utils/to_string.h"
-
-#include <seastar/core/print.hh>
 #include <seastar/util/log.hh>
 
 namespace kafka {

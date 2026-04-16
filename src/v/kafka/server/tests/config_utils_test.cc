@@ -13,8 +13,8 @@
 #include "model/metadata.h"
 #include "model/namespace.h"
 
-#include <boost/test/auto_unit_test.hpp>
-#include <boost/test/test_tools.hpp>
+#include <boost/test/auto_unit_test.hpp> // NOLINT(misc-include-cleaner)
+#include <boost/test/test_tools.hpp>     // NOLINT(misc-include-cleaner)
 #include <boost/test/tools/old/interface.hpp>
 
 BOOST_AUTO_TEST_CASE(parse_and_set_optional_bool_alpha_test_set) {

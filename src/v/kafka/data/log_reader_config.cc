@@ -10,9 +10,7 @@
 #include "log_reader_config.h"
 
 #include "base/format_to.h"
-#include "utils/to_string.h"
-
-#include <ostream>
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace kafka {
 

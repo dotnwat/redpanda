@@ -11,10 +11,10 @@
 
 #include "kafka/server/usage_aggregator.h"
 
-#include "serde/rw/chrono.h"
+#include "serde/rw/chrono.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/iobuf.h"
 #include "serde/rw/rw.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "ssx/future-util.h"
 
 using namespace std::chrono_literals;

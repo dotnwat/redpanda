@@ -16,13 +16,12 @@
 #include "bytes/iobuf.h"
 #include "bytes/iobuf_parser.h"
 #include "kafka/protocol/wire.h"
-#include "kafka/server/logger.h"
-#include "model/adl_serde.h"
+#include "kafka/server/logger.h" // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/timestamp.h"
 #include "reflection/adl.h"
 #include "serde/rw/rw.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>

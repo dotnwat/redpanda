@@ -16,15 +16,13 @@
 #include "bytes/iobuf.h"
 #include "bytes/iostream.h"
 #include "bytes/scattered_message.h"
-#include "cluster/types.h"
 #include "config/configuration.h"
 #include "config/node_config.h"
 #include "container/chunked_hash_map.h"
 #include "kafka/protocol/sasl_authenticate.h"
-#include "kafka/server/datalake_throttle_manager.h"
-#include "kafka/server/handlers/fetch.h"
+#include "kafka/server/handlers/fetch.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/handlers/handler_interface.h"
-#include "kafka/server/handlers/produce.h"
+#include "kafka/server/handlers/produce.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/logger.h"
 #include "kafka/server/protocol_utils.h"
 #include "kafka/server/quota_manager.h"
@@ -36,14 +34,11 @@
 #include "model/fundamental.h"
 #include "net/exceptions.h"
 #include "security/authorizer.h"
-#include "security/exceptions.h"
 #include "security/gssapi_authenticator.h"
 #include "security/oidc_authenticator.h"
 #include "security/plain_authenticator.h"
 #include "security/scram_authenticator.h"
-#include "utils/windowed_sum_tracker.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/scattered_message.hh>
 #include <seastar/core/semaphore.hh>
@@ -51,7 +46,6 @@
 #include <seastar/core/sleep.hh>
 #include <seastar/core/sstring.hh>
 #include <seastar/core/temporary_buffer.hh>
-#include <seastar/core/with_timeout.hh>
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/coroutine/switch_to.hh>
 

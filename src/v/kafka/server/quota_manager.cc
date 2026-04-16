@@ -23,20 +23,16 @@
 #include "utils/log_hist.h"
 
 #include <seastar/core/future.hh>
-#include <seastar/core/map_reduce.hh>
 #include <seastar/core/metrics.hh>
 #include <seastar/core/shard_id.hh>
-#include <seastar/core/shared_ptr.hh>
-#include <seastar/core/smp.hh>
 #include <seastar/util/later.hh>
 
-#include <fmt/chrono.h>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 
 #include <chrono>
 #include <memory>
 #include <optional>
 #include <string_view>
-#include <variant>
 
 using namespace std::chrono_literals;
 

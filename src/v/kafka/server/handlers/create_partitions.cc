@@ -25,7 +25,7 @@
 #include "model/namespace.h"
 #include "model/timeout_clock.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sstring.hh>
 
 #include <algorithm>

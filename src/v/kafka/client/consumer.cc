@@ -27,9 +27,7 @@
 #include "model/metadata.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/gate.hh>
-#include <seastar/core/loop.hh>
 #include <seastar/core/sleep.hh>
 
 #include <chrono>

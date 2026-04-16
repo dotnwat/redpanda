@@ -8,8 +8,7 @@
 // by the Apache License, Version 2.0
 
 #include "kafka/server/write_at_offset_stm.h"
-#include "raft/tests/stm_test_fixture.h"
-#include "test_utils/test.h"
+#include "raft/tests/stm_test_fixture.h" // NOLINT(misc-include-cleaner)
 
 #include <gmock/gmock.h>
 

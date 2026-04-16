@@ -13,13 +13,12 @@
 
 #include "base/type_traits.h"
 #include "cluster/metadata_cache.h"
-#include "cluster/types.h"
+#include "cluster/types.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
 #include "config/node_config.h"
 #include "kafka/server/handlers/topics/types.h"
 #include "model/metadata.h"
 
-#include <charconv>
 #include <chrono>
 
 using namespace std::chrono_literals;

@@ -22,7 +22,7 @@
 #include "model/namespace.h"
 #include "security/acl.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/smp.hh>
 
 #include <algorithm>

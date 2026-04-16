@@ -12,7 +12,7 @@
 
 #include "cloud_storage/types.h"
 #include "cluster/partition.h"
-#include "cluster/rm_stm.h"
+#include "cluster/rm_stm.h" // NOLINT(misc-include-cleaner)
 #include "kafka/data/log_reader_config.h"
 #include "kafka/protocol/errors.h"
 #include "kafka/server/errors.h"
@@ -20,12 +20,9 @@
 #include "logger.h"
 #include "model/fundamental.h"
 #include "model/timeout_clock.h"
-#include "raft/consensus_utils.h"
 #include "raft/errc.h"
-#include "storage/log_reader.h"
 #include "storage/types.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/future.hh>
 
 #include <optional>

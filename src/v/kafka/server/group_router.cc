@@ -13,8 +13,7 @@
 #include "kafka/protocol/offset_fetch.h"
 #include "kafka/server/logger.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/when_all.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/with_scheduling_group.hh>
 
 #include <algorithm>

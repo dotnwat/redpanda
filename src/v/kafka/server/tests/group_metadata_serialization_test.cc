@@ -10,8 +10,8 @@
 #include "bytes/bytes.h"
 #include "kafka/protocol/wire.h"
 #include "kafka/server/group_metadata.h"
-#include "kafka/server/server.h"
-#include "model/adl_serde.h"
+#include "kafka/server/server.h"  // NOLINT(misc-include-cleaner)
+#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/record.h"
 #include "model/record_batch_types.h"
@@ -28,7 +28,6 @@
 #include <boost/range/irange.hpp>
 #include <boost/test/tools/old/interface.hpp>
 
-#include <limits>
 #include <optional>
 
 struct fixture {

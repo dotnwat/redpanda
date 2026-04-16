@@ -10,27 +10,16 @@
 #include "config/base_property.h"
 #include "config/configuration.h"
 #include "config/node_config.h"
-#include "config/tls_config.h"
-#include "json/ostreamwrapper.h"
-#include "json/writer.h"
-#include "kafka/client/client.h"
 #include "kafka/client/config_utils.h"
 #include "kafka/client/configuration.h"
-#include "model/namespace.h"
 #include "redpanda/tests/fixture.h"
 #include "security/acl.h"
 #include "security/ephemeral_credential_store.h"
-#include "security/sasl_authentication.h"
 #include "security/scram_authenticator.h"
-#include "security/types.h"
 #include "test_utils/boost_fixture.h"
-
-#include <seastar/util/defer.hh>
 
 #include <boost/test/tools/old/interface.hpp>
 #include <yaml-cpp/emitter.h>
-
-#include <chrono>
 
 namespace kafka::client {
 // BOOST_REQURE_EQUAL fails to find this if it's in the global namespace

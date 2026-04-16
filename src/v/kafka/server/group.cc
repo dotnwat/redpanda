@@ -16,9 +16,7 @@
 #include "cluster/partition.h"
 #include "cluster/simple_batch_builder.h"
 #include "cluster/tx_gateway_frontend.h"
-#include "cluster/tx_utils.h"
 #include "config/configuration.h"
-#include "config/types.h"
 #include "container/chunked_vector.h"
 #include "kafka/protocol/errors.h"
 #include "kafka/protocol/heartbeat.h"
@@ -36,20 +34,19 @@
 #include "kafka/server/logger.h"
 #include "kafka/server/member.h"
 #include "model/fundamental.h"
-#include "model/namespace.h"
 #include "raft/errc.h"
 #include "ssx/future-util.h"
 #include "storage/record_batch_builder.h"
 #include "strings/string_switch.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/ostream.h>
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <functional>
 

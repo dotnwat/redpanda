@@ -9,7 +9,6 @@
 
 #include "kafka/server/group_manager.h"
 #include "kafka/server/group_tx_tracker_stm.h"
-#include "kafka/server/rm_group_frontend.h"
 #include "model/record_batch_types.h"
 #include "model/tests/randoms.h"
 #include "redpanda/tests/fixture.h"

@@ -9,7 +9,6 @@
 
 #include "kafka/server/handlers/metadata.h"
 
-#include "base/likely.h"
 #include "cluster/metadata_cache.h"
 #include "cluster/topics_frontend.h"
 #include "cluster/types.h"
@@ -21,7 +20,7 @@
 #include "kafka/server/errors.h"
 #include "kafka/server/fwd.h"
 #include "kafka/server/handlers/describe_cluster.h"
-#include "kafka/server/handlers/details/leader_epoch.h"
+#include "kafka/server/handlers/details/leader_epoch.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/handlers/details/security.h"
 #include "kafka/server/handlers/topics/topic_utils.h"
 #include "kafka/server/response.h"
@@ -31,18 +30,12 @@
 #include "model/timeout_clock.h"
 #include "random/generators.h"
 #include "security/acl.h"
-#include "utils/to_string.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/future-util.hh>
-#include <seastar/core/thread.hh>
-
-#include <boost/numeric/conversion/cast.hpp>
-#include <fmt/ostream.h>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <iterator>
-#include <type_traits>
 
 namespace {
 using is_node_isolated_or_decommissioned

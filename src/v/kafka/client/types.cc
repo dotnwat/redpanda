@@ -11,7 +11,7 @@
 
 #include "kafka/client/types.h"
 
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace kafka::client {
 fmt::iterator metadata_update::broker::format_to(fmt::iterator it) const {

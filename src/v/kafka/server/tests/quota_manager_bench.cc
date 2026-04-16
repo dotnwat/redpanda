@@ -10,14 +10,13 @@
  */
 #include "cluster/client_quota_serde.h"
 #include "cluster/client_quota_store.h"
-#include "config/configuration.h"
 #include "kafka/server/quota_manager.h"
 
-#include <seastar/coroutine/maybe_yield.hh>
+#include <seastar/coroutine/maybe_yield.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/testing/perf_tests.hh>
 #include <seastar/util/later.hh>
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 #include <limits>
 #include <optional>

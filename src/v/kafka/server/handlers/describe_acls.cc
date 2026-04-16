@@ -15,13 +15,11 @@
 #include "kafka/server/handlers/details/security.h"
 #include "kafka/server/request_context.h"
 #include "kafka/server/response.h"
-#include "model/fundamental.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/smp.hh>
 #include <seastar/util/log.hh>
 
-#include <fmt/ostream.h>
 
 namespace kafka {
 

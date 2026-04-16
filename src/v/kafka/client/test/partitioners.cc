@@ -14,7 +14,7 @@
 #include "kafka/client/partitioners.h"
 #include "model/fundamental.h"
 
-#include <seastar/testing/thread_test_case.hh>
+#include <seastar/testing/thread_test_case.hh> // NOLINT(misc-include-cleaner)
 
 #include <boost/test/tools/old/interface.hpp>
 

@@ -19,13 +19,10 @@
 #include "cloud_topics/state_accessors.h"
 #include "cluster/partition.h"
 #include "kafka/protocol/errors.h"
-#include "model/offset_interval.h"
 #include "raft/consensus.h"
 #include "raft/errc.h"
 #include "storage/log_reader.h"
 #include "storage/translating_reader.h"
-
-#include <seastar/core/coroutine.hh>
 
 namespace cloud_topics::read_replica {
 

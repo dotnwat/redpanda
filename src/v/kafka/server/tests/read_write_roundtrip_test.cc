@@ -8,8 +8,7 @@
 // by the Apache License, Version 2.0
 
 #include "kafka/protocol/wire.h"
-#include "random/generators.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/testing/thread_test_case.hh>
 using namespace kafka; // NOLINT

@@ -12,11 +12,8 @@
 #include "kafka/server/handlers/details/security.h"
 #include "security/acl.h"
 
-#include <seastar/testing/thread_test_case.hh>
-
-#include <boost/algorithm/string.hpp>
 #include <boost/test/unit_test.hpp>
-#include <fmt/ostream.h>
+#include <fmt/ostream.h> // NOLINT(misc-include-cleaner)
 
 namespace kafka {
 

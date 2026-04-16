@@ -17,14 +17,12 @@
 #include "security/oidc_authenticator.h"
 #include "security/plain_authenticator.h"
 #include "security/scram_authenticator.h"
-#include "thirdparty/c-ares/ares.h"
+#include "thirdparty/c-ares/ares.h" // NOLINT(misc-include-cleaner)
 #include "utils/backoff_policy.h"
 #include "utils/unresolved_address.h"
 #include "version/version.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/sleep.hh>
-#include <seastar/coroutine/as_future.hh>
 #include <seastar/net/dns.hh>
 using namespace std::chrono_literals;
 namespace {

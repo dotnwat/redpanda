@@ -10,7 +10,7 @@
 
 #include "kafka/server/datalake_usage_api.h"
 
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace kafka {
 

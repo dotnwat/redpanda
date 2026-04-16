@@ -13,13 +13,11 @@
 #include "bytes/iobuf.h"
 #include "container/chunked_vector.h"
 #include "kafka/client/transport.h"
-#include "kafka/protocol/list_offset.h"
 #include "kafka/protocol/produce.h"
 #include "kafka/protocol/schemata/produce_request.h"
 #include "kafka/protocol/types.h"
-#include "model/metadata.h"
 #include "storage/record_batch_builder.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/util/log.hh>
 

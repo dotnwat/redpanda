@@ -11,7 +11,7 @@
 #include "kafka/server/write_at_offset_stm.h"
 
 #include "cluster/snapshot.h"
-#include "kafka/server/logger.h"
+#include "kafka/server/logger.h" // NOLINT(misc-include-cleaner)
 #include "model/batch_utils.h"
 #include "ssx/future-util.h"
 
