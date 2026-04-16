@@ -16,10 +16,9 @@
 #include "container/chunked_vector.h"
 #include "hashing/xx.h"
 #include "serde/rw/rw.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "utils/directory_walker.h"
 
-#include <seastar/core/fstream.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/util/file.hh>
 

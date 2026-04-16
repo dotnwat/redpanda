@@ -8,9 +8,9 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "datalake/logger.h"
+#include "datalake/logger.h" // NOLINT(misc-include-cleaner)
 #include "datalake/translation/tests/scheduler_fixture.h"
-#include "test_utils/randoms.h"
+#include "test_utils/randoms.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/sleep.hh>
 

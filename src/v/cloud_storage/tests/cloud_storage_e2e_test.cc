@@ -36,7 +36,7 @@
 
 #include <seastar/coroutine/as_future.hh>
 
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp> // NOLINT(misc-include-cleaner)
 #include <gtest/gtest.h>
 
 #include <iterator>

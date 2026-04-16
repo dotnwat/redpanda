@@ -11,11 +11,10 @@
 #include "cloud_storage/remote_segment_index.h"
 
 #include "cloud_storage/logger.h"
-#include "model/record_batch_types.h"
 #include "raft/consensus.h"
 #include "serde/rw/envelope.h"
 #include "serde/rw/iobuf.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 
 namespace cloud_storage {
 

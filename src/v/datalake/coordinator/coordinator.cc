@@ -27,7 +27,6 @@
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>
 
-#include <exception>
 #include <optional>
 
 namespace datalake::coordinator {

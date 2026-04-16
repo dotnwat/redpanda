@@ -10,7 +10,7 @@
 
 #include "cloud_storage/recovery_errors.h"
 
-#include "base/outcome.h"
+#include "base/outcome.h" // NOLINT(misc-include-cleaner)
 
 namespace cloud_storage {
 

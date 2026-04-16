@@ -14,7 +14,7 @@
 #include "cloud_storage/logger.h"
 #include "utils/retry_chain_node.h"
 
-#include <seastar/coroutine/all.hh>
+#include <seastar/coroutine/all.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
 #include <utility>

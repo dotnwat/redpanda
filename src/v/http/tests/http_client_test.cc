@@ -14,8 +14,8 @@
 #include "http/chunk_encoding.h"
 #include "http/client.h"
 #include "http/logger.h"
-#include "json/document.h"
-#include "json/json.h"
+#include "json/document.h" // NOLINT(misc-include-cleaner)
+#include "json/json.h"    // NOLINT(misc-include-cleaner)
 #include "net/dns.h"
 #include "net/transport.h"
 
@@ -27,7 +27,6 @@
 #include <seastar/core/sleep.hh>
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/core/thread.hh>
-#include <seastar/core/timer.hh>
 #include <seastar/http/function_handlers.hh>
 #include <seastar/http/handlers.hh>
 #include <seastar/http/httpd.hh>
@@ -36,7 +35,6 @@
 #include <seastar/testing/thread_test_case.hh>
 #include <seastar/util/defer.hh>
 
-#include <boost/algorithm/string.hpp>
 #include <boost/beast/http/field.hpp>
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>

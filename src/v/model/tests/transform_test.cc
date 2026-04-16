@@ -18,11 +18,11 @@
 #include "model/timestamp.h"
 #include "model/transform.h"
 #include "random/generators.h"
-#include "serde/rw/map.h"
-#include "serde/rw/sstring.h"
-#include "serde/rw/uuid.h"
+#include "serde/rw/map.h"     // NOLINT(misc-include-cleaner)
+#include "serde/rw/sstring.h" // NOLINT(misc-include-cleaner)
+#include "serde/rw/uuid.h"    // NOLINT(misc-include-cleaner)
 #include "serde/rw/variant.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h"  // NOLINT(misc-include-cleaner)
 #include "test_utils/random_bytes.h"
 #include "test_utils/randoms.h"
 
@@ -30,7 +30,6 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
 #include <initializer_list>
 #include <utility>
 

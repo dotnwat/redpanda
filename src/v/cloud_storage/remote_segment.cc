@@ -17,7 +17,6 @@
 #include "cloud_storage/download_exception.h"
 #include "cloud_storage/logger.h"
 #include "cloud_storage/materialized_resources.h"
-#include "cloud_storage/partition_manifest.h"
 #include "cloud_storage/remote_segment_index.h"
 #include "cloud_storage/segment_chunk_data_source.h"
 #include "cloud_storage/tx_range_manifest.h"
@@ -39,14 +38,11 @@
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/fstream.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/loop.hh>
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/core/queue.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/core/timed_out_error.hh>
 #include <seastar/core/when_all.hh>
-#include <seastar/coroutine/all.hh>
 #include <seastar/util/defer.hh>
 #include <seastar/util/log.hh>
 

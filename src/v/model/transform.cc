@@ -15,19 +15,17 @@
 #include "model/fundamental.h"
 #include "model/record.h"
 #include "model/record_batch_types.h"
-#include "serde/rw/bool_class.h"
-#include "serde/rw/map.h"
+#include "serde/rw/bool_class.h" // NOLINT(misc-include-cleaner)
+#include "serde/rw/map.h"        // NOLINT(misc-include-cleaner)
 #include "serde/rw/rw.h"
-#include "serde/rw/uuid.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/uuid.h"       // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h"     // NOLINT(misc-include-cleaner)
 #include "utils/vint.h"
 
-#include <seastar/core/print.hh>
 #include <seastar/core/shard_id.hh>
-#include <seastar/core/smp.hh>
+#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
-#include <algorithm>
 #include <optional>
 #include <stdexcept>
 

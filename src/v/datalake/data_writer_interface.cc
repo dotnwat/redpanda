@@ -10,7 +10,6 @@
 
 #include "datalake/data_writer_interface.h"
 
-#include <fmt/core.h>
 namespace datalake {
 std::ostream& operator<<(std::ostream& os, const writer_error& ev) {
     switch (ev) {

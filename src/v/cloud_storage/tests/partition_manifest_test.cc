@@ -10,7 +10,6 @@
 
 #include "base/seastarx.h"
 #include "bytes/iobuf.h"
-#include "bytes/iobuf_parser.h"
 #include "bytes/iostream.h"
 #include "cloud_storage/base_manifest.h"
 #include "cloud_storage/partition_manifest.h"
@@ -19,13 +18,10 @@
 #include "cloud_storage/spillover_manifest.h"
 #include "cloud_storage/types.h"
 #include "model/fundamental.h"
-#include "model/metadata.h"
 #include "model/timestamp.h"
 #include "random/generators.h"
 #include "utils/to_string.h" // IWYU pragma: keep
-#include "utils/tracking_allocator.h"
 
-#include <seastar/testing/test_case.hh>
 #include <seastar/testing/thread_test_case.hh>
 
 #include <boost/test/tools/context.hpp>

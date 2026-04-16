@@ -10,8 +10,6 @@
 
 #include "cloud_storage/inventory/types.h"
 
-#include "cloud_storage/configuration.h"
-#include "config/node_config.h"
 #include "model/metadata.h"
 
 namespace {

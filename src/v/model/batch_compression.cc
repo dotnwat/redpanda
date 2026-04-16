@@ -12,7 +12,7 @@
 #include "bytes/iobuf.h"
 #include "compression/compression.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <stdexcept>
 

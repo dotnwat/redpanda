@@ -14,7 +14,7 @@
 #include "datalake/logger.h"
 #include "ssx/watchdog.h"
 #include "utils/retry_chain_node.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>

@@ -12,7 +12,7 @@
 #include "datalake/translation/scheduling_policies.h"
 #include "ssx/future-util.h"
 #include "utils/human.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace datalake::translation::scheduling {
 

@@ -14,7 +14,6 @@
 #include "datalake/logger.h"
 #include "datalake/record_schema_resolver.h"
 #include "datalake/table_definition.h"
-#include "iceberg/avro_utils.h"
 #include "iceberg/compatibility_utils.h"
 #include "iceberg/conversion/conversion_outcome.h"
 #include "iceberg/conversion/values_avro.h"
@@ -24,9 +23,6 @@
 #include "iceberg/values.h"
 #include "model/fundamental.h"
 #include "model/record.h"
-
-#include <avro/Generic.hh>
-#include <avro/GenericDatum.hh>
 
 namespace datalake {
 

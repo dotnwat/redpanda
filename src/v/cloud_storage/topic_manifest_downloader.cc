@@ -18,10 +18,8 @@
 #include "cloud_storage/types.h"
 #include "cloud_storage_clients/client.h"
 #include "container/chunked_vector.h"
-#include "hashing/xx.h"
 #include "utils/retry_chain_node.h"
 
-#include <seastar/core/loop.hh>
 #include <seastar/core/lowres_clock.hh>
 
 namespace cloud_storage {

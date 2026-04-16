@@ -7,7 +7,7 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "model/adl_serde.h"
+#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "test_utils/rpc.h"

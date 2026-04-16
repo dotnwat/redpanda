@@ -15,7 +15,7 @@
 #include "bytes/iostream.h"
 #include "cloud_storage/logger.h"
 #include "serde/rw/scalar.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/fstream.hh>
 #include <seastar/core/seastar.hh>

@@ -25,11 +25,10 @@
 #include "model/metadata.h"
 #include "model/timestamp.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sstring.hh>
 
 #include <boost/lexical_cast.hpp>
-#include <fmt/ostream.h>
 #include <rapidjson/error/en.h>
 
 #include <chrono>

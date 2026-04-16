@@ -10,7 +10,7 @@
  */
 #include "cloud_storage_clients/types.h"
 #include "config/types.h"
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 
 TEST(FromConfig, S3UrlStyle) {
     ASSERT_EQ(cloud_storage_clients::from_config(std::nullopt), std::nullopt);

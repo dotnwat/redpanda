@@ -10,33 +10,25 @@
 
 #include "base/seastarx.h"
 #include "bytes/iobuf.h"
-#include "bytes/iobuf_parser.h"
 #include "bytes/iostream.h"
-#include "bytes/streambuf.h"
 #include "cloud_storage/remote_path_provider.h"
 #include "cloud_storage/topic_manifest.h"
 #include "cloud_storage/topic_path_utils.h"
-#include "cloud_storage/types.h"
-#include "cluster/types.h"
+#include "cluster/types.h" // NOLINT(misc-include-cleaner)
 #include "model/compression.h"
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "test_utils/randoms.h"
 
-#include <seastar/testing/test_case.hh>
 #include <seastar/testing/thread_test_case.hh>
 
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
-#include <fmt/ranges.h>
 
 #include <chrono>
 #include <limits>
-#include <ratio>
-#include <sstream>
 #include <string>
 #include <string_view>
-#include <system_error>
 
 using namespace cloud_storage;
 

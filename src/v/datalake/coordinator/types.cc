@@ -10,7 +10,7 @@
 
 #include "datalake/coordinator/types.h"
 
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace datalake::coordinator {
 

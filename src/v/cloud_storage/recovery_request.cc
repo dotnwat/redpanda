@@ -14,7 +14,7 @@
 #include "json/validator.h"
 #include "json/writer.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/short_streams.hh>
 
 namespace cloud_storage {

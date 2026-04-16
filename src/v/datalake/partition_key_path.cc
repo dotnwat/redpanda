@@ -10,7 +10,6 @@
 
 #include "datalake/partition_key_path.h"
 
-#include "absl/strings/str_replace.h"
 #include "base/vlog.h"
 #include "bytes/iobuf_parser.h"
 #include "datalake/logger.h"
@@ -18,7 +17,7 @@
 #include "ssx/sformat.h"
 #include "utils/base64.h"
 
-#include <fmt/chrono.h>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 namespace datalake {
 namespace {
 // AWS S3 path size limit is 1024 bytes, we allow a single key to be up to 64
