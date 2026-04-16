@@ -12,7 +12,7 @@
 #include "test_utils/random_bytes.h"
 #include "utils/file_io.h"
 
-#include <seastar/core/file.hh>
+#include <seastar/core/file.hh> // NOLINT(misc-include-cleaner)
 
 #include <gtest/gtest.h>
 

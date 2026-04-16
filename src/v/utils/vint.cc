@@ -12,7 +12,7 @@
 
 #include "utils/vint_iostream.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/iostream.hh>
 
 #include <utility>

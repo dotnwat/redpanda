@@ -10,8 +10,8 @@
 #include "utils/human.h"
 
 #include <boost/test/unit_test.hpp>
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <fmt/format.h>  // NOLINT(misc-include-cleaner)
+#include <fmt/ostream.h> // NOLINT(misc-include-cleaner)
 
 BOOST_AUTO_TEST_CASE(human_bytes) {
     BOOST_CHECK_EQUAL(fmt::format("{}", human::bytes(-1)), "-1.000bytes");

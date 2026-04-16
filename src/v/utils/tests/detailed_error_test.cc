@@ -9,7 +9,7 @@
 
 #include "utils/detailed_error.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/sstring.hh>
 

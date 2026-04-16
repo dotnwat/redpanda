@@ -12,7 +12,7 @@
 #include "base/likely.h"
 #include "utils/human.h"
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 #include <iostream>
 

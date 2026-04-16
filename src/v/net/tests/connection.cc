@@ -12,8 +12,8 @@
 
 #include <seastar/core/future.hh>
 
-#include <boost/test/auto_unit_test.hpp>
-#include <boost/test/test_tools.hpp>
+#include <boost/test/auto_unit_test.hpp> // NOLINT(misc-include-cleaner)
+#include <boost/test/test_tools.hpp>     // NOLINT(misc-include-cleaner)
 
 #include <exception>
 #include <system_error>

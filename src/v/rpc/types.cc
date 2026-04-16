@@ -10,12 +10,8 @@
 #include "rpc/types.h"
 
 #include "hashing/crc32c.h"
-#include "reflection/for_each_field.h"
 
 #include <seastar/core/byteorder.hh>
-
-#include <boost/crc.hpp>
-#include <fmt/format.h>
 
 #include <ostream>
 

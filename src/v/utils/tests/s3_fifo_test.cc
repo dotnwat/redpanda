@@ -8,10 +8,8 @@
  * the Business Source License, use of this software will be governed
  * by the Apache License, Version 2.0
  */
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 #include "utils/s3_fifo.h"
-
-#include <map>
 
 namespace utils::s3_fifo::testing_details {
 class cache_hook_accessor {

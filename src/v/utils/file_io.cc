@@ -14,7 +14,7 @@
 #include "bytes/iobuf.h"
 #include "bytes/iostream.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
 #include <seastar/core/temporary_buffer.hh>

@@ -11,7 +11,7 @@
 
 #include "base/seastarx.h"
 
-#include <seastar/core/print.hh>
+#include <seastar/core/print.hh> // NOLINT(misc-include-cleaner)
 
 #include <ostream>
 

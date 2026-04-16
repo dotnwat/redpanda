@@ -11,11 +11,9 @@
 
 #include "utils/xid.h"
 
-#include "serde/rw/array.h"
+#include "serde/rw/array.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/rw.h"
 #include "ssx/sformat.h"
-
-#include <fmt/format.h>
 
 namespace {
 static constexpr std::array<char, 32> b32_alphabet{

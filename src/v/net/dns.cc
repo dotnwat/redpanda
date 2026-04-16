@@ -13,7 +13,7 @@
 #include "ssx/mutex.h"
 #include "utils/unresolved_address.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/net/dns.hh>
 
 namespace net {

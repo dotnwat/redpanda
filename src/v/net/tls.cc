@@ -13,7 +13,7 @@
 
 #include "base/vlog.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/seastar.hh>
 #include <seastar/util/later.hh>
 #include <seastar/util/log.hh>

@@ -14,8 +14,8 @@
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/string_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <fmt/ostream.h>
+#include <boost/uuid/uuid_io.hpp> // NOLINT(misc-include-cleaner)
+#include <fmt/ostream.h>          // NOLINT(misc-include-cleaner)
 
 #include <iostream>
 #include <string>

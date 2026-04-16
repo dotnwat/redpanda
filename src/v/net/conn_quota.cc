@@ -10,10 +10,9 @@
 #include "net/conn_quota.h"
 
 #include "base/vlog.h"
-#include "config/configuration.h"
 #include "config/validators.h"
 #include "hashing/xx.h"
-#include "seastar/core/coroutine.hh"
+#include "seastar/core/coroutine.hh" // NOLINT(misc-include-cleaner)
 #include "ssx/future-util.h"
 
 namespace net {

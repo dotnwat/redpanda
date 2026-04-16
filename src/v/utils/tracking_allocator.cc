@@ -11,7 +11,7 @@
 
 #include "utils/tracking_allocator.h"
 
-#include "json/json.h"
+#include "json/json.h" // NOLINT(misc-include-cleaner)
 #include "utils/human.h"
 
 #include <queue>

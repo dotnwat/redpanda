@@ -11,7 +11,7 @@
 #include "transform/rpc/serde.h"
 
 #include "model/record.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/chunked_fifo.hh>
 

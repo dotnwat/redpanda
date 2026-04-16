@@ -12,10 +12,7 @@
 #include "test_utils/async.h"
 #include "test_utils/boost_fixture.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/preempt.hh>
-#include <seastar/testing/thread_test_case.hh>
-#include <seastar/util/later.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <boost/range/irange.hpp>
 

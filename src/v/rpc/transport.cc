@@ -19,18 +19,13 @@
 #include "rpc/types.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/reactor.hh>
-#include <seastar/core/timed_out_error.hh>
-#include <seastar/core/with_timeout.hh>
+#include <seastar/core/with_timeout.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/net/api.hh>
-#include <seastar/net/socket_defs.hh>
 
 #include <fmt/core.h>
 
 #include <chrono>
 #include <memory>
-#include <type_traits>
 
 namespace rpc {
 struct client_context_impl final : streaming_context {

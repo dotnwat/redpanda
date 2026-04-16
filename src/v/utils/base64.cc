@@ -13,11 +13,9 @@
 #include "absl/strings/escaping.h"
 #include "base/units.h"
 #include "base/vassert.h"
-#include "thirdparty/base64/libbase64.h"
+#include "thirdparty/base64/libbase64.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/sstring.hh>
-
-#include <ranges>
 
 namespace {
 // Required length is ceil(4n/3) rounded up to 4 bytes
