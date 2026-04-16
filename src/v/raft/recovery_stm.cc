@@ -9,27 +9,23 @@
 
 #include "raft/recovery_stm.h"
 
-#include "base/outcome_future_utils.h"
 #include "bytes/iostream.h"
 #include "model/fundamental.h"
 #include "model/record_batch_reader.h"
 #include "raft/consensus.h"
-#include "raft/consensus_utils.h"
-#include "raft/errc.h"
 #include "raft/logger.h"
-#include "raft/raftgen_service.h"
 #include "ssx/sformat.h"
 #include "ssx/watchdog.h"
 #include "storage/snapshot.h"
 #include "utils/human.h"
 
 #include <seastar/core/condition-variable.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/future-util.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sharded.hh>
 #include <seastar/core/with_scheduling_group.hh>
 
-#include <chrono>
+#include <chrono> // NOLINT(misc-include-cleaner)
 #include <optional>
 #include <vector>
 

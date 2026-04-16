@@ -9,7 +9,7 @@
 
 #include "bytes/iobuf_parser.h"
 #include "container/chunked_circular_buffer.h"
-#include "model/adl_serde.h"
+#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "model/metadata.h"
 #include "model/tests/random_batch.h"
 #include "model/tests/randoms.h"

@@ -19,8 +19,7 @@
 #include "test_utils/random_bytes.h"
 #include "test_utils/test.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/loop.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <ranges>

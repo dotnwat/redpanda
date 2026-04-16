@@ -19,7 +19,7 @@
 #include "storage/snapshot.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 
 #include <exception>

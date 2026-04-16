@@ -10,17 +10,12 @@
 #include "raft/group_configuration.h"
 
 #include "absl/container/flat_hash_set.h"
-#include "config/config_store.h"
-#include "model/adl_serde.h"
+#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/metadata.h"
 #include "raft/broker_compat.h"
-#include "raft/consensus.h"
-#include "raft/consensus_utils.h"
 #include "serde/rw/rw.h"
-
-#include <bits/stdint-uintn.h>
-#include <boost/range/join.hpp>
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <iterator>

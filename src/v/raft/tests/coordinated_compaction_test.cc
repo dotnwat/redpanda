@@ -16,7 +16,7 @@
 
 #include <seastar/core/loop.hh>
 
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <ranges>

@@ -10,9 +10,8 @@
 #include "raft/state_machine_base.h"
 
 #include "base/vassert.h"
-#include "raft/consensus.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace raft {
 

@@ -24,13 +24,9 @@
 #include "ssx/future-util.h"
 
 #include <seastar/core/chunked_fifo.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/future-util.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/timed_out_error.hh>
 #include <seastar/core/with_timeout.hh>
-
-#include <bits/stdint-uintn.h>
-#include <boost/range/iterator_range.hpp>
 
 namespace raft {
 ss::logger hbeatlog{"r/heartbeat"};

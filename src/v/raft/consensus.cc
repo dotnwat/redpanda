@@ -29,7 +29,6 @@
 #include "raft/logger.h"
 #include "raft/recovery_stm.h"
 #include "raft/replicate_entries_stm.h"
-#include "raft/rpc_client_protocol.h"
 #include "raft/state_machine_manager.h"
 #include "raft/types.h"
 #include "raft/vote_stm.h"
@@ -44,8 +43,6 @@
 #include "storage/types.h"
 
 #include <seastar/core/condition-variable.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/fstream.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/metrics.hh>

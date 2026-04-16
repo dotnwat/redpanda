@@ -9,12 +9,9 @@
 
 #include "raft/types.h"
 
-#include "base/vassert.h"
 #include "model/async_adl_serde.h"
 #include "model/fundamental.h"
 #include "model/record.h"
-#include "model/record_batch_reader.h"
-#include "model/timeout_clock.h"
 #include "raft/consensus_utils.h"
 #include "raft/errc.h"
 #include "raft/group_configuration.h"
@@ -24,7 +21,6 @@
 
 #include <seastar/coroutine/maybe_yield.hh>
 
-#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 #include <chrono>
