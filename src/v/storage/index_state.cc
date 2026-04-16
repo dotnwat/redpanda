@@ -16,16 +16,15 @@
 #include "hashing/xx.h"
 #include "reflection/adl.h"
 #include "serde/peek.h"
-#include "serde/rw/bool_class.h"
+#include "serde/rw/bool_class.h" // NOLINT(misc-include-cleaner) serde specialization
 #include "serde/rw/envelope.h"
 #include "serde/rw/iobuf.h"
-#include "serde/rw/optional.h"
+#include "serde/rw/optional.h" // NOLINT(misc-include-cleaner) serde specialization
 #include "serde/rw/scalar.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner) serde specialization
 #include "serde/serde_exception.h"
 #include "utils/to_string.h"
 
-#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 namespace storage {

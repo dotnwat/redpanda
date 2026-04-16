@@ -12,23 +12,16 @@
 #include "base/likely.h"
 #include "base/vlog.h"
 #include "bytes/iobuf.h"
-#include "bytes/iobuf_parser.h"
 #include "bytes/iostream.h"
 #include "model/record.h"
 #include "model/record_utils.h"
-#include "reflection/adl.h"
 #include "storage/logger.h"
 #include "storage/parser.h"
 #include "storage/parser_utils.h"
 #include "storage/record_batch_utils.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/smp.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/when_all.hh>
-#include <seastar/util/variant_utils.hh>
-
-#include <bits/stdint-uintn.h>
-#include <fmt/format.h>
 
 #include <algorithm>
 #include <exception>

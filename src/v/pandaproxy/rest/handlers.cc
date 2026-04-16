@@ -9,17 +9,15 @@
 
 #include "handlers.h"
 
-#include "absl/container/flat_hash_map.h"
 #include "base/vlog.h"
 #include "kafka/client/exceptions.h"
 #include "kafka/client/utils.h"
-#include "kafka/protocol/fetch.h"
 #include "kafka/protocol/schemata/offset_commit_request.h"
 #include "model/fundamental.h"
 #include "pandaproxy/json/requests/brokers.h"
 #include "pandaproxy/json/requests/create_consumer.h"
 #include "pandaproxy/json/requests/error_reply.h"
-#include "pandaproxy/json/requests/fetch.h"
+#include "pandaproxy/json/requests/fetch.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/json/requests/offset_commit.h"
 #include "pandaproxy/json/requests/offset_fetch.h"
 #include "pandaproxy/json/requests/partition_offsets.h"
@@ -31,12 +29,9 @@
 #include "pandaproxy/reply.h"
 #include "ssx/sformat.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner): required for co_await/co_return coroutine support
 #include <seastar/core/future.hh>
 #include <seastar/http/reply.hh>
-
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <algorithm>
 #include <chrono>

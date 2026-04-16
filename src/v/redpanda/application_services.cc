@@ -18,55 +18,55 @@
 #include "cloud_storage_clients/configuration.h"
 #include "cloud_storage_clients/upstream_registry.h"
 #include "cloud_topics/app.h"
-#include "cluster/archival/archiver_manager.h"
-#include "cluster/archival/ntp_archiver_service.h"
+#include "cluster/archival/archiver_manager.h" // NOLINT(misc-include-cleaner)
+#include "cluster/archival/ntp_archiver_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/archival/purger.h"
-#include "cluster/archival/upload_controller.h"
+#include "cluster/archival/upload_controller.h" // NOLINT(misc-include-cleaner)
 #include "cluster/archival/upload_housekeeping_service.h"
-#include "cluster/cloud_metadata/offsets_lookup.h"
-#include "cluster/cloud_metadata/offsets_recoverer.h"
+#include "cluster/cloud_metadata/offsets_lookup.h" // NOLINT(misc-include-cleaner)
+#include "cluster/cloud_metadata/offsets_recoverer.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cloud_metadata/offsets_recovery_manager.h"
-#include "cluster/cloud_metadata/offsets_recovery_router.h"
-#include "cluster/cloud_metadata/offsets_upload_router.h"
-#include "cluster/cloud_metadata/offsets_uploader.h"
+#include "cluster/cloud_metadata/offsets_recovery_router.h" // NOLINT(misc-include-cleaner)
+#include "cluster/cloud_metadata/offsets_upload_router.h" // NOLINT(misc-include-cleaner)
+#include "cluster/cloud_metadata/offsets_uploader.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cloud_metadata/producer_id_recovery_manager.h"
 #include "cluster/controller.h"
-#include "cluster/id_allocator_frontend.h"
+#include "cluster/id_allocator_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/inventory_service.h"
-#include "cluster/metadata_dissemination_service.h"
-#include "cluster/migrations/tx_manager_migrator.h"
-#include "cluster/node_isolation_watcher.h"
-#include "cluster/partition_manager.h"
+#include "cluster/metadata_dissemination_service.h" // NOLINT(misc-include-cleaner)
+#include "cluster/migrations/tx_manager_migrator.h" // NOLINT(misc-include-cleaner)
+#include "cluster/node_isolation_watcher.h" // NOLINT(misc-include-cleaner)
+#include "cluster/partition_manager.h" // NOLINT(misc-include-cleaner)
 #include "cluster/partition_recovery_manager.h"
 #include "cluster/producer_state_manager.h"
-#include "cluster/rm_partition_frontend.h"
-#include "cluster/topic_recovery_service.h"
-#include "cluster/topic_recovery_status_frontend.h"
-#include "cluster/tx_gateway_frontend.h"
+#include "cluster/rm_partition_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/topic_recovery_service.h" // NOLINT(misc-include-cleaner)
+#include "cluster/topic_recovery_status_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/tx_gateway_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/tx_topic_manager.h"
 #include "config/configuration.h"
 #include "config/node_config.h"
-#include "kafka/data/rpc/client.h"
-#include "kafka/data/rpc/service.h"
-#include "kafka/server/coordinator_ntp_mapper.h"
+#include "kafka/data/rpc/client.h" // NOLINT(misc-include-cleaner)
+#include "kafka/data/rpc/service.h" // NOLINT(misc-include-cleaner)
+#include "kafka/server/coordinator_ntp_mapper.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/data_migration_group_proxy_impl.h"
-#include "kafka/server/group_manager.h"
-#include "kafka/server/group_router.h"
+#include "kafka/server/group_manager.h" // NOLINT(misc-include-cleaner)
+#include "kafka/server/group_router.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/queue_depth_monitor_config.h"
-#include "kafka/server/quota_manager.h"
+#include "kafka/server/quota_manager.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/rm_group_frontend.h"
-#include "kafka/server/snc_quota_manager.h"
+#include "kafka/server/snc_quota_manager.h" // NOLINT(misc-include-cleaner)
 #include "net/dns.h"
 #include "net/tls_certificate_probe.h"
 #include "raft/coordinated_recovery_throttle.h"
 #include "raft/group_manager.h"
 #include "redpanda/application.h"
 #include "resource_mgmt/memory_groups.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "resource_mgmt/storage.h"
 #include "rpc/rpc_utils.h"
-#include "security/audit/audit_log_manager.h"
-#include "storage/compaction_controller.h"
+#include "security/audit/audit_log_manager.h" // NOLINT(misc-include-cleaner)
+#include "storage/compaction_controller.h" // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 
 #include <seastar/core/seastar.hh>

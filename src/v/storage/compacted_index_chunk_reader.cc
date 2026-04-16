@@ -15,12 +15,10 @@
 #include "reflection/adl.h"
 #include "storage/compacted_index.h"
 #include "storage/compacted_index_reader.h"
-#include "storage/logger.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner) fmt::formatter for optionals
 
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
-#include <seastar/core/future-util.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/temporary_buffer.hh>

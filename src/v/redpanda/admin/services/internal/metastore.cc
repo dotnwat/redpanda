@@ -22,7 +22,7 @@
 #include "serde/protobuf/rpc.h"
 #include "utils/uuid.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace admin {
 

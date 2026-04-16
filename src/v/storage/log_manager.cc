@@ -26,7 +26,6 @@
 #include "storage/batch_cache.h"
 #include "storage/compacted_index_writer.h"
 #include "storage/disk_log_impl.h"
-#include "storage/file_sanitizer.h"
 #include "storage/fs_utils.h"
 #include "storage/kvstore.h"
 #include "storage/log.h"
@@ -34,8 +33,6 @@
 #include "storage/logger.h"
 #include "storage/segment.h"
 #include "storage/segment_appender.h"
-#include "storage/segment_index.h"
-#include "storage/segment_reader.h"
 #include "storage/segment_set.h"
 #include "storage/segment_utils.h"
 #include "storage/storage_resources.h"
@@ -44,34 +41,24 @@
 
 #include <seastar/core/abort_source.hh>
 #include <seastar/core/file.hh>
-#include <seastar/core/future-util.hh>
 #include <seastar/core/future.hh>
 #include <seastar/core/gate.hh>
 #include <seastar/core/loop.hh>
 #include <seastar/core/map_reduce.hh>
-#include <seastar/core/print.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/core/semaphore.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/thread.hh>
 #include <seastar/core/timer.hh>
 #include <seastar/core/with_scheduling_group.hh>
-#include <seastar/coroutine/maybe_yield.hh>
-#include <seastar/coroutine/parallel_for_each.hh>
-#include <seastar/coroutine/switch_to.hh>
-#include <seastar/util/defer.hh>
+#include <seastar/coroutine/maybe_yield.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/file.hh>
 #include <seastar/util/later.hh>
-
-#include <boost/algorithm/string/predicate.hpp>
-#include <fmt/format.h>
 
 #include <chrono>
 #include <exception>
 #include <filesystem>
 #include <functional>
 #include <optional>
-#include <ranges>
 
 using namespace std::chrono_literals;
 

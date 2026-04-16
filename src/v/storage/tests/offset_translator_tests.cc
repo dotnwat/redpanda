@@ -19,11 +19,11 @@
 #include "storage/record_batch_builder.h"
 #include "test_utils/random_bytes.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/gate.hh>
 #include <seastar/core/sharded.hh>
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 #include <gtest/gtest.h>
 
 #include <ranges>

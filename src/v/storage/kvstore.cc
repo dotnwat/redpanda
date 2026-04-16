@@ -24,11 +24,8 @@
 #include "storage/segment_set.h"
 #include "storage/types.h"
 
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/metrics.hh>
-#include <seastar/core/thread.hh>
 #include <seastar/coroutine/maybe_yield.hh>
-#include <seastar/util/defer.hh>
 #include <seastar/util/log.hh>
 
 #include <exception>

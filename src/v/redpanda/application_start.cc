@@ -16,8 +16,8 @@
 #include "cluster/archival/archival_metadata_stm.h"
 #include "cluster/archival/archiver_manager.h"
 #include "cluster/archival/upload_controller.h"
-#include "cluster/cloud_metadata/offsets_recovery_manager.h"
-#include "cluster/cloud_metadata/offsets_upload_router.h"
+#include "cluster/cloud_metadata/offsets_recovery_manager.h" // NOLINT(misc-include-cleaner)
+#include "cluster/cloud_metadata/offsets_upload_router.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cluster_discovery.h"
 #include "cluster/controller.h"
 #include "cluster/feature_manager.h"
@@ -42,13 +42,13 @@
 #include "kafka/server/snc_quota_manager.h"
 #include "kafka/server/usage_manager.h"
 #include "kafka/server/write_at_offset_stm.h"
-#include "migrations/migrators.h"
+#include "migrations/migrators.h" // NOLINT(misc-include-cleaner)
 #include "raft/group_manager.h"
 #include "raft/service.h"
 #include "redpanda/admin/kafka_connections_service.h"
 #include "redpanda/admin/server.h"
 #include "redpanda/application.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "storage/compaction_controller.h"
 #include "syschecks/syschecks.h"
 #include "transform/stm/transform_offsets_stm.h"

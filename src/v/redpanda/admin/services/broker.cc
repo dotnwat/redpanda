@@ -11,11 +11,10 @@
 
 #include "redpanda/admin/services/broker.h"
 
-#include "redpanda/admin/services/utils.h"
 #include "serde/protobuf/rpc.h"
 #include "version/version.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace proto {
 using namespace proto::admin;

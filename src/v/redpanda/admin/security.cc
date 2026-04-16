@@ -28,7 +28,7 @@
 #include "redpanda/admin/server.h"
 #include "security/credential_store.h"
 #include "security/oidc_authenticator.h"
-#include "security/oidc_service.h"
+#include "security/oidc_service.h" // NOLINT(misc-include-cleaner)
 #include "security/request_auth.h"
 #include "security/role_store.h"
 #include "security/scram_algorithm.h"
@@ -39,7 +39,6 @@
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/http/exception.hh>
 #include <seastar/http/request.hh>
-#include <seastar/http/url.hh>
 #include <seastar/json/json_elements.hh>
 
 #include <algorithm>

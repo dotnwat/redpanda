@@ -7,32 +7,32 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "cloud_storage_clients/types.h"
+#include "cloud_storage_clients/types.h" // NOLINT(misc-include-cleaner)
 #include "cloud_topics/app.h"
 #include "cluster/controller.h"
 #include "cluster/utils/partition_change_notifier_impl.h"
-#include "cluster_link/service.h"
+#include "cluster_link/service.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
 #include "config/node_config.h"
 #include "datalake/coordinator/catalog_factory.h"
 #include "datalake/coordinator/coordinator_manager.h"
-#include "datalake/coordinator/frontend.h"
+#include "datalake/coordinator/frontend.h" // NOLINT(misc-include-cleaner)
 #include "datalake/credential_manager.h"
 #include "datalake/datalake_manager.h"
-#include "debug_bundle/debug_bundle_service.h"
-#include "kafka/data/rpc/client.h"
-#include "kafka/server/usage_manager.h"
+#include "debug_bundle/debug_bundle_service.h" // NOLINT(misc-include-cleaner)
+#include "kafka/data/rpc/client.h" // NOLINT(misc-include-cleaner)
+#include "kafka/server/usage_manager.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/schema_registry/api.h"
-#include "redpanda/admin/kafka_connections_service.h"
+#include "redpanda/admin/kafka_connections_service.h" // NOLINT(misc-include-cleaner)
 #include "redpanda/application.h"
 #include "resource_mgmt/memory_groups.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 #include "transform/api.h"
-#include "transform/rpc/client.h"
-#include "transform/rpc/service.h"
-#include "wasm/cache.h"
+#include "transform/rpc/client.h" // NOLINT(misc-include-cleaner)
+#include "transform/rpc/service.h" // NOLINT(misc-include-cleaner)
+#include "wasm/cache.h" // NOLINT(misc-include-cleaner)
 #include "wasm/impl.h"
 
 #include <seastar/core/metrics.hh>

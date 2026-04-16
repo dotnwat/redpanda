@@ -9,7 +9,6 @@
 
 #include "storage/log_replayer.h"
 
-#include "base/likely.h"
 #include "base/vlog.h"
 #include "hashing/crc32c.h"
 #include "model/record.h"
@@ -17,10 +16,6 @@
 #include "storage/logger.h"
 #include "storage/parser.h"
 #include "storage/segment.h"
-#include "utils/vint.h"
-
-#include <limits>
-#include <type_traits>
 
 namespace storage {
 class checksumming_consumer final : public batch_consumer {

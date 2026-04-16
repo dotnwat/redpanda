@@ -16,9 +16,9 @@
 #include "resource_mgmt/available_memory.h"
 #include "ssx/async_algorithm.h"
 #include "ssx/future-util.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner) fmt::formatter for optionals
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/gate.hh>
 #include <seastar/util/defer.hh>
 

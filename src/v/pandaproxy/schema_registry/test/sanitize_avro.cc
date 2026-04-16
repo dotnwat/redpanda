@@ -7,9 +7,8 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "pandaproxy/json/rjson_util.h"
+#include "pandaproxy/json/rjson_util.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/schema_registry/avro.h"
-#include "pandaproxy/schema_registry/test/compatibility_avro.h"
 #include "pandaproxy/schema_registry/types.h"
 
 #include <boost/test/unit_test.hpp>

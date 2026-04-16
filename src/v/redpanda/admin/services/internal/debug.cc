@@ -14,9 +14,9 @@
 #include "base/vlog.h"
 #include "finjector/stress_fiber.h"
 #include "serde/protobuf/rpc.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace proto {
 using namespace proto::admin;

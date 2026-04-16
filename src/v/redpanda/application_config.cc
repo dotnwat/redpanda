@@ -12,8 +12,8 @@
 #include "config/node_config.h"
 #include "kafka/client/configuration.h"
 #include "pandaproxy/rest/configuration.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
-#include "storage/api.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
+#include "storage/api.h" // NOLINT(misc-include-cleaner)
 #include "storage/backlog_controller.h"
 #include "storage/log_manager.h"
 #include "utils/human.h"

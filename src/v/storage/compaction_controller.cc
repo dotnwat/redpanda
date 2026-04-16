@@ -13,7 +13,7 @@
 
 #include "storage/api.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace storage {
 static ss::logger compaction_log{"compaction_ctrl"};

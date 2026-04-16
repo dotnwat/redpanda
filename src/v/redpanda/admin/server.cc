@@ -16,13 +16,13 @@
 #include "cloud_io/cache_service.h"
 #include "cloud_storage/partition_manifest.h"
 #include "cloud_storage/remote_path_provider.h"
-#include "cloud_storage/spillover_manifest.h"
-#include "cluster/archival/ntp_archiver_service.h"
+#include "cloud_storage/spillover_manifest.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cluster_utils.h"
 #include "cluster/config_frontend.h"
 #include "cluster/controller.h"
 #include "cluster/controller_api.h"
 #include "cluster/controller_stm.h"
+#include "cluster/archival/ntp_archiver_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/errc.h"
 #include "cluster/feature_manager.h"
 #include "cluster/fwd.h"
@@ -44,7 +44,7 @@
 #include "cluster/topic_recovery_status_rpc_handler.h"
 #include "cluster/topics_frontend.h"
 #include "cluster/tx_gateway_frontend.h"
-#include "cluster/types.h"
+#include "cluster/types.h" // NOLINT(misc-include-cleaner)
 #include "config/base_property.h"
 #include "config/configuration.h"
 #include "config/endpoint_tls_config.h"
@@ -70,7 +70,7 @@
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/schema_registry/api.h"
 #include "pandaproxy/schema_registry/schema_id_validation.h"
-#include "raft/types.h"
+#include "raft/types.h" // NOLINT(misc-include-cleaner)
 #include "redpanda/admin/api-doc/broker.json.hh"
 #include "redpanda/admin/api-doc/cluster.json.hh"
 #include "redpanda/admin/api-doc/cluster_config.json.hh"
@@ -101,10 +101,8 @@
 #include "utils/unresolved_address.h"
 #include "wasm/errc.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/loop.hh>
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/core/map_reduce.hh>
+#include <seastar/core/map_reduce.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/prometheus.hh>
 #include <seastar/core/reactor.hh>
 #include <seastar/core/shard_id.hh>
@@ -114,7 +112,6 @@
 #include <seastar/core/sstring.hh>
 #include <seastar/core/timer.hh>
 #include <seastar/core/with_scheduling_group.hh>
-#include <seastar/coroutine/as_future.hh>
 #include <seastar/coroutine/maybe_yield.hh>
 #include <seastar/http/api_docs.hh>
 #include <seastar/http/common.hh>
@@ -123,31 +120,25 @@
 #include <seastar/http/json_path.hh>
 #include <seastar/http/reply.hh>
 #include <seastar/http/request.hh>
-#include <seastar/http/url.hh>
 #include <seastar/json/json_elements.hh>
 #include <seastar/net/socket_defs.hh>
 #include <seastar/net/tls.hh>
 #include <seastar/util/later.hh>
 #include <seastar/util/log.hh>
 #include <seastar/util/short_streams.hh>
-#include <seastar/util/variant_utils.hh>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/lexical_cast/bad_lexical_cast.hpp>
 #include <fmt/core.h>
 
 #include <algorithm>
-#include <charconv>
 #include <chrono>
 #include <exception>
 #include <iterator>
-#include <limits>
 #include <memory>
-#include <numeric>
 #include <ranges>
 #include <stdexcept>
 #include <system_error>

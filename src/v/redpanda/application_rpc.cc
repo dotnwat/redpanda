@@ -28,12 +28,12 @@
 #include "config/node_config.h"
 #include "datalake/coordinator/service.h"
 #include "kafka/data/rpc/service.h"
-#include "kafka/server/rm_group_frontend.h"
+#include "kafka/server/rm_group_frontend.h" // NOLINT(misc-include-cleaner)
 #include "raft/service.h"
 #include "redpanda/admin/proxy/service.h"
 #include "redpanda/admin/server.h"
 #include "redpanda/application.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "transform/rpc/service.h"
 
 void application::add_runtime_rpc_services(

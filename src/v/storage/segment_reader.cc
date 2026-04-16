@@ -18,7 +18,7 @@
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
 #include <seastar/core/iostream.hh>
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner) ss::open_file_dma
 #include <seastar/core/sstring.hh>
 
 namespace storage {

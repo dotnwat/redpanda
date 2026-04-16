@@ -19,7 +19,7 @@
 #include "storage/segment_utils.h"
 #include "utils/directory_walker.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/iostream.hh>
 #include <seastar/core/seastar.hh>

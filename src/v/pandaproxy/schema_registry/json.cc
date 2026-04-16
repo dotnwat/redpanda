@@ -24,28 +24,21 @@
 #include "pandaproxy/schema_registry/sharded_store.h"
 #include "pandaproxy/schema_registry/types.h"
 #include "re2/re2.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/coroutine/as_future.hh>
-#include <seastar/coroutine/exception.hh>
-#include <seastar/util/defer.hh>
 #include <seastar/util/variant_utils.hh>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 #include <boost/math/special_functions/ulp.hpp>
-#include <boost/outcome/std_result.hpp>
-#include <boost/outcome/success_failure.hpp>
 #include <fmt/core.h>
 #include <fmt/format.h>
-#include <fmt/ranges.h>
 #include <jsoncons/basic_json.hpp>
-#include <jsoncons/json.hpp>
-#include <jsoncons_ext/jsonschema/evaluation_options.hpp>
+#include <jsoncons/json.hpp> // NOLINT(misc-include-cleaner)
 #include <jsoncons_ext/jsonschema/json_schema_factory.hpp>
-#include <jsoncons_ext/jsonschema/jsonschema.hpp>
+#include <jsoncons_ext/jsonschema/jsonschema.hpp> // NOLINT(misc-include-cleaner)
 #include <rapidjson/error/en.h>
 
 #include <exception>

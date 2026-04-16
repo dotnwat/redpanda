@@ -18,7 +18,7 @@
 
 #include <seastar/util/variant_utils.hh>
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 #include <compare>
 #include <limits>

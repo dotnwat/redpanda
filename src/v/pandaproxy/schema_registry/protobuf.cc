@@ -12,8 +12,6 @@
 #include "pandaproxy/schema_registry/protobuf.h"
 
 #include "absl/container/flat_hash_set.h"
-#include "absl/strings/ascii.h"
-#include "absl/strings/escaping.h"
 #include "base/vlog.h"
 #include "bytes/streambuf.h"
 #include "kafka/protocol/errors.h"
@@ -24,15 +22,13 @@
 #include "pandaproxy/schema_registry/types.h"
 #include "ssx/sformat.h"
 #include "utils/base64.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/memory.hh>
 #include <seastar/core/sstring.hh>
-#include <seastar/util/variant_utils.hh>
 
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/range/combine.hpp>
 #include <buf/validate/validate.pb.h>
 #include <confluent/meta.pb.h>
 #include <confluent/types/decimal.pb.h>
@@ -43,7 +39,6 @@
 #include <google/protobuf/compiler/parser.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor_database.h>
 #include <google/protobuf/duration.pb.h>
 #include <google/protobuf/empty.pb.h>
 #include <google/protobuf/field_mask.pb.h>

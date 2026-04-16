@@ -25,23 +25,21 @@
 #include "pandaproxy/schema_registry/schema_getter.h"
 #include "pandaproxy/schema_registry/types.h"
 #include "strings/string_switch.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/exception.hh>
 #include <seastar/util/defer.hh>
 
 #include <avro/Compiler.hh>
 #include <avro/Exception.hh>
 #include <avro/GenericDatum.hh>
-#include <avro/Stream.hh>
 #include <avro/Types.hh>
 #include <avro/ValidSchema.hh>
-#include <boost/outcome/std_result.hpp>
 #include <boost/outcome/success_failure.hpp>
 #include <fmt/core.h>
 #include <fmt/format.h>
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 #include <rapidjson/error/en.h>
 
 #include <exception>

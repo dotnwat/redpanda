@@ -23,8 +23,7 @@
 #include "serde/protobuf/rpc.h"
 #include "ssx/sformat.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/shard_id.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace {
 ss::logger gclog("level_zero_service");

@@ -17,26 +17,21 @@
 #include "ssx/future-util.h"
 #include "storage/batch_cache.h"
 #include "storage/compacted_index_writer.h"
-#include "storage/file_sanitizer.h"
 #include "storage/fs_utils.h"
 #include "storage/fwd.h"
 #include "storage/logger.h"
 #include "storage/readers_cache.h"
-#include "storage/record_batch_utils.h"
-#include "storage/segment_set.h"
 #include "storage/segment_utils.h"
 #include "storage/storage_resources.h"
 #include "storage/types.h"
 #include "storage/version.h"
 
-#include <seastar/core/abort_source.hh>
 #include <seastar/core/do_with.hh>
-#include <seastar/core/future-util.hh>
+#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/seastar.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/smp.hh>
 
 #include <exception>
 #include <optional>

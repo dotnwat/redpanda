@@ -14,17 +14,15 @@
 #include "config/configuration.h"
 #include "kafka/client/configuration.h"
 #include "kafka/data/rpc/deps.h"
-#include "model/metadata.h"
-#include "model/namespace.h"
 #include "pandaproxy/logger.h"
 #include "pandaproxy/schema_registry/configuration.h"
-#include "pandaproxy/schema_registry/schema_id_cache.h"
+#include "pandaproxy/schema_registry/schema_id_cache.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/schema_registry/service.h"
 #include "pandaproxy/schema_registry/sharded_store.h"
 #include "pandaproxy/schema_registry/types.h"
 #include "pandaproxy/schema_registry/validation_metrics.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 #include <functional>

@@ -18,7 +18,7 @@
 #include "serde/rw/envelope.h"
 #include "serde/rw/rw.h"
 #include "serde/rw/scalar.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner) serde specialization
 #include "storage/logger.h"
 
 #include <iterator>

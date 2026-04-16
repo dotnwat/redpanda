@@ -13,7 +13,6 @@
 #include "base/vlog.h"
 #include "compaction/key_offset_map.h"
 #include "config/configuration.h"
-#include "model/adl_serde.h"
 #include "model/fundamental.h"
 #include "model/namespace.h"
 #include "model/offset_interval.h"
@@ -26,9 +25,6 @@
 #include "ssx/semaphore.h"
 #include "ssx/watchdog.h"
 #include "storage/api.h"
-#include "storage/chunk_cache.h"
-#include "storage/compacted_offset_list.h"
-#include "storage/compaction_reducers.h"
 #include "storage/disk_log_appender.h"
 #include "storage/exceptions.h"
 #include "storage/fwd.h"
@@ -36,7 +32,6 @@
 #include "storage/log_manager.h"
 #include "storage/log_reader.h"
 #include "storage/logger.h"
-#include "storage/offset_assignment.h"
 #include "storage/offset_to_filepos.h"
 #include "storage/readers_cache.h"
 #include "storage/scoped_file_tracker.h"
@@ -45,13 +40,10 @@
 #include "storage/segment_set.h"
 #include "storage/segment_utils.h"
 #include "storage/types.h"
-#include "storage/version.h"
 #include "utils/human.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/fair_queue.hh>
-#include <seastar/core/future-util.hh>
+#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/loop.hh>
 #include <seastar/core/reactor.hh>
@@ -61,16 +53,12 @@
 #include <seastar/coroutine/as_future.hh>
 #include <seastar/util/defer.hh>
 
-#include <fmt/format.h>
-#include <roaring/roaring.hh>
-
 #include <algorithm>
 #include <chrono>
 #include <exception>
 #include <iterator>
 #include <limits>
 #include <optional>
-#include <sstream>
 #include <stdexcept>
 
 using namespace std::literals::chrono_literals;

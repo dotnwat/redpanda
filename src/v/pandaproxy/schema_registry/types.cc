@@ -13,10 +13,10 @@
 
 #include "errors.h"
 #include "util.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <fmt/core.h>
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 #include <fmt/ostream.h>
 
 namespace pandaproxy::schema_registry {

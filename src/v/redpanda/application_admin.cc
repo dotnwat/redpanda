@@ -23,7 +23,7 @@
 #include "redpanda/admin/services/shadow_link/shadow_link.h"
 #include "redpanda/application.h"
 #include "resource_mgmt/memory_groups.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 
 static admin_server_cfg

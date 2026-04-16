@@ -18,7 +18,7 @@
 #include "storage/logger.h"
 #include "storage/storage_resources.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/log.hh>
 
 namespace storage {

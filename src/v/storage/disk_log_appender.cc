@@ -16,12 +16,9 @@
 #include "storage/disk_log_impl.h"
 #include "storage/logger.h"
 #include "storage/segment.h"
-#include "storage/segment_appender.h"
-
-#include <seastar/coroutine/exception.hh>
+#include <seastar/coroutine/exception.hh> // NOLINT(misc-include-cleaner)
 
 #include <exception>
-#include <type_traits>
 
 namespace storage {
 

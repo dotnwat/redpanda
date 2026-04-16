@@ -16,21 +16,16 @@
 #include "model/record.h"
 #include "model/record_batch_types.h"
 #include "model/record_utils.h"
-#include "random/generators.h"
 #include "storage/compacted_index.h"
 #include "storage/compaction_key.h"
 #include "storage/index_state.h"
 #include "storage/logger.h"
-#include "storage/record_batch_utils.h"
-#include "storage/segment_utils.h"
+#include "storage/segment_utils.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/future.hh>
 #include <seastar/core/loop.hh>
 
-#include <boost/range/irange.hpp>
-
 #include <algorithm>
-#include <exception>
 
 namespace storage::internal {
 

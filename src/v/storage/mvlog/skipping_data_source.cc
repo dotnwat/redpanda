@@ -9,10 +9,9 @@
 
 #include "storage/mvlog/skipping_data_source.h"
 
-#include "io/pager.h"
 #include "storage/mvlog/file.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/temporary_buffer.hh>
 
 namespace storage::experimental::mvlog {

@@ -18,7 +18,7 @@
 #include "redpanda/admin/services/utils.h"
 #include "serde/protobuf/rpc.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 using namespace std::chrono_literals;
 

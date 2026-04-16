@@ -13,7 +13,7 @@
 #include "bytes/iobuf_parser.h"
 #include "cluster/controller.h"
 #include "cluster/security_frontend.h"
-#include "container/json.h"
+#include "container/json.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/api/api-doc/schema_registry.json.hh"
 #include "pandaproxy/json/rjson_util.h"
 #include "pandaproxy/json/types.h"
@@ -38,7 +38,7 @@
 #include "security/authorizer.h"
 #include "security/fwd.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/sstring.hh>
 

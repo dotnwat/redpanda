@@ -7,17 +7,13 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "bytes/iostream.h"
-#include "model/tests/random_batch.h"
 #include "storage/batch_consumer_utils.h"
-#include "storage/directories.h"
 #include "storage/log_manager.h"
 #include "storage/parser.h"
 #include "storage/segment_reader.h"
 #include "storage/tests/utils/disk_log_builder.h"
 #include "test_utils/tmp_dir.h"
 
-#include <seastar/core/lowres_clock.hh>
 #include <seastar/util/defer.hh>
 
 #include <gtest/gtest.h>

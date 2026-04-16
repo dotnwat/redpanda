@@ -15,9 +15,8 @@
 #include "ssx/future-util.h"
 #include "ssx/sformat.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/metrics.hh>
-#include <seastar/core/reactor.hh>
 
 #include <limits>
 

@@ -15,7 +15,7 @@
 #include "model/timestamp.h"
 #include "pandaproxy/json/exceptions.h"
 #include "pandaproxy/json/rjson_util.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/testing/thread_test_case.hh>
 

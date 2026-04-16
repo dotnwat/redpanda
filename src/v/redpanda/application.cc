@@ -18,7 +18,7 @@
 #include "cluster/cloud_metadata/offsets_uploader.h"
 #include "cluster/config_manager.h"
 #include "cluster/controller.h"
-#include "cluster/node_isolation_watcher.h"
+#include "cluster/node_isolation_watcher.h" // NOLINT(misc-include-cleaner)
 #include "cluster/topic_recovery_service.h"
 #include "compression/async_stream_zstd.h"
 #include "compression/lz4_decompression_buffers.h"
@@ -31,9 +31,9 @@
 #include "datalake/datalake_manager.h"
 #include "datalake/datalake_usage_aggregator.h"
 #include "kafka/client/configuration.h"
-#include "kafka/server/rm_group_frontend.h"
-#include "metrics/prometheus_sanitize.h"
-#include "migrations/migrators.h"
+#include "kafka/server/rm_group_frontend.h" // NOLINT(misc-include-cleaner)
+#include "metrics/prometheus_sanitize.h" // NOLINT(misc-include-cleaner)
+#include "migrations/migrators.h" // NOLINT(misc-include-cleaner)
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/rest/configuration.h"
 #include "pandaproxy/schema_registry/api.h"
@@ -47,24 +47,24 @@
 #include "storage/directories.h"
 #include "syschecks/syschecks.h"
 #include "utils/file_io.h"
-#include "utils/human.h"
+#include "utils/human.h" // NOLINT(misc-include-cleaner)
 #include "version/version.h"
-#include "wasm/cache.h"
+#include "wasm/cache.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/memory.hh>
 #include <seastar/core/metrics.hh>
-#include <seastar/core/prometheus.hh>
+#include <seastar/core/prometheus.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/smp.hh>
 #include <seastar/core/thread.hh>
 #include <seastar/util/defer.hh>
 
 #if __has_include(<google/protobuf/runtime_version.h>)
-#include <google/protobuf/runtime_version.h>
+#include <google/protobuf/runtime_version.h> // NOLINT(misc-include-cleaner)
 #endif
 #if __has_include(<google/protobuf/stubs/logging.h>)
 #include <google/protobuf/stubs/logging.h>
 #endif
-#include <sys/resource.h>
+#include <sys/resource.h> // NOLINT(misc-include-cleaner)
 #include <sys/utsname.h>
 
 #include <algorithm>

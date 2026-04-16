@@ -14,8 +14,6 @@
 #include "storage/compacted_index.h"
 #include "storage/logger.h"
 #include "storage/ntp_config.h"
-#include "storage/offset_translator_state.h"
-#include "utils/human.h"
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>

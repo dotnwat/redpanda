@@ -11,8 +11,6 @@
 
 #include <fmt/ostream.h>
 
-#include <type_traits>
-
 namespace storage::experimental::mvlog {
 
 std::ostream& operator<<(std::ostream& o, entry_type t) {

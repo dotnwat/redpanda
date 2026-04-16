@@ -13,14 +13,14 @@
 #include "cluster/cluster_uuid.h"
 #include "cluster/controller.h"
 #include "cluster/controller_snapshot.h"
-#include "cluster/feature_manager.h"
+#include "cluster/feature_manager.h" // NOLINT(misc-include-cleaner)
 #include "cluster_link/service.h"
 #include "config/configuration.h"
 #include "config/node_config.h"
 #include "config/tls_config.h"
 #include "crypto/ossl_context_service.h"
 #include "features/feature_table_snapshot.h"
-#include "migrations/migrators.h"
+#include "migrations/migrators.h" // NOLINT(misc-include-cleaner)
 #include "migrations/rbac_migrator.h"
 #include "migrations/topic_id_migrator.h"
 #include "net/dns.h"
@@ -28,17 +28,17 @@
 #include "net/tls_certificate_probe.h"
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/schema_registry/api.h"
-#include "raft/group_manager.h"
+#include "raft/group_manager.h" // NOLINT(misc-include-cleaner)
 #include "redpanda/admin/server.h"
 #include "redpanda/application.h"
 #include "resource_mgmt/memory_groups.h"
-#include "resource_mgmt/scheduling_groups_probe.h"
+#include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "rpc/rpc_utils.h"
 #include "security/audit/audit_log_manager.h"
 #include "ssx/thread_worker.h"
 #include "storage/api.h"
 #include "storage/chunk_cache.h"
-#include "storage/directories.h"
+#include "storage/directories.h" // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 #include "transform/api.h"
 #include "transform/rpc/client.h"

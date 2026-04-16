@@ -12,7 +12,6 @@
 #include "base/vassert.h"
 #include "base/vlog.h"
 #include "bytes/bytes.h"
-#include "random/generators.h"
 #include "reflection/adl.h"
 #include "ssx/async_algorithm.h"
 #include "storage/compacted_index.h"
@@ -22,9 +21,8 @@
 #include "storage/segment_utils.h"
 #include "utils/vint.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/file.hh>
-#include <seastar/core/future-util.hh>
 
 #include <fmt/ostream.h>
 
