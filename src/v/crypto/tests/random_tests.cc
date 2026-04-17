@@ -10,7 +10,7 @@
  */
 
 #include "crypto/crypto.h"
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 
 #include <gtest/gtest.h>
 

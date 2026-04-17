@@ -8,13 +8,13 @@
 // by the Apache License, Version 2.0
 #include "base/seastarx.h"
 #include "gmock/gmock.h"
-#include "ssx/async-clear.h"
+#include "ssx/async-clear.h" // NOLINT(misc-include-cleaner)
 #include "ssx/async_algorithm.h"
-#include "ssx/future-util.h"
+#include "ssx/future-util.h" // NOLINT(misc-include-cleaner)
 #include "utils/move_canary.h"
 
 #include <seastar/core/reactor.hh>
-#include <seastar/core/thread.hh>
+#include <seastar/core/thread.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/maybe_yield.hh>
 
 #include <algorithm>

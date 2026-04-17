@@ -20,7 +20,7 @@
 
 #include <seastar/util/variant_utils.hh>
 
-#include <fmt/chrono.h>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 #include <fmt/core.h>
 
 #include <charconv>

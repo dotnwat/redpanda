@@ -10,7 +10,6 @@
 
 #include "iceberg/datatypes.h"
 
-#include <ranges>
 #include <variant>
 
 namespace iceberg {

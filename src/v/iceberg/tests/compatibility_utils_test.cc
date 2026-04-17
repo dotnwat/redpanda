@@ -13,7 +13,6 @@
 #include "iceberg/datatypes.h"
 #include "iceberg/tests/test_schemas.h"
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 using namespace iceberg;

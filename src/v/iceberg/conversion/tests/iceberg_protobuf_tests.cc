@@ -8,7 +8,6 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "gtest/gtest.h"
 #include "iceberg/conversion/protobuf_utils.h"
 #include "iceberg/conversion/schema_protobuf.h"
 #include "iceberg/conversion/tests/gmock_iceberg_matchers.h"

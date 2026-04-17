@@ -12,13 +12,10 @@
 #include "absl/container/flat_hash_map.h"
 #include "crypto/crypto.h"
 #include "crypto_test_utils.h"
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 #include "test_values.h"
 
 #include <gtest/gtest.h>
-
-#include <iterator>
-#include <type_traits>
 
 using namespace test_values;
 

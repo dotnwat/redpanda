@@ -15,8 +15,6 @@
 #include "gtest/gtest.h"
 #include "wasm/parser/parser.h"
 
-#include <gtest/gtest.h>
-
 #include <limits>
 #include <stdexcept>
 #include <utility>

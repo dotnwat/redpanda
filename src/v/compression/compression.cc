@@ -10,7 +10,6 @@
 #include "compression/compression.h"
 
 #include "base/vassert.h"
-#include "base/vlog.h"
 #include "compression/async_stream_zstd.h"
 #include "compression/internal/gzip_compressor.h"
 #include "compression/internal/lz4_frame_compressor.h"

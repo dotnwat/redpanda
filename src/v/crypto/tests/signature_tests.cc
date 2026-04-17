@@ -13,7 +13,7 @@
 #include "crypto/crypto.h"
 #include "crypto/types.h"
 #include "crypto_test_utils.h"
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 #include "test_values.h"
 
 #include <gtest/gtest.h>

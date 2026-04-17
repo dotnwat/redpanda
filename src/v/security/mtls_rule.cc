@@ -10,7 +10,7 @@
  */
 #include "security/mtls_rule.h"
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 #include <fmt/ostream.h>
 
 #include <regex>

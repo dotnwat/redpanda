@@ -19,7 +19,7 @@
 #include "ssx/future-util.h"
 
 #include <seastar/util/defer.hh>
-#include <seastar/util/log.hh>
+#include <seastar/util/log.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
 #include <fmt/core.h>

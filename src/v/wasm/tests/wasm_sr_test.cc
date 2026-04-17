@@ -15,7 +15,6 @@
 #include "wasm/errc.h"
 #include "wasm/tests/wasm_fixture.h"
 
-#include <seastar/core/reactor.hh>
 
 #include <avro/Compiler.hh>
 #include <avro/Encoder.hh>

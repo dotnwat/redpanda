@@ -21,7 +21,6 @@
 #include "lsm/sst/footer.h"
 
 #include <seastar/core/coroutine.hh>
-#include <seastar/coroutine/as_future.hh>
 
 #include <sys/uio.h>
 

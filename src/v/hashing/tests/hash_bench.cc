@@ -10,7 +10,7 @@
 #include "absl/hash/hash.h"
 #include "absl/strings/string_view.h"
 #include "bytes/bytes.h"
-#include "bytes/hash.h"
+#include "bytes/hash.h" // NOLINT(misc-include-cleaner)
 #include "hashing/crc32c.h"
 #include "hashing/murmur.h"
 #include "hashing/xx.h"
@@ -20,9 +20,7 @@
 #include "random/generators.h"
 #include "test_utils/random_bytes.h"
 
-#include <seastar/core/reactor.hh>
 #include <seastar/core/sstring.hh>
-#include <seastar/core/temporary_buffer.hh>
 #include <seastar/testing/perf_tests.hh>
 
 #include <boost/crc.hpp>

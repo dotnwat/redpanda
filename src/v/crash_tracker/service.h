@@ -14,8 +14,6 @@
 #include "crash_tracker/limiter.h"
 #include "crash_tracker/recorder.h"
 
-#include <exception>
-#include <memory>
 
 namespace crash_tracker {
 

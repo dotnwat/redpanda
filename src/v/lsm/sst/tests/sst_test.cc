@@ -16,7 +16,6 @@
 
 #include <seastar/core/file.hh>
 
-#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 using lsm::internal::operator""_key;

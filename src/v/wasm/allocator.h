@@ -15,9 +15,7 @@
 
 #include <seastar/core/aligned_buffer.hh>
 #include <seastar/core/chunked_fifo.hh>
-#include <seastar/core/condition-variable.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/gate.hh>
 
 namespace wasm {
 

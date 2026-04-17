@@ -10,7 +10,6 @@
 #include "security/oidc_authenticator.h"
 
 #include "base/vlog.h"
-#include "config/property.h"
 #include "security/acl.h"
 #include "security/audit/schemas/types.h"
 #include "security/errc.h"
@@ -21,10 +20,7 @@
 
 #include <seastar/core/lowres_clock.hh>
 
-#include <boost/outcome/success_failure.hpp>
-#include <fmt/chrono.h>
-#include <fmt/core.h>
-#include <fmt/ranges.h>
+#include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 
 #include <memory>
 #include <string_view>

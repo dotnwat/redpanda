@@ -15,7 +15,6 @@
 #include "base/units.h"
 #define LZ4F_STATIC_LINKING_ONLY
 #include <seastar/core/aligned_buffer.hh>
-#include <seastar/core/semaphore.hh>
 
 #include <lz4frame.h>
 

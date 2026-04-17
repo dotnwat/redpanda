@@ -10,7 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/time/time.h"
-#include "thirdparty/libxml2/xmlwriter.h"
+#include "thirdparty/libxml2/xmlwriter.h" // NOLINT(misc-include-cleaner)
 
 #include <boost/test/results_collector.hpp>
 #include <boost/test/tree/traverse.hpp>

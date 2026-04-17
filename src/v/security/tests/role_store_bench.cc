@@ -8,14 +8,13 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "config/mock_property.h"
+#include "config/mock_property.h" // NOLINT(misc-include-cleaner)
 #include "random/generators.h"
 #include "security/authorizer.h"
 #include "security/role.h"
 #include "security/role_store.h"
 
 #include <seastar/testing/perf_tests.hh>
-#include <seastar/util/later.hh>
 
 #include <boost/range/irange.hpp>
 

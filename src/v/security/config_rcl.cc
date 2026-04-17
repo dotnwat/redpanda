@@ -18,8 +18,6 @@
 #include "ssx/sformat.h"
 #include "strings/string_switch.h"
 
-#include <boost/algorithm/string/case_conv.hpp>
-
 #include <ada.h>
 #include <charconv>
 #include <optional>

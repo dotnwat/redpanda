@@ -15,12 +15,9 @@
 #include <seastar/core/align.hh>
 #include <seastar/core/aligned_buffer.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/loop.hh>
-#include <seastar/core/lowres_clock.hh>
 #include <seastar/core/print.hh>
 #include <seastar/core/when_all.hh>
 #include <seastar/coroutine/maybe_yield.hh>
-#include <seastar/util/later.hh>
 
 #include <sys/mman.h>
 

@@ -25,8 +25,6 @@
 #include "iceberg/values_avro.h"
 #include "strings/string_switch.h"
 
-#include <seastar/core/temporary_buffer.hh>
-
 #include <avro/Compiler.hh>
 #include <avro/DataFile.hh>
 #include <avro/Generic.hh>

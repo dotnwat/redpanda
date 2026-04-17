@@ -9,16 +9,14 @@
 
 #include "syschecks/syschecks.h"
 
-#include "base/likely.h"
 #include "base/seastarx.h"
 #include "version/version.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/memory.hh>
 #include <seastar/core/posix.hh> // here for workaround
-#include <seastar/core/reactor.hh>
 #include <seastar/core/seastar.hh>
-#include <seastar/net/api.hh>
+#include <seastar/net/api.hh> // NOLINT(misc-include-cleaner)
 
 namespace {
 ss::sstring to_string(ss::fs_type fs) {

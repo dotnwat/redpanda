@@ -10,7 +10,6 @@
 
 #include "base/units.h"
 #include "bytes/iobuf.h"
-#include "container/chunked_vector.h"
 #include "iceberg/avro_utils.h"
 #include "iceberg/manifest.h"
 #include "iceberg/manifest_avro.h"

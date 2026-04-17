@@ -24,7 +24,7 @@
 #include <seastar/core/coroutine.hh>
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
 using json_writer = json::iobuf_writer<json::chunked_buffer>;

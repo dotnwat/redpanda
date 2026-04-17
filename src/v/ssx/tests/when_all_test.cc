@@ -19,7 +19,6 @@
 
 #include <boost/container/static_vector.hpp>
 #include <fmt/format.h>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>

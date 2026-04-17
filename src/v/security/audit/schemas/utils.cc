@@ -10,10 +10,10 @@
 
 #include "security/audit/schemas/utils.h"
 
-#include "kafka/protocol/api_versions.h"
-#include "kafka/protocol/describe_cluster.h"
-#include "kafka/protocol/sasl_authenticate.h"
-#include "kafka/protocol/sasl_handshake.h"
+#include "kafka/protocol/api_versions.h"       // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/describe_cluster.h"    // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/sasl_authenticate.h"   // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/sasl_handshake.h"      // NOLINT(misc-include-cleaner)
 #include "kafka/protocol/schemata/add_offsets_to_txn_request.h"
 #include "kafka/protocol/schemata/add_partitions_to_txn_request.h"
 #include "kafka/protocol/schemata/alter_client_quotas_request.h"
@@ -65,15 +65,11 @@
 #include "security/audit/types.h"
 #include "security/authorizer.h"
 #include "security/gssapi_authenticator.h"
-#include "security/mtls.h"
 #include "security/oidc_authenticator.h"
 #include "security/plain_authenticator.h"
 #include "security/request_auth.h"
 #include "security/scram_authenticator.h"
 #include "utils/unresolved_address.h"
-
-#include <seastar/core/lowres_clock.hh>
-#include <seastar/core/smp.hh>
 
 #include <boost/algorithm/string/predicate.hpp>
 

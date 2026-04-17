@@ -16,7 +16,7 @@
 #include "model/namespace.h"
 #include "model/record_batch_types.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace compaction {
 

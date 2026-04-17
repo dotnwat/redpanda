@@ -13,7 +13,7 @@
 
 #include "lsm/core/exceptions.h"
 
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/as_future.hh>
 
 namespace lsm::io {

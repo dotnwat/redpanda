@@ -12,8 +12,6 @@
 #include "base/likely.h"
 #include "base/units.h"
 #include "base/vassert.h"
-#include "base/vlog.h"
-#include "bytes/bytes.h"
 #include "bytes/details/io_allocation_size.h"
 #include "bytes/ioarray.h"
 
@@ -21,9 +19,8 @@
 #include <seastar/coroutine/maybe_yield.hh>
 
 #include <fmt/format.h>
-#include <sys/uio.h>
+#include <sys/uio.h> // NOLINT(misc-include-cleaner)
 
-#include <array>
 #include <zstd.h>
 #include <zstd_errors.h>
 

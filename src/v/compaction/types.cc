@@ -9,7 +9,7 @@
 
 #include "compaction/types.h"
 
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 #include <fmt/core.h>
 #include <fmt/ostream.h>

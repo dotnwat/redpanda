@@ -12,7 +12,7 @@
 
 #include "base/vlog.h"
 #include "iceberg/table_metadata.h"
-#include "utils/to_string.h"
+#include "utils/to_string.h" // NOLINT(misc-include-cleaner)
 
 namespace iceberg::table_requirement {
 

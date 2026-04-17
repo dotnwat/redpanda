@@ -15,11 +15,8 @@
 #include "re2/re2.h"
 #include "security/logger.h"
 
-#include <boost/algorithm/string/case_conv.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-
-#include <charconv>
 
 /*
  * some older versions of re2 don't have operator for implicit cast to

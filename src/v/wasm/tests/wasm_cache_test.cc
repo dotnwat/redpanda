@@ -9,7 +9,6 @@
  * by the Apache License, Version 2.0
  */
 
-#include "gmock/gmock.h"
 #include "model/fundamental.h"
 #include "model/tests/random_batch.h"
 #include "model/tests/randoms.h"
@@ -23,12 +22,11 @@
 #include <seastar/core/lowres_clock.hh>
 #include <seastar/core/sharded.hh>
 #include <seastar/core/shared_ptr.hh>
-#include <seastar/core/thread.hh>
+#include <seastar/core/thread.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/when_all.hh>
 
 #include <gtest/gtest.h>
 
-#include <cstdlib>
 #include <memory>
 #include <stdexcept>
 #include <utility>

@@ -11,8 +11,6 @@
 
 #include "crash_tracker/types.h"
 
-#include "version/version.h"
-
 namespace crash_tracker {
 
 std::ostream& operator<<(std::ostream& os, crash_type ct) {

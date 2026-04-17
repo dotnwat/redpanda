@@ -2,7 +2,7 @@
 
 #include "tools/cpp/runfiles/runfiles.h"
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 #include <cstdlib>
 #include <filesystem>

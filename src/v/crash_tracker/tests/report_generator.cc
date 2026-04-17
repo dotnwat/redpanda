@@ -17,7 +17,6 @@
 #include <seastar/core/app-template.hh>
 #include <seastar/core/smp_options.hh>
 
-#include <boost/program_options/errors.hpp>
 
 #include <exception>
 

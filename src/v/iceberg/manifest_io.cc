@@ -16,9 +16,6 @@
 #include "iceberg/manifest_list_avro.h"
 #include "ssx/future-util.h"
 
-#include <seastar/coroutine/as_future.hh>
-#include <seastar/util/noncopyable_function.hh>
-
 #include <exception>
 
 using namespace std::chrono_literals;

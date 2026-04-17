@@ -10,38 +10,23 @@
 
 #include "security/audit/audit_log_manager.h"
 
-#include "absl/algorithm/container.h"
-#include "base/outcome.h"
 #include "client.h"
 #include "cluster/controller.h"
-#include "cluster/ephemeral_credential_frontend.h"
 #include "cluster/metadata_cache.h"
-#include "cluster/security_frontend.h"
 #include "config/configuration.h"
 #include "config/types.h"
 #include "features/feature_table.h"
-#include "kafka/client/client.h"
-#include "kafka/client/config_utils.h"
 #include "kafka/data/record_batcher.h"
 #include "kafka/data/rpc/client.h"
-#include "kafka/protocol/produce.h"
-#include "kafka/protocol/schemata/produce_response.h"
-#include "kafka/protocol/topic_properties.h"
 #include "model/fundamental.h"
 #include "model/namespace.h"
 #include "security/acl.h"
-#include "security/audit/client_probe.h"
 #include "security/audit/logger.h"
 #include "security/audit/schemas/application_activity.h"
 #include "security/audit/schemas/types.h"
 #include "security/audit/schemas/utils.h"
-#include "security/ephemeral_credential_store.h"
 #include "ssx/semaphore.h"
-#include "utils/retry.h"
 
-#include <seastar/core/loop.hh>
-#include <seastar/core/sleep.hh>
-#include <seastar/core/smp.hh>
 #include <seastar/coroutine/maybe_yield.hh>
 
 #include <algorithm>

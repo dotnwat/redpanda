@@ -16,7 +16,6 @@
 #include "version/version.h"
 
 #include <seastar/core/sstring.hh>
-#include <seastar/util/bool_class.hh>
 
 #include <fmt/core.h>
 #include <gtest/gtest.h>
