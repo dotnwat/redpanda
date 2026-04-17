@@ -17,12 +17,12 @@
 #include "cloud_storage/partition_manifest.h"
 #include "cloud_storage/remote_path_provider.h"
 #include "cloud_storage/spillover_manifest.h" // NOLINT(misc-include-cleaner)
+#include "cluster/archival/ntp_archiver_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cluster_utils.h"
 #include "cluster/config_frontend.h"
 #include "cluster/controller.h"
 #include "cluster/controller_api.h"
 #include "cluster/controller_stm.h"
-#include "cluster/archival/ntp_archiver_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/errc.h"
 #include "cluster/feature_manager.h"
 #include "cluster/fwd.h"

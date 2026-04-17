@@ -11,7 +11,7 @@
 
 #include "resource_mgmt/smp_groups.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 ss::future<> smp_groups::create_groups(config cfg) {
     _raft = co_await create_service_group(

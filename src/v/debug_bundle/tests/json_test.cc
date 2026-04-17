@@ -17,7 +17,7 @@
 #include "security/types.h"
 #include "utils/uuid.h"
 
-#include <fmt/chrono.h>
+#include <fmt/chrono.h> // NOLINT(misc-include-cleaner)
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
 #include <rapidjson/error/en.h>

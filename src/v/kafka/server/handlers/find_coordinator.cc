@@ -19,7 +19,6 @@
 
 #include <seastar/util/log.hh>
 
-
 #include <expected>
 #include <iterator>
 

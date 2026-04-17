@@ -16,7 +16,7 @@
 
 #include <avro/Compiler.hh>
 #include <avro/Encoder.hh>
-#include <avro/Generic.hh>       // NOLINT(misc-include-cleaner)
+#include <avro/Generic.hh> // NOLINT(misc-include-cleaner)
 #include <avro/GenericDatum.hh>
 #include <avro/Specific.hh>
 #include <avro/Stream.hh>

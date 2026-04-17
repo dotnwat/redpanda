@@ -22,7 +22,7 @@
 #include "serde/rw/sstring.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/uuid.h"    // NOLINT(misc-include-cleaner)
 #include "serde/rw/variant.h"
-#include "serde/rw/vector.h"  // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "test_utils/random_bytes.h"
 #include "test_utils/randoms.h"
 

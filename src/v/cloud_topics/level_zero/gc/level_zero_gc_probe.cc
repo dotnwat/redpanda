@@ -14,7 +14,7 @@
 
 #include <seastar/core/metrics.hh>
 #include <seastar/core/metrics_types.hh> // NOLINT(misc-include-cleaner)
-#include <seastar/core/shared_ptr.hh>   // NOLINT(misc-include-cleaner)
+#include <seastar/core/shared_ptr.hh>    // NOLINT(misc-include-cleaner)
 
 namespace cloud_topics {
 

@@ -10,10 +10,10 @@
 
 #include "security/audit/schemas/utils.h"
 
-#include "kafka/protocol/api_versions.h"       // NOLINT(misc-include-cleaner)
-#include "kafka/protocol/describe_cluster.h"    // NOLINT(misc-include-cleaner)
-#include "kafka/protocol/sasl_authenticate.h"   // NOLINT(misc-include-cleaner)
-#include "kafka/protocol/sasl_handshake.h"      // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/api_versions.h"      // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/describe_cluster.h"  // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/sasl_authenticate.h" // NOLINT(misc-include-cleaner)
+#include "kafka/protocol/sasl_handshake.h"    // NOLINT(misc-include-cleaner)
 #include "kafka/protocol/schemata/add_offsets_to_txn_request.h"
 #include "kafka/protocol/schemata/add_partitions_to_txn_request.h"
 #include "kafka/protocol/schemata/alter_client_quotas_request.h"
@@ -56,7 +56,7 @@
 #include "kafka/protocol/schemata/sync_group_request.h"
 #include "kafka/protocol/schemata/txn_offset_commit_request.h"
 #include "kafka/protocol/types.h"
-#include "model/metadata.h"
+#include "model/metadata.h" // NOLINT(misc-include-cleaner)
 #include "security/acl.h"
 #include "security/audit/schemas/application_activity.h"
 #include "security/audit/schemas/iam.h"

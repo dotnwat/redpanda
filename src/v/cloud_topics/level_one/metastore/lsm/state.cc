@@ -13,10 +13,10 @@
 #include "serde/rw/envelope.h"
 #include "serde/rw/iobuf.h"
 #include "serde/rw/named_type.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/optional.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/sstring.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/uuid.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
+#include "serde/rw/optional.h"   // NOLINT(misc-include-cleaner)
+#include "serde/rw/sstring.h"    // NOLINT(misc-include-cleaner)
+#include "serde/rw/uuid.h"       // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h"     // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/future.hh>
 #include <seastar/coroutine/maybe_yield.hh>

@@ -9,7 +9,7 @@
  */
 #include "iceberg/values.h"
 
-#include "bytes/hash.h"          // NOLINT(misc-include-cleaner)
+#include "bytes/hash.h" // NOLINT(misc-include-cleaner)
 #include "bytes/iobuf_parser.h"
 
 #include <boost/container_hash/hash_fwd.hpp> // NOLINT(misc-include-cleaner)

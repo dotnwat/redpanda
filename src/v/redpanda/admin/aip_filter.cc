@@ -23,7 +23,7 @@
 #include <fmt/ranges.h> // NOLINT(misc-include-cleaner)
 #include <lexy/action/parse.hpp>
 #include <lexy/callback.hpp> // NOLINT(misc-include-cleaner)
-#include <lexy/dsl.hpp> // NOLINT(misc-include-cleaner)
+#include <lexy/dsl.hpp>      // NOLINT(misc-include-cleaner)
 #include <lexy/error.hpp>
 #include <lexy/input/string_input.hpp>
 

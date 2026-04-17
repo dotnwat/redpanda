@@ -31,7 +31,7 @@
 #include "random/generators.h"
 #include "security/acl.h"
 
-#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/coroutine.hh>   // NOLINT(misc-include-cleaner)
 #include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>

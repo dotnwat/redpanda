@@ -12,8 +12,9 @@
 #include "model/batch_compression.h"
 #include "model/record.h"
 #include "model/record_utils.h"
+
 #include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
-#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/smp.hh>       // NOLINT(misc-include-cleaner)
 
 namespace storage {
 

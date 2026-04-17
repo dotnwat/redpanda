@@ -13,7 +13,6 @@
 #include "bytes/ioarray.h"
 
 #include <gtest/gtest.h>
-
 #include <sys/uio.h> // NOLINT(misc-include-cleaner)
 
 #include <random>

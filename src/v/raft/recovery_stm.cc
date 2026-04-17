@@ -20,7 +20,7 @@
 #include "utils/human.h"
 
 #include <seastar/core/condition-variable.hh>
-#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/coroutine.hh>   // NOLINT(misc-include-cleaner)
 #include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sharded.hh>
 #include <seastar/core/with_scheduling_group.hh>

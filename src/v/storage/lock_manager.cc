@@ -17,7 +17,6 @@
 #include <seastar/core/rwlock.hh>
 #include <seastar/core/shared_ptr.hh>
 
-
 namespace storage {
 
 static ss::future<std::unique_ptr<lock_manager::lease>> range(

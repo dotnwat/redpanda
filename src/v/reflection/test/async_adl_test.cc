@@ -15,11 +15,11 @@
 #include "bytes/iobuf.h"
 #include "bytes/iobuf_parser.h"
 #include "container/chunked_circular_buffer.h" // NOLINT(misc-include-cleaner)
-#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
+#include "model/adl_serde.h"                   // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "random/generators.h"
 #include "reflection/async_adl.h"
-#include "reflection/chunked_circular_buffer.h"
+#include "reflection/chunked_circular_buffer.h" // NOLINT(misc-include-cleaner)
 #include "reflection/seastar/circular_buffer.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/testing/thread_test_case.hh>

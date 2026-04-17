@@ -12,6 +12,7 @@
 #include "kafka/server/client_quota_translator.h"
 
 #include "cluster/client_quota_store.h"
+
 #include <seastar/util/variant_utils.hh>
 
 #include <optional>

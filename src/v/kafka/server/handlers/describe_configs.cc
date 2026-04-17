@@ -25,7 +25,6 @@
 
 #include <seastar/core/smp.hh>
 
-
 #include <charconv>
 
 namespace kafka {

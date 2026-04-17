@@ -32,8 +32,8 @@
 #include "datalake/datalake_usage_aggregator.h"
 #include "kafka/client/configuration.h"
 #include "kafka/server/rm_group_frontend.h" // NOLINT(misc-include-cleaner)
-#include "metrics/prometheus_sanitize.h" // NOLINT(misc-include-cleaner)
-#include "migrations/migrators.h" // NOLINT(misc-include-cleaner)
+#include "metrics/prometheus_sanitize.h"    // NOLINT(misc-include-cleaner)
+#include "migrations/migrators.h"           // NOLINT(misc-include-cleaner)
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/rest/configuration.h"
 #include "pandaproxy/schema_registry/api.h"

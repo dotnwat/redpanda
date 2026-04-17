@@ -41,7 +41,7 @@
 #include "ssx/semaphore.h"
 #include "utils/tristate.h"
 
-#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/coroutine.hh>   // NOLINT(misc-include-cleaner)
 #include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/http/api_docs.hh>
 #include <seastar/util/log.hh>

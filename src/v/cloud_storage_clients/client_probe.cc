@@ -15,7 +15,7 @@
 
 #include <seastar/core/metrics.hh>
 #include <seastar/core/metrics_types.hh> // NOLINT(misc-include-cleaner)
-#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/smp.hh>           // NOLINT(misc-include-cleaner)
 
 namespace {
 constexpr auto endpoint_label_key = "endpoint";

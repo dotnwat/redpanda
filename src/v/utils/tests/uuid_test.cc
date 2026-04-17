@@ -10,10 +10,10 @@
 #include "absl/container/flat_hash_map.h"
 #include "serde/rw/envelope.h"
 #include "serde/rw/map.h"      // NOLINT(misc-include-cleaner)
-#include "serde/rw/optional.h"  // NOLINT(misc-include-cleaner)
+#include "serde/rw/optional.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/rw.h"
-#include "serde/rw/uuid.h"     // NOLINT(misc-include-cleaner)
-#include "serde/rw/vector.h"   // NOLINT(misc-include-cleaner)
+#include "serde/rw/uuid.h"   // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "utils/named_type.h"
 #include "utils/uuid.h"
 

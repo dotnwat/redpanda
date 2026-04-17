@@ -18,7 +18,7 @@
 #include "logger.h"
 
 #include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
-#include <seastar/core/print.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/print.hh>     // NOLINT(misc-include-cleaner)
 #include <seastar/core/sstring.hh>
 #include <seastar/util/later.hh>
 #include <seastar/util/log.hh>

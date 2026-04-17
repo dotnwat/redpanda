@@ -18,6 +18,7 @@
 #include "kafka/server/handlers/sasl_handshake.h"
 #include "kafka/server/request_context.h"
 #include "net/types.h"
+
 #include <seastar/util/log.hh>
 
 namespace kafka {

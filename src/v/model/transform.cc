@@ -18,8 +18,8 @@
 #include "serde/rw/bool_class.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/map.h"        // NOLINT(misc-include-cleaner)
 #include "serde/rw/rw.h"
-#include "serde/rw/uuid.h"       // NOLINT(misc-include-cleaner)
-#include "serde/rw/vector.h"     // NOLINT(misc-include-cleaner)
+#include "serde/rw/uuid.h"   // NOLINT(misc-include-cleaner)
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 #include "utils/vint.h"
 
 #include <seastar/core/shard_id.hh>

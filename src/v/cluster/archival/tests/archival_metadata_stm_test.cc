@@ -14,12 +14,12 @@
 #include "cluster/archival/archival_metadata_stm.h"
 #include "http/tests/http_imposter.h"
 #include "model/record.h"
-#include "storage/tests/utils/disk_log_builder.h" // NOLINT(misc-include-cleaner)
 #include "model/timestamp.h"
 #include "raft/fundamental.h" // NOLINT(misc-include-cleaner)
 #include "raft/persisted_stm.h"
 #include "raft/state_machine_manager.h"
 #include "raft/tests/simple_raft_fixture.h"
+#include "storage/tests/utils/disk_log_builder.h" // NOLINT(misc-include-cleaner)
 #include "test_utils/boost_fixture.h"
 
 #include <seastar/core/lowres_clock.hh>

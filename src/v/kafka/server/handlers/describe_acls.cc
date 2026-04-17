@@ -20,7 +20,6 @@
 #include <seastar/core/smp.hh>
 #include <seastar/util/log.hh>
 
-
 namespace kafka {
 
 static void fill_response(

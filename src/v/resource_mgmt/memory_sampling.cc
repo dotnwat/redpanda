@@ -14,14 +14,14 @@
 #include "base/vlog.h"
 #include "crash_tracker/recorder.h"
 #include "resource_mgmt/available_memory.h"
-#include "ssx/future-util.h"
+#include "ssx/future-util.h" // NOLINT(misc-include-cleaner)
 #include "ssx/sformat.h"
 #include "utils/human.h"
 
 #include <seastar/core/future.hh>
 #include <seastar/core/memory.hh>
-#include <seastar/core/smp.hh>
-#include <seastar/core/sstring.hh>
+#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
+#include <seastar/core/sstring.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/defer.hh>
 #include <seastar/util/memory_diagnostics.hh>
 

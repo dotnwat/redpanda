@@ -36,22 +36,22 @@
 #include "cluster/metadata_dissemination_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/migrations/tx_manager_migrator.h" // NOLINT(misc-include-cleaner)
 #include "cluster/node_isolation_watcher.h" // NOLINT(misc-include-cleaner)
-#include "cluster/partition_manager.h" // NOLINT(misc-include-cleaner)
+#include "cluster/partition_manager.h"      // NOLINT(misc-include-cleaner)
 #include "cluster/partition_recovery_manager.h"
 #include "cluster/producer_state_manager.h"
-#include "cluster/rm_partition_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/rm_partition_frontend.h"  // NOLINT(misc-include-cleaner)
 #include "cluster/topic_recovery_service.h" // NOLINT(misc-include-cleaner)
 #include "cluster/topic_recovery_status_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/tx_gateway_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/tx_topic_manager.h"
 #include "config/configuration.h"
 #include "config/node_config.h"
-#include "kafka/data/rpc/client.h" // NOLINT(misc-include-cleaner)
-#include "kafka/data/rpc/service.h" // NOLINT(misc-include-cleaner)
+#include "kafka/data/rpc/client.h"               // NOLINT(misc-include-cleaner)
+#include "kafka/data/rpc/service.h"              // NOLINT(misc-include-cleaner)
 #include "kafka/server/coordinator_ntp_mapper.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/data_migration_group_proxy_impl.h"
 #include "kafka/server/group_manager.h" // NOLINT(misc-include-cleaner)
-#include "kafka/server/group_router.h" // NOLINT(misc-include-cleaner)
+#include "kafka/server/group_router.h"  // NOLINT(misc-include-cleaner)
 #include "kafka/server/queue_depth_monitor_config.h"
 #include "kafka/server/quota_manager.h" // NOLINT(misc-include-cleaner)
 #include "kafka/server/rm_group_frontend.h"
@@ -66,7 +66,7 @@
 #include "resource_mgmt/storage.h"
 #include "rpc/rpc_utils.h"
 #include "security/audit/audit_log_manager.h" // NOLINT(misc-include-cleaner)
-#include "storage/compaction_controller.h" // NOLINT(misc-include-cleaner)
+#include "storage/compaction_controller.h"    // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 
 #include <seastar/core/seastar.hh>

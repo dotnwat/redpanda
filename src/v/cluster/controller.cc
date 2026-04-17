@@ -10,10 +10,10 @@
 #include "cluster/controller.h"
 
 #include "cloud_storage/topic_mount_handler.h"
-#include "cluster/bootstrap_backend.h"            // NOLINT(misc-include-cleaner)
-#include "cluster/client_quota_backend.h"         // NOLINT(misc-include-cleaner)
-#include "cluster/client_quota_frontend.h"        // NOLINT(misc-include-cleaner)
-#include "cluster/client_quota_store.h"           // NOLINT(misc-include-cleaner)
+#include "cluster/bootstrap_backend.h"     // NOLINT(misc-include-cleaner)
+#include "cluster/client_quota_backend.h"  // NOLINT(misc-include-cleaner)
+#include "cluster/client_quota_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/client_quota_store.h"    // NOLINT(misc-include-cleaner)
 #include "cluster/cloud_metadata/cluster_manifest.h"
 #include "cluster/cloud_metadata/cluster_recovery_backend.h"
 #include "cluster/cloud_metadata/error_outcome.h"
@@ -22,52 +22,52 @@
 #include "cluster/cloud_metadata/producer_id_recovery_manager.h"
 #include "cluster/cloud_metadata/uploader.h"
 #include "cluster/cluster_discovery.h"
-#include "cluster/cluster_link/frontend.h"        // NOLINT(misc-include-cleaner)
-#include "cluster/cluster_link/table.h"           // NOLINT(misc-include-cleaner)
-#include "cluster/cluster_recovery_table.h"       // NOLINT(misc-include-cleaner)
+#include "cluster/cluster_link/frontend.h"  // NOLINT(misc-include-cleaner)
+#include "cluster/cluster_link/table.h"     // NOLINT(misc-include-cleaner)
+#include "cluster/cluster_recovery_table.h" // NOLINT(misc-include-cleaner)
 #include "cluster/cluster_utils.h"
-#include "cluster/config_frontend.h"              // NOLINT(misc-include-cleaner)
-#include "cluster/controller_api.h"               // NOLINT(misc-include-cleaner)
+#include "cluster/config_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/controller_api.h"  // NOLINT(misc-include-cleaner)
 #include "cluster/controller_backend.h"
 #include "cluster/controller_forced_reconfiguration_manager.h"
 #include "cluster/controller_log_limiter.h"
 #include "cluster/controller_service.h"
 #include "cluster/controller_stm.h"
-#include "cluster/data_migrated_resources.h"      // NOLINT(misc-include-cleaner)
+#include "cluster/data_migrated_resources.h" // NOLINT(misc-include-cleaner)
 #include "cluster/data_migration_backend.h"
 #include "cluster/data_migration_frontend.h"
-#include "cluster/data_migration_irpc_frontend.h"  // NOLINT(misc-include-cleaner)
-#include "cluster/data_migration_router.h"         // NOLINT(misc-include-cleaner)
-#include "cluster/data_migration_table.h"          // NOLINT(misc-include-cleaner)
+#include "cluster/data_migration_irpc_frontend.h" // NOLINT(misc-include-cleaner)
+#include "cluster/data_migration_router.h" // NOLINT(misc-include-cleaner)
+#include "cluster/data_migration_table.h"  // NOLINT(misc-include-cleaner)
 #include "cluster/data_migration_types.h"
-#include "cluster/data_migration_worker.h"         // NOLINT(misc-include-cleaner)
+#include "cluster/data_migration_worker.h" // NOLINT(misc-include-cleaner)
 #include "cluster/ephemeral_credential_frontend.h" // NOLINT(misc-include-cleaner)
-#include "cluster/feature_backend.h"               // NOLINT(misc-include-cleaner)
+#include "cluster/feature_backend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/feature_manager.h"
 #include "cluster/fwd.h"
 #include "cluster/health_manager.h"
-#include "cluster/health_monitor_backend.h"        // NOLINT(misc-include-cleaner)
+#include "cluster/health_monitor_backend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/health_monitor_frontend.h"
 #include "cluster/logger.h"
 #include "cluster/members_backend.h"
-#include "cluster/members_frontend.h"              // NOLINT(misc-include-cleaner)
+#include "cluster/members_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/members_manager.h"
 #include "cluster/members_table.h"
 #include "cluster/metrics_reporter.h"
 #include "cluster/node_status_table.h"
 #include "cluster/partition_balancer_backend.h"
-#include "cluster/partition_balancer_state.h"      // NOLINT(misc-include-cleaner)
-#include "cluster/partition_leaders_table.h"       // NOLINT(misc-include-cleaner)
+#include "cluster/partition_balancer_state.h" // NOLINT(misc-include-cleaner)
+#include "cluster/partition_leaders_table.h"  // NOLINT(misc-include-cleaner)
 #include "cluster/partition_manager.h"
-#include "cluster/plugin_backend.h"                // NOLINT(misc-include-cleaner)
-#include "cluster/plugin_frontend.h"               // NOLINT(misc-include-cleaner)
+#include "cluster/plugin_backend.h"  // NOLINT(misc-include-cleaner)
+#include "cluster/plugin_frontend.h" // NOLINT(misc-include-cleaner)
 #include "cluster/raft0_utils.h"
 #include "cluster/scheduling/partition_allocator.h" // NOLINT(misc-include-cleaner)
 #include "cluster/security_frontend.h"
 #include "cluster/shard_balancer.h"
-#include "cluster/shard_placement_table.h"         // NOLINT(misc-include-cleaner)
+#include "cluster/shard_placement_table.h" // NOLINT(misc-include-cleaner)
 #include "cluster/shard_table.h"
-#include "cluster/topic_table.h"                   // NOLINT(misc-include-cleaner)
+#include "cluster/topic_table.h" // NOLINT(misc-include-cleaner)
 #include "cluster/topics_frontend.h"
 #include "cluster/types.h"
 #include "config/configuration.h"
@@ -79,11 +79,11 @@
 #include "model/timeout_clock.h"
 #include "raft/fundamental.h"
 #include "raft/fwd.h"
-#include "security/authorizer.h"                   // NOLINT(misc-include-cleaner)
-#include "security/credential_store.h"             // NOLINT(misc-include-cleaner)
-#include "security/ephemeral_credential_store.h"   // NOLINT(misc-include-cleaner)
+#include "security/authorizer.h"                 // NOLINT(misc-include-cleaner)
+#include "security/credential_store.h"           // NOLINT(misc-include-cleaner)
+#include "security/ephemeral_credential_store.h" // NOLINT(misc-include-cleaner)
 #include "security/oidc_service.h"
-#include "security/role_store.h"                   // NOLINT(misc-include-cleaner)
+#include "security/role_store.h" // NOLINT(misc-include-cleaner)
 #include "ssx/future-util.h"
 
 #include <seastar/core/future.hh>

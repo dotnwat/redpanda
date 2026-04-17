@@ -15,10 +15,10 @@
 #include "base/vlog.h"
 #include "config/configuration.h"
 #include "container/chunked_vector.h"
+#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/timeout_clock.h"
 #include "random/generators.h"
-#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
 #include "reflection/adl.h"
 #include "ssx/future-util.h"
 #include "ssx/when_all.h"

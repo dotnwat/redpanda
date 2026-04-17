@@ -14,8 +14,8 @@
 #include "model/fundamental.h"
 #include "serde/rw/iobuf.h"
 #include "serde/rw/named_type.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/optional.h" // NOLINT(misc-include-cleaner)
-#include "serde/rw/uuid.h" // NOLINT(misc-include-cleaner)
+#include "serde/rw/optional.h"   // NOLINT(misc-include-cleaner)
+#include "serde/rw/uuid.h"       // NOLINT(misc-include-cleaner)
 
 namespace cloud_topics::l1 {
 

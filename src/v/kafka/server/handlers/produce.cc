@@ -32,7 +32,6 @@
 #include <seastar/core/smp.hh>
 #include <seastar/util/log.hh>
 
-
 #include <chrono>
 #include <exception>
 #include <functional>

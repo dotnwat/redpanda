@@ -20,8 +20,8 @@
 #include "datalake/credential_manager.h"
 #include "datalake/datalake_manager.h"
 #include "debug_bundle/debug_bundle_service.h" // NOLINT(misc-include-cleaner)
-#include "kafka/data/rpc/client.h" // NOLINT(misc-include-cleaner)
-#include "kafka/server/usage_manager.h" // NOLINT(misc-include-cleaner)
+#include "kafka/data/rpc/client.h"             // NOLINT(misc-include-cleaner)
+#include "kafka/server/usage_manager.h"        // NOLINT(misc-include-cleaner)
 #include "pandaproxy/rest/api.h"
 #include "pandaproxy/schema_registry/api.h"
 #include "redpanda/admin/kafka_connections_service.h" // NOLINT(misc-include-cleaner)
@@ -30,9 +30,9 @@
 #include "resource_mgmt/scheduling_groups_probe.h" // NOLINT(misc-include-cleaner)
 #include "syschecks/syschecks.h"
 #include "transform/api.h"
-#include "transform/rpc/client.h" // NOLINT(misc-include-cleaner)
+#include "transform/rpc/client.h"  // NOLINT(misc-include-cleaner)
 #include "transform/rpc/service.h" // NOLINT(misc-include-cleaner)
-#include "wasm/cache.h" // NOLINT(misc-include-cleaner)
+#include "wasm/cache.h"            // NOLINT(misc-include-cleaner)
 #include "wasm/impl.h"
 
 #include <seastar/core/metrics.hh>

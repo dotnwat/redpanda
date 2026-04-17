@@ -15,7 +15,7 @@
 #include "http/client.h"
 #include "http/logger.h"
 #include "json/document.h" // NOLINT(misc-include-cleaner)
-#include "json/json.h"    // NOLINT(misc-include-cleaner)
+#include "json/json.h"     // NOLINT(misc-include-cleaner)
 #include "net/dns.h"
 #include "net/transport.h"
 

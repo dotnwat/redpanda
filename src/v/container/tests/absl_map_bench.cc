@@ -55,6 +55,7 @@
 #include <seastar/testing/perf_tests.hh>
 
 #include <boost/range/irange.hpp>
+
 #include <string_view>
 #include <unordered_map>
 

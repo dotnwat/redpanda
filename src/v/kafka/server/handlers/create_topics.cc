@@ -31,7 +31,6 @@
 #include <seastar/core/sstring.hh>
 #include <seastar/util/log.hh>
 
-
 #include <array>
 #include <chrono>
 #include <iterator>

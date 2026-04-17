@@ -12,7 +12,7 @@
 #include "security/scram_authenticator.h"
 #include "security/tests/randoms.h"
 #include "security/types.h"
-#include "test_utils/randoms.h"
+#include "test_utils/randoms.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/testing/thread_test_case.hh> // NOLINT(misc-include-cleaner)
 

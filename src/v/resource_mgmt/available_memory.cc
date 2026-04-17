@@ -19,7 +19,6 @@
 #include <seastar/core/metrics.hh>
 #include <seastar/core/metrics_registration.hh>
 
-
 #include <limits>
 #include <memory>
 

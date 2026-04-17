@@ -23,7 +23,6 @@
 #include <seastar/core/smp.hh>
 #include <seastar/util/log.hh>
 
-
 using namespace std::chrono_literals;
 
 namespace kafka {

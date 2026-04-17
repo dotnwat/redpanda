@@ -14,7 +14,7 @@
 #include "gtest/gtest.h"
 #include "random/generators.h"
 #include "serde/rw/rw.h"
-#include "serde/rw/vector.h"
+#include "serde/rw/vector.h" // NOLINT(misc-include-cleaner)
 
 #include <gtest/gtest.h>
 

@@ -13,7 +13,7 @@
 #include "iceberg/values.h"
 #include "iceberg/values_json.h"
 #include "json/document.h"
-#include "json/json.h"            // NOLINT(misc-include-cleaner)
+#include "json/json.h" // NOLINT(misc-include-cleaner)
 #include "test_utils/random_bytes.h"
 
 #include <gtest/gtest.h>

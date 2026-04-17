@@ -32,16 +32,14 @@
 #include "storage/segment_utils.h"
 
 #include <seastar/core/abort_source.hh>
+#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/shared_ptr.hh>
-
-#include <cstring>
-#include <filesystem>
-
-#include <seastar/core/future-util.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/when_all.hh>
 
 #include <algorithm>
+#include <cstring>
+#include <filesystem>
 #include <iterator>
 #include <vector>
 

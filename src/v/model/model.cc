@@ -19,7 +19,7 @@
 #include "model/record.h"
 #include "model/record_batch_types.h"
 #include "model/timestamp.h"
-#include "serde/rw/enum.h"    // NOLINT(misc-include-cleaner)
+#include "serde/rw/enum.h" // NOLINT(misc-include-cleaner)
 #include "serde/rw/rw.h"
 #include "serde/rw/sstring.h" // NOLINT(misc-include-cleaner)
 #include "serde/serde_exception.h"

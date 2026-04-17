@@ -24,6 +24,7 @@
 
 #include <boost/test/tools/old/interface.hpp>
 #include <boost/test/unit_test.hpp>
+
 #include <set>
 
 using namespace cloud_io;

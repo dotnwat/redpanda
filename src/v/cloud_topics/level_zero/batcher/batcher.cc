@@ -10,12 +10,12 @@
 
 #include "cloud_topics/level_zero/batcher/batcher.h"
 
+#include "cloud_io/remote.h" // NOLINT(misc-include-cleaner)
 #include "cloud_topics/errc.h"
 #include "cloud_topics/level_zero/batcher/aggregator.h"
 #include "cloud_topics/logger.h"
 #include "cloud_topics/object_utils.h"
 #include "cloud_topics/types.h"
-#include "cloud_io/remote.h" // NOLINT(misc-include-cleaner)
 #include "config/configuration.h"
 #include "utils/human.h"
 

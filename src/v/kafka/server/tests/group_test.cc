@@ -18,7 +18,7 @@
 #include <seastar/testing/thread_test_case.hh>
 
 #include <boost/test/unit_test.hpp>
-#include <boost/uuid/uuid.hpp>             // NOLINT(misc-include-cleaner)
+#include <boost/uuid/uuid.hpp>            // NOLINT(misc-include-cleaner)
 #include <boost/uuid/uuid_generators.hpp> // NOLINT(misc-include-cleaner)
 
 #include <chrono>

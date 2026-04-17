@@ -15,7 +15,6 @@
 
 #include <seastar/core/temporary_buffer.hh>
 
-
 namespace kafka {
 
 namespace {

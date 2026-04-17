@@ -27,7 +27,7 @@
 #include <seastar/util/file.hh>
 
 #include <avro/DataFile.hh>
-#include <avro/Generic.hh>       // NOLINT(misc-include-cleaner)
+#include <avro/Generic.hh> // NOLINT(misc-include-cleaner)
 #include <avro/GenericDatum.hh>
 #include <gtest/gtest.h>
 

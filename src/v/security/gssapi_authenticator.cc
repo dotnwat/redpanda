@@ -17,7 +17,7 @@
 #include "security/krb5.h"
 #include "security/logger.h"
 #include "ssx/thread_worker.h"
-#include "thirdparty/krb5/gssapi.h"
+#include "thirdparty/krb5/gssapi.h" // NOLINT(misc-include-cleaner)
 #include "thirdparty/krb5/gssapi_ext.h" // NOLINT(misc-include-cleaner)
 
 #include <boost/outcome/success_failure.hpp>

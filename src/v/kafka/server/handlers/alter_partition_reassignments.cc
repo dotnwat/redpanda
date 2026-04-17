@@ -23,7 +23,6 @@
 #include "model/namespace.h"
 #include "model/timeout_clock.h"
 
-
 #include <algorithm>
 #include <iterator>
 #include <vector>

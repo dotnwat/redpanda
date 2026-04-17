@@ -10,8 +10,8 @@
 #include "bytes/bytes.h"
 #include "kafka/protocol/wire.h"
 #include "kafka/server/group_metadata.h"
-#include "kafka/server/server.h"  // NOLINT(misc-include-cleaner)
-#include "model/adl_serde.h" // NOLINT(misc-include-cleaner)
+#include "kafka/server/server.h" // NOLINT(misc-include-cleaner)
+#include "model/adl_serde.h"     // NOLINT(misc-include-cleaner)
 #include "model/fundamental.h"
 #include "model/record.h"
 #include "model/record_batch_types.h"

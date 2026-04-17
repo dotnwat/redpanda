@@ -23,11 +23,9 @@
 #include "iceberg/values_avro.h"
 #include "strings/string_switch.h"
 
-#include <avro/Generic.hh> // NOLINT(misc-include-cleaner)
-#include <avro/Schema.hh> // NOLINT(misc-include-cleaner)
-
 #include <avro/Compiler.hh>
 #include <avro/DataFile.hh>
+#include <avro/Generic.hh> // NOLINT(misc-include-cleaner)
 #include <avro/GenericDatum.hh>
 #include <avro/Schema.hh> // NOLINT(misc-include-cleaner)
 
