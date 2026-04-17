@@ -14,7 +14,7 @@
 #include "compression/lz4_decompression_buffers.h"
 #include "random/generators.h"
 
-#include <gmock/gmock.h>
+#include <gmock/gmock.h> // NOLINT(misc-include-cleaner)
 
 using enum compression::lz4_decompression_buffers::alloc_ctx::allocation_state;
 

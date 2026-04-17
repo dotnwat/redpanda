@@ -7,7 +7,7 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 #include "base/seastarx.h"
-#include "gmock/gmock.h"
+#include "gmock/gmock.h" // NOLINT(misc-include-cleaner)
 #include "ssx/async-clear.h" // NOLINT(misc-include-cleaner)
 #include "ssx/async_algorithm.h"
 #include "ssx/future-util.h" // NOLINT(misc-include-cleaner)

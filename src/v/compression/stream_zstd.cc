@@ -16,7 +16,7 @@
 
 #include <seastar/core/aligned_buffer.hh>
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 #include <array>
 #include <zstd.h>

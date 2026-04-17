@@ -11,7 +11,6 @@
 
 #include "compression/lz4_decompression_buffers.h"
 
-#include "base/units.h"
 #include "base/vassert.h"
 
 #include <seastar/coroutine/all.hh> // NOLINT(misc-include-cleaner)

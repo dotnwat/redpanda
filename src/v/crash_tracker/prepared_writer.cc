@@ -21,14 +21,9 @@
 #include <seastar/core/file.hh>
 #include <seastar/core/seastar.hh>
 
-#include <fmt/chrono.h>
-
-#include <chrono>
 #include <fcntl.h>
 #include <system_error>
 #include <unistd.h>
-
-using namespace std::chrono_literals;
 
 namespace crash_tracker {
 

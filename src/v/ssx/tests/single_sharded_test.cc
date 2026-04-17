@@ -10,7 +10,7 @@
 #include "ssx/future-util.h"
 #include "ssx/single_sharded.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 #include <seastar/core/shard_id.hh>
 #include <seastar/core/sharded.hh>

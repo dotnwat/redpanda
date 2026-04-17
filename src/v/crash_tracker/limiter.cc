@@ -18,7 +18,7 @@
 #include "utils/file_io.h"
 
 #include <seastar/core/abort_source.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/seastar.hh>
 #include <seastar/core/sleep.hh>
 

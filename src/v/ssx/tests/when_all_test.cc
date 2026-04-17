@@ -13,12 +13,11 @@
 
 #include <seastar/core/future.hh>
 #include <seastar/core/lowres_clock.hh>
-#include <seastar/core/memory.hh>
+#include <seastar/core/memory.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sleep.hh>
-#include <seastar/core/smp.hh>
+#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
 
 #include <boost/container/static_vector.hpp>
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 
 #include <memory>

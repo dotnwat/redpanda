@@ -16,7 +16,7 @@
 
 #include <boost/test/tools/old/interface.hpp>
 
-#include <chrono>
+#include <chrono> // NOLINT(misc-include-cleaner)
 
 using namespace std::chrono_literals;
 

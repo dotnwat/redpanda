@@ -17,7 +17,6 @@
 #include <seastar/core/app-template.hh>
 #include <seastar/core/smp_options.hh>
 
-
 #include <exception>
 
 int main(int ac, char* av[]) {

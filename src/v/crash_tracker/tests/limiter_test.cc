@@ -11,7 +11,6 @@
 #include "crash_tracker/limiter.h"
 #include "crash_tracker/recorder.h"
 #include "crash_tracker/types.h"
-#include "model/timestamp.h"
 #include "utils/arch.h"
 #include "version/version.h"
 

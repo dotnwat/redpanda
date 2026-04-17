@@ -13,7 +13,7 @@
 #include <seastar/testing/perf_tests.hh>
 
 #include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_io.hpp> // NOLINT(misc-include-cleaner)
 
 const auto identifier = fmt::format(
   fmt::runtime("{}"), boost::uuids::random_generator()());

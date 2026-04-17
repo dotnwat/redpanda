@@ -11,7 +11,6 @@
 
 #include <seastar/core/future.hh>
 #include <seastar/core/manual_clock.hh>
-#include <seastar/core/sleep.hh>
 #include <seastar/util/later.hh>
 
 #include <gmock/gmock.h>

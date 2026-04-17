@@ -14,7 +14,7 @@
 #include "crash_tracker/limiter.h"
 #include "crash_tracker/recorder.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace crash_tracker {
 

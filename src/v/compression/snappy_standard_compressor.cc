@@ -15,7 +15,7 @@
 #include "snappy-sinksource.h"
 #include "snappy.h"
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 
 namespace compression {
 

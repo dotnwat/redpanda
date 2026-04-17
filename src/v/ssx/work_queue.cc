@@ -13,7 +13,6 @@
 
 #include <seastar/core/scheduling.hh>
 #include <seastar/core/with_scheduling_group.hh>
-#include <seastar/coroutine/switch_to.hh>
 
 namespace ssx {
 

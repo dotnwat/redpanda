@@ -14,7 +14,6 @@
 #include "crash_tracker/limiter.h"
 #include "crash_tracker/recorder.h"
 
-
 namespace crash_tracker {
 
 class service {

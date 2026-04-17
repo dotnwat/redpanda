@@ -12,13 +12,12 @@
 #include "base/likely.h"
 #include "base/units.h"
 #include "base/vassert.h"
-#include "bytes/details/io_allocation_size.h"
 #include "bytes/ioarray.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/maybe_yield.hh>
 
-#include <fmt/format.h>
+#include <fmt/format.h> // NOLINT(misc-include-cleaner)
 #include <sys/uio.h> // NOLINT(misc-include-cleaner)
 
 #include <zstd.h>

@@ -12,9 +12,7 @@
 #include "base/likely.h"
 #include "bytes/details/io_iterator_consumer.h"
 #include "compression/snappy_standard_compressor.h"
-#include "snappy-sinksource.h"
 #include "snappy.h"
-
 
 #include <cstring>
 
