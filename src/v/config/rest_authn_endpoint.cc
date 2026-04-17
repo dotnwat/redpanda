@@ -9,7 +9,6 @@
 
 #include "config/rest_authn_endpoint.h"
 
-#include "model/metadata.h"
 #include "strings/string_switch.h"
 
 namespace config {

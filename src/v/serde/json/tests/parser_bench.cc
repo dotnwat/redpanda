@@ -14,15 +14,11 @@
 #include "serde/json/parser.h"
 #include "serde/json/tests/data.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/testing/perf_tests.hh>
 
 #include <boost/test/unit_test.hpp>
-#include <rapidjson/document.h>
-#include <rapidjson/error/en.h>
 #include <rapidjson/istreamwrapper.h>
-
-#include <utility>
 
 using namespace serde::json;
 

@@ -9,7 +9,7 @@
 
 #include "config/leaders_preference.h"
 
-#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string.hpp> // NOLINT(misc-include-cleaner)
 #include <fmt/format.h>
 
 #include <ranges>

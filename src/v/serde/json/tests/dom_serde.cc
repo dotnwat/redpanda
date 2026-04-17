@@ -12,7 +12,7 @@
 #include "serde/json/parser.h"
 #include "serde/json/tests/dom.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace serde::json::test::dom {
 

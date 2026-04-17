@@ -22,7 +22,6 @@
 
 #include <seastar/core/sstring.hh>
 
-#include <boost/algorithm/string/compare.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <fmt/compile.h>

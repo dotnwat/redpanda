@@ -11,7 +11,6 @@
 
 #include "config/configuration.h"
 #include "config/node_config.h"
-#include "model/metadata.h"
 #include "strings/string_switch.h"
 
 #include <algorithm>

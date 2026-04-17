@@ -15,7 +15,7 @@
 #include "json/istreamwrapper.h"
 #include "json/reader.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <rapidjson/error/en.h>
 

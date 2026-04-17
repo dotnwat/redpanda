@@ -13,7 +13,7 @@
 #include "base/vassert.h"
 #include "io/pager.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace experimental::io {
 

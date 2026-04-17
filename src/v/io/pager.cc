@@ -15,8 +15,7 @@
 #include "io/page_cache.h"
 
 #include <seastar/core/align.hh>
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/sleep.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <span>
 

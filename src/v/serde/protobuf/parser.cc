@@ -14,7 +14,7 @@
 #include "bytes/iobuf_parser.h"
 #include "serde/protobuf/wire_format.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
 #include <google/protobuf/descriptor.h>

@@ -17,12 +17,10 @@
 #include "serde/json/writer.h"
 
 #include <rapidjson/document.h>
-#include <rapidjson/reader.h>
 #include <rapidjson/writer.h>
 
 #include <cstdlib>
 #include <numbers>
-#include <source_location>
 
 namespace {
 

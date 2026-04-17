@@ -7,12 +7,11 @@
 // the Business Source License, use of this software will be governed
 // by the Apache License, Version 2.0
 
-#include "config/configuration.h"
+#include "config/configuration.h" // NOLINT(misc-include-cleaner)
 
-#include <seastar/core/thread.hh>
 #include <seastar/testing/thread_test_case.hh>
 
-#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h> // NOLINT(misc-include-cleaner)
 
 auto ipv4_address_str = "test_addr:\n"
                         "  address: 192.168.0.1\n"

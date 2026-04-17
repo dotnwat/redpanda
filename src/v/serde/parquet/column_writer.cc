@@ -18,7 +18,7 @@
 #include "serde/parquet/column_stats_collector.h"
 #include "serde/parquet/encoding.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/variant_utils.hh>
 
 #include <limits>

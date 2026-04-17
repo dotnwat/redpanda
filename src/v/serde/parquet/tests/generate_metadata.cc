@@ -14,7 +14,7 @@
 #include "serde/parquet/metadata.h"
 
 #include <seastar/core/app-template.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/file.hh>
 #include <seastar/core/fstream.hh>
 #include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)

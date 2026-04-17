@@ -10,14 +10,9 @@
 
 #include "gcp_refresh_impl.h"
 
-#include "bytes/streambuf.h"
-#include "cloud_roles/logger.h"
-#include "json/document.h"
-#include "json/istreamwrapper.h"
 #include "request_response_helpers.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/sleep.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace cloud_roles {
 static constexpr std::string_view token_path

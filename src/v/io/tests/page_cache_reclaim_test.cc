@@ -14,12 +14,11 @@
 #include "io/page_set.h"
 #include "ssx/async_algorithm.h"
 #include "test_utils/randoms.h"
-#include "test_utils/test.h"
+#include "test_utils/test.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/core/align.hh>
-#include <seastar/core/coroutine.hh>
 #include <seastar/core/gate.hh>
-#include <seastar/core/seastar.hh>
+#include <seastar/core/seastar.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/later.hh>
 #include <seastar/util/log.hh>
 

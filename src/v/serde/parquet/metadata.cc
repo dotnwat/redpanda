@@ -16,7 +16,7 @@
 
 #include <seastar/util/variant_utils.hh>
 
-#include <climits>
+#include <climits> // NOLINT(misc-include-cleaner)
 #include <utility>
 #include <variant>
 

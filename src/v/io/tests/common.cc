@@ -14,7 +14,7 @@
 #include "base/units.h"
 
 #include <seastar/core/align.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/sleep.hh>
 #include <seastar/core/thread.hh>
 #include <seastar/util/later.hh>

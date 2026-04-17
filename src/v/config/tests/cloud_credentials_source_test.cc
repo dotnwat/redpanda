@@ -8,11 +8,11 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "config/configuration.h"
+#include "config/configuration.h" // NOLINT(misc-include-cleaner)
 
 #include <seastar/testing/thread_test_case.hh>
 
-#include <yaml-cpp/yaml.h>
+#include <yaml-cpp/yaml.h> // NOLINT(misc-include-cleaner)
 
 static constexpr auto source_mapping
   = std::to_array<std::pair<model::cloud_credentials_source, std::string_view>>(

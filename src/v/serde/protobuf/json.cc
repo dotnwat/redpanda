@@ -14,12 +14,11 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
-#include "base/units.h"
 #include "serde/json/writer.h"
 #include "serde/protobuf/field_mask.h"
 #include "utils/base64.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/future.hh>
 
 #include <algorithm>

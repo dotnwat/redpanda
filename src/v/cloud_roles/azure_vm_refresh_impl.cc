@@ -10,11 +10,7 @@
 
 #include "azure_vm_refresh_impl.h"
 
-#include "json/ostreamwrapper.h"
-#include "json/schema.h"
 #include "request_response_helpers.h"
-
-#include <rapidjson/error/en.h>
 
 namespace cloud_roles {
 

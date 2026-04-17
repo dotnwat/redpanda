@@ -15,8 +15,7 @@
 #include "logger.h"
 #include "ssx/future-util.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/sleep.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace experimental::io {
 

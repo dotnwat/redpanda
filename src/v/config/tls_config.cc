@@ -12,11 +12,10 @@
 #include "tls_config.h"
 
 #include "config/configuration.h"
-#include "config/convert.h"
+#include "config/convert.h" // NOLINT(misc-include-cleaner)
 #include "net/tls.h"
 #include "utils/to_string.h"
 
-#include <seastar/core/do_with.hh>
 #include <seastar/core/shared_ptr.hh>
 #include <seastar/net/tls.hh>
 #include <seastar/util/defer.hh>

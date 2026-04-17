@@ -10,9 +10,7 @@
  */
 #include "io/persistence.h"
 
-#include "base/units.h"
-
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/loop.hh>
 #include <seastar/core/seastar.hh>
 #include <seastar/util/later.hh>

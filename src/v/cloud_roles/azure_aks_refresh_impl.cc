@@ -11,7 +11,6 @@
 #include "azure_aks_refresh_impl.h"
 
 #include "http/utils.h"
-#include "json/schema.h"
 #include "request_response_helpers.h"
 #include "utils/file_io.h"
 
@@ -19,7 +18,6 @@
 #include <seastar/coroutine/exception.hh>
 
 #include <boost/algorithm/string/trim.hpp>
-#include <rapidjson/error/en.h>
 
 #include <ada.h>
 
