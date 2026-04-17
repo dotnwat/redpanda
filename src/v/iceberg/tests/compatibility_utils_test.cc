@@ -8,7 +8,6 @@
  * https://github.com/redpanda-data/redpanda/blob/master/licenses/rcl.md
  */
 
-#include "iceberg/compatibility.h"
 #include "iceberg/compatibility_utils.h"
 #include "iceberg/datatypes.h"
 #include "iceberg/tests/test_schemas.h"

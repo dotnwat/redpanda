@@ -19,7 +19,7 @@
 #include "utils/uuid.h"
 
 #include <seastar/core/fstream.hh>
-#include <seastar/core/reactor.hh>
+#include <seastar/core/reactor.hh> // NOLINT(misc-include-cleaner)
 
 #include <exception>
 #include <system_error>

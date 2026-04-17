@@ -11,8 +11,6 @@
 #include "lsm/block/filter.h"
 #include "lsm/core/internal/keys.h"
 
-#include <seastar/core/file.hh>
-
 #include <gtest/gtest.h>
 
 namespace {

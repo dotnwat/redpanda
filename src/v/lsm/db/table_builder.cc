@@ -11,7 +11,7 @@
 #include "lsm/core/internal/files.h"
 #include "lsm/sst/builder.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace lsm::db {
 

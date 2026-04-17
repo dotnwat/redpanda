@@ -12,8 +12,6 @@
 #include "lsm/core/internal/keys.h"
 #include "lsm/core/internal/tests/iterator_test_harness.h"
 
-#include <seastar/core/file.hh>
-
 #include <gtest/gtest.h>
 
 namespace {

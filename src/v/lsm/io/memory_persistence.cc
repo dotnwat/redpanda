@@ -15,7 +15,7 @@
 #include "lsm/core/exceptions.h"
 #include "lsm/core/internal/files.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <map>
 #include <memory>

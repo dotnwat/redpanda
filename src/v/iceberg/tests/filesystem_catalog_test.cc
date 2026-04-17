@@ -13,12 +13,8 @@
 #include "cloud_io/tests/scoped_remote.h"
 #include "iceberg/datatypes.h"
 #include "iceberg/filesystem_catalog.h"
-#include "iceberg/logger.h"
 #include "iceberg/schema.h"
-#include "iceberg/table_metadata_json.h"
 #include "iceberg/tests/test_schemas.h"
-#include "iceberg/transform.h"
-#include "json/document.h"
 
 #include <gtest/gtest.h>
 

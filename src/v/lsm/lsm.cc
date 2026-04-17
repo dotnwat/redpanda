@@ -16,7 +16,7 @@
 #include "lsm/db/memtable.h"
 #include "ssx/time.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <stdexcept>
 #include <utility>

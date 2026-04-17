@@ -11,8 +11,6 @@
 #include "lsm/io/memory_persistence.h"
 #include "test_utils/test.h"
 
-#include <seastar/core/file.hh>
-
 #include <gtest/gtest.h>
 
 #include <limits>

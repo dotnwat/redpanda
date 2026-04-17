@@ -8,7 +8,7 @@
 
 #include "lsm/core/internal/two_level_iterator.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace lsm::internal {
 

@@ -9,7 +9,6 @@
  * by the Apache License, Version 2.0
  */
 
-#include "cloud_io/remote.h"
 #include "cloud_io/tests/s3_imposter.h"
 #include "cloud_io/tests/scoped_remote.h"
 #include "cloud_storage_clients/types.h"
@@ -20,10 +19,10 @@
 #include "lsm/io/persistence.h"
 #include "utils/uuid.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/defer.hh>
 
-#include <gmock/gmock-matchers.h>
+#include <gmock/gmock.h> // NOLINT(misc-include-cleaner)
 #include <gtest/gtest.h>
 
 using namespace lsm::io;

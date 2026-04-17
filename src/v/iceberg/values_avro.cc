@@ -13,7 +13,6 @@
 #include "iceberg/avro_decimal.h"
 #include "iceberg/values.h"
 
-#include <avro/Generic.hh>
 #include <avro/GenericDatum.hh>
 #include <avro/Node.hh>
 #include <avro/Types.hh>

@@ -11,23 +11,18 @@
 #include "iceberg/conversion/protobuf_utils.h"
 #include "iceberg/conversion/schema_protobuf.h"
 #include "iceberg/conversion/tests/gmock_iceberg_matchers.h"
-#include "iceberg/conversion/tests/proto_definitions.h"
+#include "iceberg/conversion/tests/proto_definitions.h" // NOLINT(misc-include-cleaner)
 #include "iceberg/conversion/values_protobuf.h"
 #include "iceberg/datatypes.h"
 #include "test_utils/test.h"
 
-#include <seastar/core/sstring.hh>
-
 #include <fmt/core.h>
-#include <fmt/ostream.h>
 #include <gmock/gmock.h>
 #include <google/protobuf/compiler/parser.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/message.h>
 #include <gtest/gtest.h>
-#include <rapidjson/document.h>
 
 #include <memory>
 #include <optional>

@@ -13,7 +13,7 @@
 #include "lsm/io/persistence.h"
 #include "lsm/io/readahead_file_reader.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <gtest/gtest.h>
 

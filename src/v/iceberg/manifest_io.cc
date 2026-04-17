@@ -9,14 +9,11 @@
  */
 #include "iceberg/manifest_io.h"
 
-#include "bytes/iobuf.h"
 #include "iceberg/manifest.h"
 #include "iceberg/manifest_avro.h"
 #include "iceberg/manifest_list.h"
 #include "iceberg/manifest_list_avro.h"
 #include "ssx/future-util.h"
-
-#include <exception>
 
 using namespace std::chrono_literals;
 

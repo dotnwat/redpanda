@@ -12,13 +12,11 @@
 #include "bytes/bytes.h"
 #include "bytes/streambuf.h"
 #include "pandaproxy/schema_registry/types.h"
-#include "wasm/errc.h"
 #include "wasm/tests/wasm_fixture.h"
-
 
 #include <avro/Compiler.hh>
 #include <avro/Encoder.hh>
-#include <avro/Generic.hh>
+#include <avro/Generic.hh>       // NOLINT(misc-include-cleaner)
 #include <avro/GenericDatum.hh>
 #include <avro/Specific.hh>
 #include <avro/Stream.hh>

@@ -21,7 +21,7 @@
 #include "lsm/db/version_edit.h"
 #include "lsm/proto/manifest.proto.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/coroutine/as_future.hh>
 
 #include <algorithm>

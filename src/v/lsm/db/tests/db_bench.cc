@@ -21,13 +21,13 @@
 #include "ssx/future-util.h"
 
 #include <seastar/core/app-template.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/reactor.hh>
 #include <seastar/core/signal.hh>
-#include <seastar/core/smp.hh>
+#include <seastar/core/smp.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/log.hh>
 
-#include <boost/program_options.hpp>
+#include <boost/program_options.hpp> // NOLINT(misc-include-cleaner)
 
 #include <chrono>
 #include <exception>

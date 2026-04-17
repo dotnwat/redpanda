@@ -15,7 +15,7 @@
 #include <seastar/core/align.hh>
 #include <seastar/core/aligned_buffer.hh>
 #include <seastar/core/future.hh>
-#include <seastar/core/print.hh>
+#include <seastar/core/print.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/core/when_all.hh>
 #include <seastar/coroutine/maybe_yield.hh>
 

@@ -13,7 +13,7 @@
 #include "lsm/core/internal/logger.h"
 #include "lsm/db/table_builder.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <exception>
 

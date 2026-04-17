@@ -12,7 +12,7 @@
 #include "ssx/semaphore.h"
 #include "utils/chunked_kv_cache.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace lsm::sst {
 

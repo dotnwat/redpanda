@@ -8,7 +8,6 @@
 
 #include "base/seastarx.h"
 #include "bytes/iobuf.h"
-#include "lsm/core/internal/files.h"
 #include "lsm/core/internal/keys.h"
 #include "lsm/core/internal/options.h"
 #include "lsm/db/flush_task.h"
@@ -19,7 +18,7 @@
 #include "lsm/sst/block_cache.h"
 #include "random/generators.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/testing/perf_tests.hh>
 #include <seastar/util/defer.hh>
 

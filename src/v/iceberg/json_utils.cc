@@ -10,8 +10,6 @@
 
 #include "iceberg/json_utils.h"
 
-#include <fmt/format.h>
-
 #include <stdexcept>
 
 namespace iceberg {

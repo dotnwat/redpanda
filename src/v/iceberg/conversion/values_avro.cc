@@ -15,7 +15,7 @@
 #include "iceberg/conversion/avro_utils.h"
 #include "serde/avro/parser.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 #include <seastar/util/log.hh> // NOLINT(misc-include-cleaner)
 
 namespace iceberg {

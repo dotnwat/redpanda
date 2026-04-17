@@ -12,7 +12,7 @@
 
 #include "iceberg/logger.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace iceberg {
 

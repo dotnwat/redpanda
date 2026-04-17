@@ -16,7 +16,7 @@
 #include "iceberg/table_update.h"
 #include "model/timestamp.h"
 
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 namespace iceberg {
 

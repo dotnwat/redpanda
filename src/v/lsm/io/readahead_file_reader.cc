@@ -12,7 +12,7 @@
 #include "lsm/io/readahead_file_reader.h"
 
 #include <seastar/core/align.hh>
-#include <seastar/core/coroutine.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <algorithm>
 

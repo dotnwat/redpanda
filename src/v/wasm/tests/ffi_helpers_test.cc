@@ -11,9 +11,7 @@
 
 #include "model/fundamental.h"
 #include "model/namespace.h"
-#include "random/generators.h"
 #include "test_utils/random_bytes.h"
-#include "test_utils/test.h"
 #include "wasm/ffi.h"
 
 #include <gmock/gmock.h>

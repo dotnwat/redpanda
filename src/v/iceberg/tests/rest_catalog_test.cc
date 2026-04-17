@@ -16,7 +16,7 @@
 #include "iceberg/json_writer.h"
 #include "iceberg/rest_catalog.h"
 #include "iceberg/rest_client/catalog_client.h"
-#include "iceberg/table_metadata_json.h"
+#include "iceberg/table_metadata_json.h" // NOLINT(misc-include-cleaner)
 #include "json/chunked_buffer.h"
 
 #include <seastar/core/sleep.hh>

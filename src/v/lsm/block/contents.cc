@@ -8,8 +8,7 @@
 
 #include "lsm/block/contents.h"
 
-#include <seastar/core/align.hh>
-#include <seastar/core/file.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <cstdlib>
 

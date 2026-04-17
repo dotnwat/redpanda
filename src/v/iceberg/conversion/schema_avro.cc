@@ -14,7 +14,7 @@
 #include <seastar/util/defer.hh>
 #include <seastar/util/log.hh> // NOLINT(misc-include-cleaner)
 
-#include <avro/Schema.hh>
+#include <avro/Schema.hh> // NOLINT(misc-include-cleaner)
 
 namespace iceberg {
 

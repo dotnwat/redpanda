@@ -18,20 +18,17 @@
 #include "iceberg/manifest_list.h"
 #include "iceberg/manifest_list_avro.h"
 #include "iceberg/partition_key_type.h"
-#include "iceberg/schema_json.h"
 #include "iceberg/tests/test_schemas.h"
 #include "serde/avro/tests/avro_comparator.h"
 #include "test_utils/runfiles.h"
-#include "utils/file_io.h"
 
 #include <seastar/core/reactor.hh>
 #include <seastar/core/temporary_buffer.hh>
 #include <seastar/util/file.hh>
 
 #include <avro/DataFile.hh>
-#include <avro/Generic.hh>
+#include <avro/Generic.hh>       // NOLINT(misc-include-cleaner)
 #include <avro/GenericDatum.hh>
-#include <avro/Stream.hh>
 #include <gtest/gtest.h>
 
 using namespace iceberg;

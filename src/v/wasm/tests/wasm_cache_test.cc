@@ -19,7 +19,6 @@
 #include "wasm/engine.h"
 #include "wasm/wasi_logger.h"
 
-#include <seastar/core/lowres_clock.hh>
 #include <seastar/core/sharded.hh>
 #include <seastar/core/shared_ptr.hh>
 #include <seastar/core/thread.hh> // NOLINT(misc-include-cleaner)

@@ -12,8 +12,6 @@
 #include "base/units.h"
 #include "bytes/iobuf.h"
 #include "iceberg/avro_utils.h"
-#include "iceberg/datatypes_json.h"
-#include "iceberg/json_utils.h"
 #include "iceberg/manifest.h"
 #include "iceberg/manifest_entry_type.h"
 #include "iceberg/manifest_entry_values.h"
@@ -25,11 +23,13 @@
 #include "iceberg/values_avro.h"
 #include "strings/string_switch.h"
 
+#include <avro/Generic.hh> // NOLINT(misc-include-cleaner)
+#include <avro/Schema.hh> // NOLINT(misc-include-cleaner)
+
 #include <avro/Compiler.hh>
 #include <avro/DataFile.hh>
-#include <avro/Generic.hh>
 #include <avro/GenericDatum.hh>
-#include <avro/Schema.hh>
+#include <avro/Schema.hh> // NOLINT(misc-include-cleaner)
 
 namespace iceberg {
 

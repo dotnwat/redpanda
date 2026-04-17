@@ -13,7 +13,7 @@
 #include "model/tests/random_batch.h"
 #include "model/tests/randoms.h"
 #include "model/transform.h"
-#include "schema/registry.h"
+#include "schema/registry.h" // NOLINT(misc-include-cleaner)
 #include "ssx/future-util.h"
 #include "test_utils/randoms.h"
 #include "test_utils/runfiles.h"

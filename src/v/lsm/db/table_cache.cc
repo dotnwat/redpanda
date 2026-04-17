@@ -20,8 +20,7 @@
 #include "ssx/work_queue.h"
 #include "utils/s3_fifo.h"
 
-#include <seastar/core/coroutine.hh>
-#include <seastar/core/weak_ptr.hh>
+#include <seastar/core/coroutine.hh> // NOLINT(misc-include-cleaner)
 
 #include <exception>
 #include <utility>
