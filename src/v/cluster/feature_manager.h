@@ -221,6 +221,20 @@ private:
     // via leadership notifications
     bool _am_controller_leader{false};
 
+    // The raft0 term this node currently believes itself to be the
+    // controller leader for. Updated from the leadership notification
+    // alongside _am_controller_leader.
+    std::optional<model::term_id> _leader_term;
+
+    // The most recent term for which we have completed a linearizable
+    // barrier against raft0 and waited for the controller STM to apply
+    // through the barrier offset. Until this matches _leader_term, the
+    // background loop must not consult cluster-config values whose
+    // intermediate replay state could cause incorrect decisions (e.g.
+    // features_auto_finalization racing a freshly-elected leader's
+    // controller log replay).
+    std::optional<model::term_id> _caught_up_for_term;
+
     // Whether an operator has issued a manual finalization request that
     // has not yet been honored by the background loop. In-memory only:
     // not persisted to the controller log, so a leader change or crash

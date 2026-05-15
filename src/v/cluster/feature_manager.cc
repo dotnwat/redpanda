@@ -148,6 +148,17 @@ feature_manager::start(std::vector<model::node_id>&& cluster_founder_nodes) {
             vlog(
               clusterlog.debug, "Controller leader notification term {}", term);
             _am_controller_leader = leader_id == *config::node().node_id();
+            if (_am_controller_leader) {
+                _leader_term = term;
+            } else {
+                _leader_term.reset();
+            }
+            // Force the background loop to re-establish a linearizable
+            // barrier on every leadership transition: cluster-config
+            // values it consults must not be read until we have applied
+            // every controller log entry committed at the time we took
+            // leadership.
+            _caught_up_for_term.reset();
 
             // This hook avoids the need for the controller leader to receive
             // its own health report to generate a call to update_node_version.
@@ -563,6 +574,46 @@ ss::future<> feature_manager::do_maybe_update_active_version() {
 
     if (!_am_controller_leader) {
         co_return;
+    }
+
+    // The controller replays committed entries through the muxed
+    // config_manager concurrently with this loop, so without a barrier
+    // we can observe intermediate cluster-config states mid-replay —
+    // for example a transient value of features_auto_finalization
+    // before the operator's override has been applied. Wait once per
+    // term for the STM to apply through a linearizable barrier offset;
+    // while leadership is held, subsequent committed entries replicate
+    // through us, so per-tick barriers aren't needed.
+    if (
+      !_caught_up_for_term.has_value() || _caught_up_for_term != _leader_term) {
+        vassert(_leader_term.has_value(), "leader without term");
+        const auto target_term = *_leader_term;
+        auto deadline = model::timeout_clock::now() + status_retry;
+        auto barrier = co_await _stm.local().insert_linearizable_barrier(
+          deadline);
+        if (!barrier) {
+            vlog(
+              clusterlog.debug,
+              "Deferring active version update: linearizable barrier "
+              "failed: {}",
+              barrier.error());
+            co_return;
+        }
+        if (!_am_controller_leader || _leader_term != target_term) {
+            vlog(
+              clusterlog.debug,
+              "Deferring active version update: leadership changed "
+              "during barrier (was term {}, now {})",
+              target_term,
+              _leader_term);
+            co_return;
+        }
+        _caught_up_for_term = target_term;
+        vlog(
+          clusterlog.debug,
+          "Controller STM caught up to barrier offset {} in term {}",
+          barrier.value().first,
+          target_term);
     }
 
     // Apply updates into _node_versions
